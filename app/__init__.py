@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask import flash, redirect, request
 from flask_jwt_extended import JWTManager
 from flask_login import LoginManager
 from flask_pymongo import PyMongo
@@ -66,5 +67,10 @@ def create_app(env_name="development"):
 
     with app.app_context():
         ensure_default_users()
+
+    @app.errorhandler(413)
+    def request_entity_too_large(_error):
+        flash("Upload is too large. Please use a smaller file (max 8 MB audio).", "error")
+        return redirect(request.referrer or "/")
 
     return app

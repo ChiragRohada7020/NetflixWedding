@@ -1,9 +1,9 @@
-﻿import os
+import os
 import uuid
 from werkzeug.utils import secure_filename
 
 
-def save_uploaded_audio(file_storage, upload_root):
+def save_uploaded_audio(file_storage, upload_root, max_bytes=8 * 1024 * 1024):
     if not file_storage or not file_storage.filename:
         return ""
 
@@ -18,7 +18,25 @@ def save_uploaded_audio(file_storage, upload_root):
     filename = secure_filename(file_storage.filename)
     unique = f"{uuid.uuid4().hex}_{filename}"
     path = os.path.join(folder, unique)
-    file_storage.save(path)
+
+    written = 0
+    try:
+        with open(path, "wb") as out:
+            while True:
+                chunk = file_storage.stream.read(1024 * 1024)
+                if not chunk:
+                    break
+                written += len(chunk)
+                if written > max_bytes:
+                    out.close()
+                    os.remove(path)
+                    return ""
+                out.write(chunk)
+    except OSError:
+        if os.path.exists(path):
+            os.remove(path)
+        return ""
+
     return f"/static/uploads/audio/{unique}"
 
 

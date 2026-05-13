@@ -29,6 +29,18 @@
 
   {% include 'components/navbar.html' %}
 
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="px-4 md:px-6 pt-2 space-y-2">
+        {% for category, message in messages %}
+          <div class="{% if category == 'error' %}bg-red-500/20 border-red-400/40{% else %}bg-emerald-500/20 border-emerald-400/40{% endif %} border text-sm rounded px-3 py-2">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
   <audio id="bg-music" loop preload="auto">
     <source src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0f4aa6738.mp3?filename=cinematic-documentary-piano-11120.mp3" type="audio/mpeg">
   </audio>

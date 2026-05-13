@@ -33,7 +33,13 @@ def _resolve_music_url(form_name="music_url", file_name="music_file"):
     direct = (request.form.get(form_name) or "").strip()
     if direct:
         return direct
-    uploaded = save_uploaded_audio(request.files.get(file_name), current_app.config.get("UPLOAD_FOLDER", "app/static/uploads"))
+    uploaded = save_uploaded_audio(
+        request.files.get(file_name),
+        current_app.config.get("UPLOAD_FOLDER", "app/static/uploads"),
+        current_app.config.get("MAX_AUDIO_UPLOAD_BYTES", 8 * 1024 * 1024),
+    )
+    if request.files.get(file_name) and request.files.get(file_name).filename and not uploaded:
+        flash("Audio upload failed. Keep file under 8 MB and use mp3/wav/ogg/m4a.", "error")
     return uploaded or ""
 
 
