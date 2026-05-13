@@ -1,7 +1,9 @@
-﻿from flask import Flask
+import os
+
+from flask import Flask
+from flask_jwt_extended import JWTManager
 from flask_login import LoginManager
 from flask_pymongo import PyMongo
-from flask_jwt_extended import JWTManager
 
 from app.config import config_map
 
@@ -37,5 +39,32 @@ def create_app(env_name="development"):
     @login_manager.user_loader
     def load_user(user_id):
         return User.get_by_id(user_id)
+
+    def ensure_default_users():
+        admin_email = os.getenv("DEFAULT_ADMIN_EMAIL", "admin@weddingflix.com")
+        admin_password = os.getenv("DEFAULT_ADMIN_PASSWORD", "admin123")
+        guest_email = os.getenv("DEFAULT_GUEST_EMAIL", "guest@weddingflix.com")
+        guest_password = os.getenv("DEFAULT_GUEST_PASSWORD", "guest123")
+
+        if not User.get_by_email(admin_email):
+            User.create(
+                name="Admin",
+                email=admin_email,
+                password=admin_password,
+                role="admin",
+                wedding_ids=[],
+            )
+
+        if not User.get_by_email(guest_email):
+            User.create(
+                name="Guest",
+                email=guest_email,
+                password=guest_password,
+                role="guest",
+                wedding_ids=[],
+            )
+
+    with app.app_context():
+        ensure_default_users()
 
     return app
