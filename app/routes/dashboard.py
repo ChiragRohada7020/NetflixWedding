@@ -1,8 +1,10 @@
-﻿from collections import defaultdict
+from collections import defaultdict
 
-from flask import Blueprint, abort, redirect, render_template, url_for
+from bson import ObjectId
+from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user
 
+from app import mongo
 from app.models.comment import Comment
 from app.models.episode import Episode
 from app.models.photo import Photo
@@ -21,12 +23,46 @@ def wedding_dashboard(wedding_id):
         abort(404)
     if (wedding.get("access_level") or "private") != "public" and not current_user.is_authenticated:
         return redirect(url_for("auth.login"))
+
     wedding["hero_embed_url"] = youtube_embed_url(wedding.get("hero_video_url"))
     programs = Program.by_wedding(wedding_id)
+
+    q = (request.args.get("q") or "").strip()
+    event_results = []
+    if q and programs:
+        program_ids = [ObjectId(p["_id"]) for p in programs if p.get("_id")]
+        episodes = list(
+            mongo.db.episodes.find(
+                {
+                    "program_id": {"$in": program_ids},
+                    "$or": [
+                        {"title": {"$regex": q, "$options": "i"}},
+                        {"description": {"$regex": q, "$options": "i"}},
+                    ],
+                }
+            ).sort("order", 1).limit(30)
+        )
+        program_map = {p["_id"]: p for p in programs}
+        for e in episodes:
+            program = program_map.get(str(e.get("program_id")))
+            if not program:
+                continue
+            event_results.append(
+                {
+                    "program_id": str(e.get("program_id")),
+                    "episode_id": str(e.get("_id")),
+                    "title": e.get("title") or "Untitled Event",
+                    "program_title": program.get("title") or "Program",
+                    "thumbnail": e.get("thumbnail") or "https://picsum.photos/seed/search-event/800/450",
+                }
+            )
+
     return render_template(
         "dashboard/home.html",
         wedding=wedding,
         programs=programs,
+        q=q,
+        event_results=event_results,
         page_music_url=wedding.get("music_url", ""),
     )
 

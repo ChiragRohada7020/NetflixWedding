@@ -18,7 +18,7 @@
   <div class="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-black/80"></div>
   <div class="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-black/20"></div>
 
-  <div class="relative z-10 min-h-screen flex items-center px-6 md:px-16 pt-12 md:pt-0 pb-8 md:pb-0">
+  <div class="relative z-10 min-h-screen flex items-start md:items-center px-6 md:px-16 pt-24 md:pt-0 pb-8 md:pb-0">
     <div class="max-w-3xl">
       <p class="text-ember text-4xl md:text-6xl font-black tracking-tight leading-none">WEDFLIX</p>
       <p class="mt-3 text-5xl md:text-7xl leading-tight" style="font-family: 'Brush Script MT', cursive;">{{ wedding.couple_names }}</p>
@@ -37,6 +37,35 @@
 </section>
 
 <section class="px-6 md:px-16 py-12">
+  <form method="get" action="{{ url_for('dashboard.wedding_dashboard', wedding_id=wedding._id) }}" class="max-w-2xl mb-10 flex gap-2">
+    <input
+      name="q"
+      value="{{ q or '' }}"
+      placeholder="Search Events In This Wedding..."
+      class="flex-1 bg-black/40 border border-white/20 p-3 rounded-lg"
+    >
+    <button class="bg-ember px-5 rounded-lg font-semibold">Search</button>
+  </form>
+
+  {% if q %}
+    <div class="mb-10">
+      <h2 class="text-2xl md:text-3xl font-bold mb-4">Event Results For "{{ q }}"</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for r in event_results %}
+          <a href="{{ url_for('dashboard.episode_detail', wedding_id=wedding._id, program_id=r.program_id, episode_id=r.episode_id) }}" class="bg-white/10 rounded-xl overflow-hidden hover:bg-white/15 transition">
+            <img src="{{ r.thumbnail }}" class="w-full h-40 object-cover" alt="{{ r.title }}">
+            <div class="p-3">
+              <p class="font-semibold">{{ r.title }}</p>
+              <p class="text-xs text-gray-300 mt-1">{{ r.program_title }}</p>
+            </div>
+          </a>
+        {% else %}
+          <p class="text-gray-300 col-span-full">No Matching Events Found.</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
   <h2 class="text-2xl md:text-3xl font-bold mb-5">Wedding Programs</h2>
   <div class="flex gap-5 overflow-x-auto pb-4 rail">
     {% for p in programs %}
