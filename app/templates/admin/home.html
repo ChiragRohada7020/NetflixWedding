@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="px-4 md:px-16 py-8 md:py-10 space-y-6 md:space-y-8">
+  <h1 class="text-3xl md:text-4xl font-black">Admin Panel</h1>
+
+  <div class="bg-white/5 p-5 rounded-xl space-y-4">
+    <h2 class="text-xl font-bold">Select Wedding</h2>
+    <form method="get" action="{{ url_for('admin.home') }}" class="flex flex-col md:flex-row gap-3 md:items-center">
+      <select name="wedding_id" class="flex-1 bg-black/40 p-3 rounded" required>
+        <option value="">Choose Wedding</option>
+        {% for w in weddings %}
+          <option value="{{ w._id }}" {% if selected_wedding_id == w._id %}selected{% endif %}>{{ w.couple_names }} - {{ w.wedding_date }}</option>
+        {% endfor %}
+      </select>
+      <button class="bg-ember px-6 py-3 rounded font-semibold">Open</button>
+    </form>
+  </div>
+
+  {% if not selected_wedding %}
+    <div class="bg-white/5 p-5 rounded-xl space-y-4">
+      <h2 class="text-xl font-bold">Create New Wedding</h2>
+      <form method="post" action="{{ url_for('admin.create_wedding') }}" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-3">
+        <input name="couple_names" class="bg-black/40 p-3 rounded" placeholder="Couple Names" required>
+        <input name="wedding_date" type="date" class="bg-black/40 p-3 rounded" required>
+        <input name="venue_name" class="bg-black/40 p-3 rounded" placeholder="Main Venue Name">
+        <input name="profile_image" class="bg-black/40 p-3 rounded" placeholder="Profile Image URL (Optional)">
+        <div class="md:col-span-2">
+          <label class="text-sm text-gray-300">Or Upload Profile Image</label>
+          <input name="profile_image_file" type="file" accept="image/*" class="w-full bg-black/40 p-2 rounded mt-1">
+        </div>
+        <input name="hero_video_url" class="bg-black/40 p-3 rounded md:col-span-2" placeholder="Hero YouTube URL">
+        <select name="access_level" class="bg-black/40 p-3 rounded md:col-span-2">
+          <option value="private">Private (Login Required)</option>
+          <option value="public">Anyone Can Watch (No Login)</option>
+        </select>
+        <input name="event_address" class="bg-black/40 p-3 rounded md:col-span-2" placeholder="Full Wedding Address">
+        <input name="music_url" class="bg-black/40 p-3 rounded md:col-span-2" placeholder="Optional Wedding Music URL (.mp3)">
+        <div class="md:col-span-2">
+          <label class="text-sm text-gray-300">Optional Wedding Music Upload</label>
+          <input name="music_file" type="file" accept="audio/*" class="w-full bg-black/40 p-2 rounded mt-1">
+        </div>
+        <textarea name="description" class="bg-black/40 p-3 rounded md:col-span-2" placeholder="Wedding Description"></textarea>
+        <button class="bg-ember px-5 py-3 rounded md:col-span-2 font-semibold">Create Wedding</button>
+      </form>
+    </div>
+  {% endif %}
+
+  {% if selected_wedding %}
+    <div class="bg-emerald-500/10 border border-emerald-400/30 p-4 rounded">
+      <p class="font-semibold">Managing Wedding: {{ selected_wedding.couple_names }}</p>
+      <p class="text-sm text-gray-200">Date: {{ selected_wedding.wedding_date }} | Venue: {{ selected_wedding.venue_name or 'Not Set' }}</p>
+      <p class="text-sm text-gray-300">Address: {{ selected_wedding.event_address or 'Not Set' }}</p>
+      <p class="text-sm text-gray-300">Music: {{ selected_wedding.music_url or 'Default App Music' }}</p>
+    </div>
+
+    <details class="bg-white/5 p-5 rounded-xl group">
+      <summary class="cursor-pointer list-none flex items-center justify-between font-bold text-xl">
+        <span>Edit Wedding</span>
+        <span class="text-sm text-gray-300 group-open:hidden">Open</span>
+        <span class="text-sm text-gray-300 hidden group-open:inline">Close</span>
+      </summary>
+      <form method="post" action="{{ url_for('admin.update_wedding', wedding_id=selected_wedding._id) }}" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-3 mt-4">
+        <input name="couple_names" class="bg-black/40 p-3 rounded" value="{{ selected_wedding.couple_names }}" required>
+        <input name="wedding_date" type="date" class="bg-black/40 p-3 rounded" value="{{ selected_wedding.wedding_date }}">
+        <input name="venue_name" class="bg-black/40 p-3 rounded" value="{{ selected_wedding.venue_name or '' }}" placeholder="Main Venue Name">
+        <input name="profile_image" class="bg-black/40 p-3 rounded" value="{{ selected_wedding.profile_image or '' }}" placeholder="Profile Image URL (Optional)">
+        <div class="md:col-span-2">
+          <label class="text-sm text-gray-300">Or Upload Profile Image</label>
+          <input name="profile_image_file" type="file" accept="image/*" class="w-full bg-black/40 p-2 rounded mt-1">
+        </div>
+        <input name="hero_video_url" class="bg-black/40 p-3 rounded md:col-span-2" value="{{ selected_wedding.hero_video_url or '' }}" placeholder="Hero YouTube URL">
+        <select name="access_level" class="bg-black/40 p-3 rounded md:col-span-2">
+          <option value="private" {% if (selected_wedding.access_level or 'private') == 'private' %}selected{% endif %}>Private (Login Required)</option>
+          <option value="public" {% if selected_wedding.access_level == 'public' %}selected{% endif %}>Anyone Can Watch (No Login)</option>
+        </select>
+        <input name="event_address" class="bg-black/40 p-3 rounded md:col-span-2" value="{{ selected_wedding.event_address or '' }}" placeholder="Full Wedding Address">
+        <input name="music_url" class="bg-black/40 p-3 rounded md:col-span-2" value="{{ selected_wedding.music_url or '' }}" placeholder="Optional Wedding Music URL (.mp3)">
+        <div class="md:col-span-2">
+          <label class="text-sm text-gray-300">Optional Wedding Music Upload (Replaces URL)</label>
+          <input name="music_file" type="file" accept="audio/*" class="w-full bg-black/40 p-2 rounded mt-1">
+        </div>
+        <textarea name="description" class="bg-black/40 p-3 rounded md:col-span-2" placeholder="Wedding Description">{{ selected_wedding.description or '' }}</textarea>
+        <button class="bg-sky-500 px-5 py-3 rounded font-semibold md:col-span-2">Save Wedding Changes</button>
+      </form>
+    </details>
+
+    <form method="post" action="{{ url_for('admin.delete_wedding', wedding_id=selected_wedding._id) }}" onsubmit="return confirm('Delete this wedding profile and all its programs/events? This cannot be undone.');" class="bg-red-500/10 border border-red-400/30 p-4 rounded-xl">
+      <h3 class="font-semibold mb-2 text-red-200">Danger Zone</h3>
+      <p class="text-sm text-red-100/90 mb-3">This permanently deletes this wedding profile, all programs, moments, comments, and photos.</p>
+      <button class="bg-red-600 hover:bg-red-500 px-5 py-2 rounded font-semibold">Delete Profile</button>
+    </form>
+
+    <div class="grid lg:grid-cols-2 gap-4 md:gap-6">
+      <form method="post" action="{{ url_for('admin.create_program') }}" enctype="multipart/form-data" class="bg-white/5 p-5 rounded-xl space-y-3">
+        <h2 class="text-xl font-bold">Add Program</h2>
+        <input type="hidden" name="wedding_id" value="{{ selected_wedding_id }}">
+        <input name="title" class="w-full bg-black/40 p-3 rounded" placeholder="Program Title" required>
+        <input name="thumbnail" class="w-full bg-black/40 p-3 rounded" placeholder="Program Thumbnail URL (Optional)">
+        <div>
+          <label class="text-sm text-gray-300">Or Upload Program Thumbnail</label>
+          <input name="thumbnail_file" type="file" accept="image/*" class="w-full bg-black/40 p-2 rounded mt-1">
+        </div>
+        <input name="hero_video_url" class="w-full bg-black/40 p-3 rounded" placeholder="Program Hero YouTube URL">
+        <div class="grid grid-cols-2 gap-3">
+          <input name="event_date" type="date" class="bg-black/40 p-3 rounded">
+          <input name="event_time" type="time" class="bg-black/40 p-3 rounded">
+        </div>
+        <input name="venue_name" class="w-full bg-black/40 p-3 rounded" placeholder="Program Venue Name">
+        <input name="event_address" class="w-full bg-black/40 p-3 rounded" placeholder="Program Full Address">
+        <input name="music_url" class="w-full bg-black/40 p-3 rounded" placeholder="Optional Program Music URL (.mp3)">
+        <div>
+          <label class="text-sm text-gray-300">Optional Program Music Upload</label>
+          <input name="music_file" type="file" accept="audio/*" class="w-full bg-black/40 p-2 rounded mt-1">
+        </div>
+        <input name="order" type="number" class="w-full bg-black/40 p-3 rounded" placeholder="Display Order">
+        <button class="bg-ember px-5 py-3 rounded w-full font-semibold">Add Program</button>
+      </form>
+
+      <div class="bg-white/5 p-5 rounded-xl space-y-4">
+        <h2 class="text-xl font-bold">Select Program</h2>
+        <form method="get" action="{{ url_for('admin.home') }}" class="space-y-3">
+          <input type="hidden" name="wedding_id" value="{{ selected_wedding_id }}">
+          <select name="program_id" class="w-full bg-black/40 p-3 rounded" required>
+            <option value="">Choose Program</option>
+            {% for p in programs %}
+              <option value="{{ p._id }}" {% if selected_program_id == p._id %}selected{% endif %}>{{ p.title }}{% if p.event_date %} ({{ p.event_date }}){% endif %}</option>
+            {% endfor %}
+          </select>
+          <button class="bg-ember px-5 py-3 rounded w-full font-semibold">Open Program Workspace</button>
+        </form>
+
+        {% if selected_program %}
+          <div class="bg-sky-500/10 border border-sky-400/30 p-4 rounded">
+            <p class="font-semibold">Current Program: {{ selected_program.title }}</p>
+            <p class="text-sm text-gray-200">Date: {{ selected_program.event_date or 'TBD' }} {{ selected_program.event_time or '' }}</p>
+            <p class="text-sm text-gray-300">Venue: {{ selected_program.venue_name or 'Not Set' }}</p>
+            <p class="text-sm text-gray-300">Music: {{ selected_program.music_url or selected_wedding.music_url or 'Default App Music' }}</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if selected_program %}
+      <details class="bg-white/5 p-5 rounded-xl group">
+        <summary class="cursor-pointer list-none flex items-center justify-between font-bold text-xl">
+          <span>Edit Program</span>
+          <span class="text-sm text-gray-300 group-open:hidden">Open</span>
+          <span class="text-sm text-gray-300 hidden group-open:inline">Close</span>
+        </summary>
+        <form method="post" action="{{ url_for('admin.update_program', program_id=selected_program._id) }}" enctype="multipart/form-data" class="space-y-3 mt-4">
+          <input name="title" class="w-full bg-black/40 p-3 rounded" value="{{ selected_program.title }}" required>
+          <input name="thumbnail" class="w-full bg-black/40 p-3 rounded" value="{{ selected_program.thumbnail or '' }}" placeholder="Program Thumbnail URL (Optional)">
+          <div>
+            <label class="text-sm text-gray-300">Or Upload Program Thumbnail</label>
+            <input name="thumbnail_file" type="file" accept="image/*" class="w-full bg-black/40 p-2 rounded mt-1">
+          </div>
+          <input name="hero_video_url" class="w-full bg-black/40 p-3 rounded" value="{{ selected_program.hero_video_url or '' }}" placeholder="Program Hero YouTube URL">
+          <div class="grid grid-cols-2 gap-3">
+            <input name="event_date" type="date" class="bg-black/40 p-3 rounded" value="{{ selected_program.event_date or '' }}">
+            <input name="event_time" type="time" class="bg-black/40 p-3 rounded" value="{{ selected_program.event_time or '' }}">
+          </div>
+          <input name="venue_name" class="w-full bg-black/40 p-3 rounded" value="{{ selected_program.venue_name or '' }}" placeholder="Program Venue Name">
+          <input name="event_address" class="w-full bg-black/40 p-3 rounded" value="{{ selected_program.event_address or '' }}" placeholder="Program Full Address">
+          <input name="music_url" class="w-full bg-black/40 p-3 rounded" value="{{ selected_program.music_url or '' }}" placeholder="Optional Program Music URL (.mp3)">
+          <div>
+            <label class="text-sm text-gray-300">Optional Program Music Upload (Replaces URL)</label>
+            <input name="music_file" type="file" accept="audio/*" class="w-full bg-black/40 p-2 rounded mt-1">
+          </div>
+          <input name="order" type="number" class="w-full bg-black/40 p-3 rounded" value="{{ selected_program.order or 0 }}" placeholder="Display Order">
+          <button class="bg-sky-500 px-5 py-3 rounded w-full font-semibold">Save Program Changes</button>
+        </form>
+      </details>
+
+      <form method="post" action="{{ url_for('admin.create_episode') }}" enctype="multipart/form-data" class="bg-white/5 p-5 rounded-xl space-y-3">
+        <h2 class="text-xl font-bold">Add Event (Episode)</h2>
+        <input type="hidden" name="program_id" value="{{ selected_program_id }}">
+        <div class="grid grid-cols-2 gap-3">
+          <input name="season_number" type="number" min="1" class="bg-black/40 p-3 rounded" placeholder="Season Number" required>
+          <input name="order" type="number" min="0" class="bg-black/40 p-3 rounded" placeholder="Episode Order">
+        </div>
+        <input name="title" class="w-full bg-black/40 p-3 rounded" placeholder="Event Title" required>
+        <textarea name="description" class="w-full bg-black/40 p-3 rounded" placeholder="Event Description"></textarea>
+        <input name="youtube_url" class="w-full bg-black/40 p-3 rounded" placeholder="YouTube URL" required>
+        <input name="thumbnail" class="w-full bg-black/40 p-3 rounded" placeholder="Event Thumbnail URL (Optional)">
+        <div>
+          <label class="text-sm text-gray-300">Or Upload Event Thumbnail</label>
+          <input name="thumbnail_file" type="file" accept="image/*" class="w-full bg-black/40 p-2 rounded mt-1">
+        </div>
+        <button class="bg-ember px-5 py-3 rounded w-full font-semibold">Add Event In {{ selected_program.title }}</button>
+      </form>
+
+      <div class="bg-white/5 p-5 rounded-xl">
+        <h2 class="text-xl font-bold mb-4">Events In {{ selected_program.title }}</h2>
+        <div class="space-y-3">
+          {% for ep in episodes %}
+            <details class="border border-white/10 rounded-lg p-3 group">
+              <summary class="cursor-pointer list-none flex items-center justify-between">
+                <p class="font-semibold">Season {{ ep.season_number or 1 }} - Episode {{ ep.order or 0 }} - {{ ep.title }}</p>
+                <span class="text-sm text-gray-300 group-open:hidden">Edit</span>
+                <span class="text-sm text-gray-300 hidden group-open:inline">Close</span>
+              </summary>
+              <form method="post" action="{{ url_for('admin.update_episode', episode_id=ep._id) }}" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-2 mt-3">
+                <input name="season_number" type="number" min="1" class="bg-black/40 p-2 rounded" value="{{ ep.season_number or 1 }}" required>
+                <input name="order" type="number" min="0" class="bg-black/40 p-2 rounded" value="{{ ep.order or 0 }}">
+                <input name="title" class="bg-black/40 p-2 rounded md:col-span-2" value="{{ ep.title }}" required>
+                <textarea name="description" class="bg-black/40 p-2 rounded md:col-span-2">{{ ep.description or '' }}</textarea>
+                <input name="youtube_url" class="bg-black/40 p-2 rounded md:col-span-2" value="{{ ep.youtube_url or '' }}" required>
+                <input name="thumbnail" class="bg-black/40 p-2 rounded md:col-span-2" value="{{ ep.thumbnail or '' }}" placeholder="Event Thumbnail URL (Optional)">
+                <div class="md:col-span-2">
+                  <label class="text-sm text-gray-300">Or Upload Event Thumbnail</label>
+                  <input name="thumbnail_file" type="file" accept="image/*" class="w-full bg-black/40 p-2 rounded mt-1">
+                </div>
+                <button class="bg-sky-500 px-4 py-2 rounded font-semibold">Save Event</button>
+              </form>
+            </details>
+          {% else %}
+            <p class="text-gray-300">No Events Yet In This Program.</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

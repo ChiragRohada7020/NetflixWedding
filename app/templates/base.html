@@ -1,0 +1,41 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title or 'Wedflix' }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#0B0D12',
+            ember: '#E50914',
+            frost: '#C7D2FE'
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-obsidian text-white min-h-screen ambient-bg" data-page-music="{{ page_music_url or '' }}">
+  <div id="wedflix-intro" class="wedflix-intro-screen">
+    <div class="wedflix-intro-logo">WEDFLIX</div>
+  </div>
+  <div class="fx-orb fx-orb-a"></div>
+  <div class="fx-orb fx-orb-b"></div>
+
+  {% include 'components/navbar.html' %}
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0f4aa6738.mp3?filename=cinematic-documentary-piano-11120.mp3" type="audio/mpeg">
+  </audio>
+
+  <main class="fade-in-up pt-16 md:pt-20">
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

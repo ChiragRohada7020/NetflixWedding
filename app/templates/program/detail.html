@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="relative min-h-screen overflow-hidden hero-section">
+  {% if program_hero_embed_url %}
+    <iframe
+      id="hero-video-iframe"
+      data-video-audio="1"
+      class="absolute inset-0 w-full h-full opacity-65 pointer-events-none hero-cover-video"
+      src="{{ program_hero_embed_url }}?autoplay=1&mute=1&controls=0&loop=1&playlist={{ program_hero_embed_url.split('/')[-1] }}&playsinline=1&rel=0&iv_load_policy=3&disablekb=1&enablejsapi=1"
+      title="Program trailer"
+      allowfullscreen
+    ></iframe>
+  {% else %}
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(229,9,20,0.30),transparent_40%),linear-gradient(120deg,#05070d,#0b1120,#05070d)]"></div>
+  {% endif %}
+
+  <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/85 to-transparent z-[1]"></div>
+  <div class="absolute inset-0 bg-gradient-to-r from-black/75 via-black/60 to-black/75"></div>
+  <div class="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-black/20"></div>
+
+  <div class="relative z-10 min-h-screen flex items-center px-6 md:px-16 pt-12 md:pt-0 pb-8 md:pb-0">
+    <div class="max-w-3xl">
+      <p class="text-ember text-4xl md:text-6xl font-black tracking-tight leading-none">WEDFLIX</p>
+      <p class="mt-3 text-5xl md:text-7xl leading-tight" style="font-family: 'Brush Script MT', cursive;">{{ wedding.couple_names }}</p>
+      <h1 class="mt-2 text-5xl md:text-7xl font-black leading-[0.95]">{{ program.title }}</h1>
+      <p class="text-gray-300 mt-4">{{ program.event_date or 'Date TBD' }}{% if program.event_time %} - {{ program.event_time }}{% endif %}</p>
+      {% if program.venue_name %}
+        <p class="text-gray-200 text-base md:text-lg tracking-wide mt-1" style="font-family: 'Brush Script MT', cursive;">
+          {{ program.venue_name|title }}
+        </p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="px-6 md:px-16 py-10">
+  <h2 class="text-2xl md:text-3xl font-bold mb-6">Events</h2>
+
+  {% for season_number, season_episodes in seasons %}
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold mb-4">Season {{ season_number }}</h3>
+      <div class="grid md:grid-cols-3 gap-6">
+        {% for e in season_episodes %}
+          <a href="{{ url_for('dashboard.episode_detail', wedding_id=wedding._id, program_id=program._id, episode_id=e._id) }}" class="bg-white/10 rounded-xl overflow-hidden hover:bg-white/15 transition">
+            <img src="{{ e.thumbnail }}" onerror="this.onerror=null;this.src='https://picsum.photos/seed/episode-thumb-{{ loop.index }}/800/450';" alt="{{ e.title }}" class="w-full h-36 md:h-44 object-cover">
+            <div class="p-4">
+              <p class="font-semibold">{{ e.title }}</p>
+              <p class="text-xs text-gray-400 mt-1">Episode {{ e.order or 0 }}</p>
+              <p class="text-sm text-gray-300 mt-1">{{ e.description }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <p class="text-gray-300">No Events Added Yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}
+
