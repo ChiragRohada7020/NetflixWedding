@@ -99,13 +99,9 @@ document.addEventListener("DOMContentLoaded", () => {
       bgMusic.load();
     }
 
-    let storedRaw = localStorage.getItem("weddingflix_music_on");
-    if (storedRaw === null) {
-      // Default to ON for first-time visitors.
-      localStorage.setItem("weddingflix_music_on", "1");
-      storedRaw = "1";
-    }
-    const stored = storedRaw === "1";
+    // Default behavior: keep music ON on initial load.
+    localStorage.setItem("weddingflix_music_on", "1");
+    const stored = true;
     const musicIcon = musicToggle.querySelector("[data-music-icon]");
     const musicLabel = musicToggle.querySelector("[data-music-label]");
 

@@ -3,7 +3,7 @@
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
-    MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/weddingflix")
+    MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://chiragrohada40:Chirag%40123@cluster0.l9en3av.mongodb.net/flaskdb?retryWrites=true&w=majority")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-jwt-secret")
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "app/static/uploads")
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(12 * 1024 * 1024)))  # 12 MB request cap
