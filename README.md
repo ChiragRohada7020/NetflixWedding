@@ -1,24 +1,45 @@
-﻿# WeddingFlix
+# Wedflix (React + Flask)
 
-WeddingFlix is a Netflix-style wedding memories platform built with Flask, MongoDB, Tailwind CSS, and JavaScript.
+Wedflix is now split into:
+- `frontend/` React (Vite)
+- `app/` Flask backend API + admin
 
-## Run locally
+## Local Run
 
-1. Create virtual environment and install dependencies.
-2. Copy `.env.example` to `.env` and set MongoDB Atlas URI.
-3. Seed sample data:
-   - `python scripts/seed_demo.py`
-4. Start app:
+### Backend (Flask)
+1. Create `.env` from `.env.example`
+2. Install deps:
+   - `pip install -r requirements.txt`
+3. Run backend:
    - `python run.py`
 
-## Demo Accounts
+Backend default URL: `http://127.0.0.1:5000`
 
+### Frontend (React)
+1. Go to frontend:
+   - `cd frontend`
+2. Create `.env` from `.env.example`
+3. Install deps:
+   - `npm install`
+4. Run:
+   - `npm run dev`
+
+Frontend default URL: `http://127.0.0.1:5173`
+
+## API Endpoints (for React)
+- `GET /api/health`
+- `GET /api/weddings`
+- `GET /api/weddings/<wedding_id>`
+- `GET /api/weddings/<wedding_id>/programs`
+- `GET /api/programs/<program_id>/episodes`
+
+## Demo Accounts
 - Admin: `admin@weddingflix.com` / `admin123`
 - Guest: `guest@weddingflix.com` / `guest123`
 
-## Architecture
+If users are missing in MongoDB, backend auto-creates default admin/guest at startup.
 
-- Flask Blueprints: public, auth, dashboard, api, admin
-- Collections: users, weddings, programs, episodes, photos, comments, guest_wishes
-- Reusable templates + modular routes/models
-- Deployment-ready environment variables for Atlas
+## Deployment
+- Flask backend on Render:
+  - Start command: `gunicorn run:app`
+- React frontend on Vercel/Netlify/Render Static.

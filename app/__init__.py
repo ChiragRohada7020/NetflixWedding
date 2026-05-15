@@ -2,6 +2,7 @@ import os
 
 from flask import Flask
 from flask import flash, redirect, request
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_login import LoginManager
 from flask_pymongo import PyMongo
@@ -20,6 +21,9 @@ def create_app(env_name="development"):
     mongo.init_app(app)
     login_manager.init_app(app)
     jwt.init_app(app)
+
+    frontend_origin = os.getenv("FRONTEND_ORIGIN", "*")
+    CORS(app, resources={r"/api/*": {"origins": frontend_origin}}, supports_credentials=True)
 
     login_manager.login_view = "auth.login"
 
