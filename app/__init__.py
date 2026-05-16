@@ -1,44 +1,28 @@
-import os
-
-from flask import Flask
-from flask import flash, redirect, request
-from flask_cors import CORS
-from flask_jwt_extended import JWTManager
-from flask_login import LoginManager
-from flask_pymongo import PyMongo
-
-from app.config import config_map
-
-mongo = PyMongo()
-login_manager = LoginManager()
-jwt = JWTManager()
-
-
 def create_app(env_name="development"):
     app = Flask(__name__)
     app.config.from_object(config_map.get(env_name, config_map["development"]))
+
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
+    app.config["SESSION_COOKIE_SECURE"] = True
 
     mongo.init_app(app)
     login_manager.init_app(app)
     jwt.init_app(app)
 
-   app.config["SESSION_COOKIE_SAMESITE"] = "None"
-app.config["SESSION_COOKIE_SECURE"] = True
+    frontend_origin = os.getenv(
+        "FRONTEND_ORIGIN",
+        "http://localhost:5173"
+    )
 
-frontend_origin = os.getenv(
-    "FRONTEND_ORIGIN",
-    "http://localhost:5173"
-)
-
-CORS(
-    app,
-    resources={
-        r"/api/*": {"origins": [frontend_origin]},
-        r"/auth/*": {"origins": [frontend_origin]},
-        r"/admin/*": {"origins": [frontend_origin]},
-    },
-    supports_credentials=True,
-)
+    CORS(
+        app,
+        resources={
+            r"/api/*": {"origins": [frontend_origin]},
+            r"/auth/*": {"origins": [frontend_origin]},
+            r"/admin/*": {"origins": [frontend_origin]},
+        },
+        supports_credentials=True,
+    )
 
     login_manager.login_view = "auth.login"
 
@@ -92,4 +76,4 @@ CORS(
         flash("Upload is too large. Please use a smaller file (max 8 MB audio).", "error")
         return redirect(request.referrer or "/")
 
-    return app
+return app
