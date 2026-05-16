@@ -5,6 +5,12 @@ from app.models.user import User
 
 auth_bp = Blueprint("auth", __name__)
 
+def _next_url(default_endpoint="public.landing"):
+    nxt = (request.values.get("next") or "").strip()
+    if nxt.startswith("http://localhost:") or nxt.startswith("http://127.0.0.1:"):
+        return nxt
+    return url_for(default_endpoint)
+
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -21,13 +27,13 @@ def login():
             return render_template("auth/login.html")
 
         login_user(user)
-        return redirect(url_for("public.landing"))
+        return redirect(_next_url("public.landing"))
 
-    return render_template("auth/login.html")
+    return render_template("auth/login.html", next_url=_next_url("public.landing"))
 
 
 @auth_bp.route("/logout")
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("public.landing"))
+    return redirect(_next_url("public.landing"))

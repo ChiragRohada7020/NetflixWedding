@@ -20,7 +20,7 @@ class Program(BaseModel):
     @classmethod
     def by_wedding(cls, wedding_id):
         docs = [cls.serialize(x) for x in cls.collection().find({"wedding_id": cls.to_object_id(wedding_id)})]
-        docs.sort(key=lambda p: (cls._date_key(p.get("event_date")), p.get("order", 0), p.get("title", "")))
+        docs.sort(key=lambda p: (p.get("order", 0), cls._date_key(p.get("event_date")), p.get("title", "")))
         return docs
 
     @classmethod

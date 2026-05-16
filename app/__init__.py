@@ -22,8 +22,20 @@ def create_app(env_name="development"):
     login_manager.init_app(app)
     jwt.init_app(app)
 
-    frontend_origin = os.getenv("FRONTEND_ORIGIN", "*")
-    CORS(app, resources={r"/api/*": {"origins": frontend_origin}}, supports_credentials=True)
+    frontend_origin = os.getenv(
+        "FRONTEND_ORIGIN",
+        r"http://localhost(:\d+)?$,http://127\.0\.0\.1(:\d+)?$",
+    )
+    allowed_origins = [x.strip() for x in frontend_origin.split(",") if x.strip()]
+    CORS(
+        app,
+        resources={
+            r"/api/*": {"origins": allowed_origins},
+            r"/auth/*": {"origins": allowed_origins},
+            r"/admin/*": {"origins": allowed_origins},
+        },
+        supports_credentials=True,
+    )
 
     login_manager.login_view = "auth.login"
 

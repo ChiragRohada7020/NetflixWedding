@@ -1,4 +1,5 @@
-﻿from bson import ObjectId
+from bson import ObjectId
+import json
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 
@@ -8,7 +9,7 @@ from app.models.program import Program
 from app.models.wedding import Wedding
 from app.utils.decorators import admin_required
 from app.utils.media import normalize_image_url
-from app.utils.uploads import save_uploaded_audio, save_uploaded_image
+from app.utils.uploads import save_uploaded_image
 from app.utils.video import youtube_embed_url
 
 admin_bp = Blueprint("admin", __name__)
@@ -31,16 +32,31 @@ def _selected_program_id():
 
 def _resolve_music_url(form_name="music_url", file_name="music_file"):
     direct = (request.form.get(form_name) or "").strip()
-    if direct:
-        return direct
-    uploaded = save_uploaded_audio(
-        request.files.get(file_name),
-        current_app.config.get("UPLOAD_FOLDER", "app/static/uploads"),
-        current_app.config.get("MAX_AUDIO_UPLOAD_BYTES", 8 * 1024 * 1024),
-    )
-    if request.files.get(file_name) and request.files.get(file_name).filename and not uploaded:
-        flash("Audio upload failed. Keep file under 8 MB and use mp3/wav/ogg/m4a.", "error")
-    return uploaded or ""
+    return direct
+
+def _parse_custom_sections(raw_value):
+    raw = (raw_value or "").strip()
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(parsed, list):
+        return []
+    cleaned = []
+    for i, item in enumerate(parsed):
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label") or item.get("title") or "").strip()
+        key = str(item.get("key") or f"custom_{i+1}").strip().lower()
+        if not label:
+            continue
+        key = "".join(ch if (ch.isalnum() or ch in {"_", "-"}) else "_" for ch in key)
+        if not key:
+            key = f"custom_{i+1}"
+        cleaned.append({"key": key, "label": label})
+    return cleaned
 
 
 def _resolve_image_url(form_name, file_name, existing=""):
@@ -112,6 +128,10 @@ def create_wedding():
         "profile_image": _resolve_image_url("profile_image", "profile_image_file"),
         "music_url": _resolve_music_url("music_url", "music_file"),
         "access_level": access_level,
+        "invitation_title": (request.form.get("invitation_title") or "Wedding Invitation").strip(),
+        "programs_section_title": (request.form.get("programs_section_title") or "Wedding Programs").strip(),
+        "custom_sections": _parse_custom_sections(request.form.get("custom_sections_json")),
+        "custom_section_label": (request.form.get("custom_section_label") or "My Custom Box").strip(),
     }
     Wedding.create(payload)
     flash("Wedding created", "success")
@@ -136,6 +156,10 @@ def update_wedding(wedding_id):
         "profile_image": _resolve_image_url("profile_image", "profile_image_file", current.get("profile_image", "")),
         "music_url": _resolve_music_url("music_url", "music_file"),
         "access_level": access_level,
+        "invitation_title": (request.form.get("invitation_title") or current.get("invitation_title") or "Wedding Invitation").strip(),
+        "programs_section_title": (request.form.get("programs_section_title") or current.get("programs_section_title") or "Wedding Programs").strip(),
+        "custom_sections": _parse_custom_sections(request.form.get("custom_sections_json")),
+        "custom_section_label": (request.form.get("custom_section_label") or current.get("custom_section_label") or "My Custom Box").strip(),
     }
     mongo.db.weddings.update_one({"_id": ObjectId(wedding_id)}, {"$set": payload})
     flash("Wedding updated", "success")
@@ -169,8 +193,12 @@ def delete_wedding(wedding_id):
 @admin_required
 def create_program():
     wedding_id = request.form.get("wedding_id")
+    section_key = (request.form.get("section_key") or "main").strip().lower()
+    if section_key not in {"main", "custom"}:
+        section_key = "main"
     payload = {
         "wedding_id": ObjectId(wedding_id),
+        "section_key": section_key,
         "title": request.form.get("title"),
         "thumbnail": _resolve_image_url("thumbnail", "thumbnail_file"),
         "hero_video_url": (request.form.get("hero_video_url") or "").strip(),
@@ -193,7 +221,11 @@ def create_program():
 def update_program(program_id):
     program = Program.get(program_id)
     wedding_id = str(program.get("wedding_id")) if program else ""
+    section_key = (request.form.get("section_key") or (program or {}).get("section_key") or "main").strip().lower()
+    if section_key not in {"main", "custom"}:
+        section_key = "main"
     payload = {
+        "section_key": section_key,
         "title": (request.form.get("title") or "").strip(),
         "thumbnail": _resolve_image_url("thumbnail", "thumbnail_file", (program or {}).get("thumbnail", "")),
         "hero_video_url": (request.form.get("hero_video_url") or "").strip(),
@@ -208,6 +240,22 @@ def update_program(program_id):
     mongo.db.programs.update_one({"_id": ObjectId(program_id)}, {"$set": payload})
     flash("Program updated", "success")
     return redirect(url_for("admin.home", wedding_id=wedding_id, program_id=program_id))
+
+@admin_bp.route("/programs/<program_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_program(program_id):
+    program = Program.get(program_id)
+    wedding_id = str(program.get("wedding_id")) if program else ""
+    pid = ObjectId(program_id)
+    episode_ids = [e["_id"] for e in mongo.db.episodes.find({"program_id": pid}, {"_id": 1})]
+    if episode_ids:
+        mongo.db.comments.delete_many({"episode_id": {"$in": episode_ids}})
+        mongo.db.photos.delete_many({"episode_id": {"$in": episode_ids}})
+    mongo.db.episodes.delete_many({"program_id": pid})
+    mongo.db.programs.delete_one({"_id": pid})
+    flash("Program deleted", "success")
+    return redirect(url_for("admin.home", wedding_id=wedding_id))
 
 
 @admin_bp.route("/episodes/create", methods=["POST"])
@@ -277,3 +325,4 @@ def delete_episode(episode_id):
     mongo.db.episodes.delete_one({"_id": ObjectId(episode_id)})
     flash("Episode deleted", "success")
     return redirect(url_for("admin.home", wedding_id=wedding_id, program_id=program_id))
+

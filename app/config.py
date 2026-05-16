@@ -12,6 +12,11 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    LOGIN_DISABLED = False
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = False
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_SECURE = False
 
 
 class ProductionConfig(Config):
