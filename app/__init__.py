@@ -34,11 +34,9 @@ def create_app(env_name="development"):
 
     CORS(
         app,
-        resources={
-            r"/api/*": {"origins": [frontend_origin]},
-            r"/auth/*": {"origins": [frontend_origin]},
-            r"/admin/*": {"origins": [frontend_origin]},
-        },
+        origins=[
+        "https://netflix-wedding-eta.vercel.app"
+    ],
         supports_credentials=True,
     )
 
