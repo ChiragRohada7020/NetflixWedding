@@ -52,10 +52,14 @@ a, button { transition: all 0.2s ease; }
 
 .invited-card { width: 100%; max-width: 140px; margin-inline: auto; display: flex; flex-direction: column; align-items: center; }
 .hero-section { margin-top: -64px; padding-top: 64px; min-height: calc(100vh + 64px); }
+.hero-copy-shell { transform: translateY(-4px); }
+.hero-main-title { text-wrap: balance; }
 
 @media (max-width: 640px) {
   .hero-cover-video { top: 0; left: 0; width: 100vw; height: 100dvh; min-width: 100vw; min-height: 100dvh; max-width: none; transform: none; }
   .hero-section { margin-top: -58px; padding-top: 58px; min-height: calc(100dvh + 58px); }
+  .hero-copy-shell { transform: translateY(-16px); }
+  .hero-main-title { font-size: clamp(3.75rem, 14vw, 6rem); line-height: 0.88; }
   .music-toggle-pill { padding: 7px 10px; gap: 6px; font-size: 11px; }
 }
 

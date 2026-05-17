@@ -10,7 +10,7 @@ from app.models.episode import Episode
 from app.models.photo import Photo
 from app.models.program import Program
 from app.models.wedding import Wedding
-from app.utils.video import youtube_embed_url
+from app.utils.video import youtube_embed_url, youtube_video_id
 
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -25,6 +25,7 @@ def wedding_dashboard(wedding_id):
         return redirect(url_for("auth.login"))
 
     wedding["hero_embed_url"] = youtube_embed_url(wedding.get("hero_video_url"))
+    wedding["hero_video_id"] = youtube_video_id(wedding.get("hero_video_url"))
     programs = Program.by_wedding(wedding_id)
 
     q = (request.args.get("q") or "").strip()
@@ -78,6 +79,7 @@ def program_detail(wedding_id, program_id):
 
     episodes = Episode.by_program(program_id)
     program_hero_embed_url = program.get("hero_embed_url") or youtube_embed_url(program.get("hero_video_url"))
+    program_hero_video_id = program.get("hero_video_id") or youtube_video_id(program.get("hero_video_url"))
     if not program_hero_embed_url and episodes:
         program_hero_embed_url = episodes[0].get("embed_url") or ""
 
@@ -94,6 +96,7 @@ def program_detail(wedding_id, program_id):
         episodes=episodes,
         seasons=seasons,
         program_hero_embed_url=program_hero_embed_url,
+        program_hero_video_id=program_hero_video_id,
         page_music_url=program.get("music_url") or wedding.get("music_url", ""),
     )
 
