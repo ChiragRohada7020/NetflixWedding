@@ -132,7 +132,7 @@ html, #root {
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0;
+  padding: 0 0 2rem;
   scroll-behavior: smooth;
   background:
     radial-gradient(circle at 0% 0%, rgba(229, 9, 20, 0.08), transparent 28%),
@@ -804,6 +804,48 @@ html, #root {
   margin: 0;
 }
 
+.search-group {
+  padding: 0 18px 18px;
+  margin-bottom: 14px;
+}
+.search-group-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+.search-group-pill {
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #bfe8ff;
+  background: rgba(9, 18, 30, 0.72);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.search-group-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.search-group-subhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+.search-group-subhead h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #fff;
+}
+.search-card {
+  flex: 0 0 auto;
+}
+
 body.card-size-small {
   --wed-card-size: 176px;
   --wed-add-height: 236px;
@@ -1076,7 +1118,11 @@ body.card-size-large {
   }
   .page-wedding-detail,
   .page-program-detail {
-    padding-bottom: 8.5rem;
+    padding-bottom: 10rem;
+  }
+
+  .container {
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom));
   }
 
   .profiles-grid {
