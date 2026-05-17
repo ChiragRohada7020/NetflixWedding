@@ -36,6 +36,7 @@ def create_app(env_name="development"):
         app,
         origins=[
         "https://netflix-wedding-eta.vercel.app"
+        # "http://localhost:5173"
     ],
         supports_credentials=True,
     )

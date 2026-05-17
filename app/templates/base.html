@@ -10,7 +10,7 @@
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="bg-obsidian text-white min-h-screen ambient-bg" data-page-music="{{ page_music_url or '' }}">
+<body class="bg-obsidian text-white min-h-screen ambient-bg {% block body_class %}{% endblock %}" data-page-music="{{ page_music_url or '' }}">
   <div id="wedflix-intro" class="wedflix-intro-screen"><div class="wedflix-intro-logo">WEDFLIX</div></div>
   <div class="fx-orb fx-orb-a"></div>
   <div class="fx-orb fx-orb-b"></div>

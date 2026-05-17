@@ -70,6 +70,16 @@ export default function Navbar({ musicUrl }) {
     }
   }, [resolvedMusicUrl, isMusicOn]);
 
+  useEffect(() => {
+    const pauseMusicForVideo = () => {
+      if (!audioRef.current) return;
+      audioRef.current.pause();
+      setIsMusicOn(false);
+    };
+    window.addEventListener("wedflix-video-playing", pauseMusicForVideo);
+    return () => window.removeEventListener("wedflix-video-playing", pauseMusicForVideo);
+  }, []);
+
   const toggleMusic = async () => {
     if (!audioRef.current || !resolvedMusicUrl) return;
     if (isMusicOn) {
