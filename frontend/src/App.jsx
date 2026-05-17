@@ -29,11 +29,42 @@ export default function App() {
   const [musicUrl, setMusicUrl] = useState("");
   const [backendAuthOk, setBackendAuthOk] = useState(() => localStorage.getItem("wedflix_backend_auth_ok") === "1");
   const containerRef = useRef(null);
+  const fullscreenAttemptedRef = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowIntro(false), 2200);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const tryEnterFullscreen = async () => {
+      if (fullscreenAttemptedRef.current || document.fullscreenElement) return;
+      fullscreenAttemptedRef.current = true;
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch {
+        fullscreenAttemptedRef.current = false;
+      }
+    };
+
+    const onFirstGesture = () => {
+      tryEnterFullscreen();
+    };
+
+    if (!showIntro) {
+      tryEnterFullscreen();
+    }
+
+    window.addEventListener("pointerdown", onFirstGesture, { once: true });
+    window.addEventListener("keydown", onFirstGesture, { once: true });
+    window.addEventListener("touchstart", onFirstGesture, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", onFirstGesture);
+      window.removeEventListener("keydown", onFirstGesture);
+      window.removeEventListener("touchstart", onFirstGesture);
+    };
+  }, [showIntro]);
 
   const { data: session } = useQuery({
     queryKey: ["session"],
