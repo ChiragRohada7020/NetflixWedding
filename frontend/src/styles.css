@@ -1,7 +1,7 @@
 ﻿:root {
   color-scheme: dark;
-  --wed-card-size: 176px;
-  --wed-add-height: 236px;
+  --wed-card-size: 192px;
+  --wed-add-height: 252px;
 }
 body {
   margin: 0;
@@ -805,16 +805,16 @@ html, #root {
 }
 
 body.card-size-small {
-  --wed-card-size: 160px;
-  --wed-add-height: 220px;
-}
-body.card-size-medium {
   --wed-card-size: 176px;
   --wed-add-height: 236px;
 }
+body.card-size-medium {
+  --wed-card-size: 192px;
+  --wed-add-height: 252px;
+}
 body.card-size-large {
-  --wed-card-size: 200px;
-  --wed-add-height: 260px;
+  --wed-card-size: 220px;
+  --wed-add-height: 280px;
 }
 .custom-block-card {
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -1037,7 +1037,7 @@ body.card-size-large {
     -webkit-overflow-scrolling: touch;
   }
   .custom-blocks > * {
-    flex: 0 0 164px;
+    flex: 0 0 180px;
   }
   .page-wedding-detail .grid,
   .page-program-detail .grid {
@@ -1052,17 +1052,17 @@ body.card-size-large {
   }
   .page-wedding-detail .grid > *,
   .page-program-detail .grid > * {
-    flex: 0 0 164px;
+    flex: 0 0 180px;
     scroll-snap-align: start;
   }
   .page-wedding-detail .card,
   .page-program-detail .card {
-    max-width: 164px;
-    width: 164px;
+    max-width: 180px;
+    width: 180px;
   }
   .page-wedding-detail .card img,
   .page-program-detail .card img {
-    height: 164px;
+    height: 180px;
   }
   .page-wedding-detail .card h3,
   .page-program-detail .card h3 {
@@ -1071,8 +1071,8 @@ body.card-size-large {
   }
   .page-wedding-detail .add-card-tile,
   .page-program-detail .add-card-tile {
-    width: 164px;
-    height: 194px;
+    width: 180px;
+    height: 210px;
   }
   .page-wedding-detail,
   .page-program-detail {
