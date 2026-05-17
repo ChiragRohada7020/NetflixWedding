@@ -64,8 +64,13 @@ export default function App() {
             <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
           </Routes>
+          <footer className="wedflix-footer">
+            <p>Wedflix &copy; {new Date().getFullYear()} All Rights Reserved.</p>
+          </footer>
         </main>
       </EditModeProvider>
     </BrowserRouter>
   );
 }
+
+

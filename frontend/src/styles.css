@@ -745,9 +745,9 @@ html, #root {
 }
 .custom-blocks {
   padding: 0 26px 28px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .custom-blocks .card,
 .custom-blocks .add-card-tile {
@@ -755,12 +755,17 @@ html, #root {
 }
 .page-wedding-detail .grid,
 .page-program-detail .grid {
-  grid-template-columns: repeat(auto-fill, minmax(calc(var(--wed-card-size) - 12px), 1fr));
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 0 18px 36px;
 }
 .page-wedding-detail .card,
 .page-program-detail .card {
   max-width: var(--wed-card-size);
+  width: var(--wed-card-size);
+  flex: 0 0 auto;
   border-radius: 10px;
 }
 .page-wedding-detail .card img,
@@ -779,10 +784,24 @@ html, #root {
 .page-program-detail .add-card-tile {
   width: var(--wed-card-size);
   height: var(--wed-add-height);
+  flex: 0 0 auto;
 }
 .page-wedding-detail,
 .page-program-detail {
-  padding-bottom: 2rem;
+  padding-bottom: 7.5rem;
+}
+
+.wedflix-footer {
+  padding: 1.5rem 1rem 2rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  margin-top: 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+}
+.wedflix-footer p {
+  margin: 0;
 }
 
 body.card-size-small {
@@ -1023,13 +1042,13 @@ body.card-size-large {
   .page-wedding-detail .grid,
   .page-program-detail .grid {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     overflow-x: auto;
     overflow-y: hidden;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
-    padding-bottom: 10px;
+    padding: 0 12px 16px;
   }
   .page-wedding-detail .grid > *,
   .page-program-detail .grid > * {
@@ -1039,6 +1058,7 @@ body.card-size-large {
   .page-wedding-detail .card,
   .page-program-detail .card {
     max-width: 164px;
+    width: 164px;
   }
   .page-wedding-detail .card img,
   .page-program-detail .card img {
@@ -1056,7 +1076,7 @@ body.card-size-large {
   }
   .page-wedding-detail,
   .page-program-detail {
-    padding-bottom: 5rem;
+    padding-bottom: 8.5rem;
   }
 
   .profiles-grid {
