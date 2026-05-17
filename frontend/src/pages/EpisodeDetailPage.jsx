@@ -17,10 +17,18 @@ function toEmbed(url) {
   return m ? `https://www.youtube.com/embed/${m[1]}` : url;
 }
 
+function getVideoId(url) {
+  if (!url) return "";
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : "";
+}
+
 function withPlayerParams(url) {
   if (!url) return "";
   const joiner = url.includes("?") ? "&" : "?";
-  return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1&playsinline=1`;
+  const videoId = getVideoId(url);
+  const loopParams = videoId ? `&playlist=${videoId}` : "";
+  return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1${loopParams}&playsinline=1`;
 }
 
 export default function EpisodeDetailPage() {

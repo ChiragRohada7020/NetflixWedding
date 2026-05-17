@@ -934,6 +934,8 @@ body.card-size-large {
     height: 120svh;
     transform: scale(2.35) translateY(-36%);
     transform-origin: top center;
+    opacity: 0.72;
+    filter: saturate(0.9) contrast(0.92);
   }
   .hero-overlay {
     background:
@@ -949,20 +951,21 @@ body.card-size-large {
     max-width: 100%;
     margin: 0 auto;
     text-align: center;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.64), rgba(0, 0, 0, 0));
-  }
-  .hero-brand {
-    font-size: 1.3rem;
-    margin-bottom: .2rem;
+    background:
+      linear-gradient(to top, rgba(3, 5, 10, 0.82), rgba(3, 5, 10, 0.14) 72%, transparent),
+      radial-gradient(circle at center, rgba(229, 9, 20, 0.08), transparent 64%);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
   }
   .hero-couple {
-    font-size: 1.25rem;
-    margin-bottom: .15rem;
+    font-size: 1.75rem;
+    line-height: 1.05;
+    margin-bottom: .2rem;
   }
-  .hero-content h1 { font-size: 1.75rem; }
+  .hero-content h1 { font-size: clamp(2.35rem, 8vw, 3.2rem); line-height: 0.95; }
   .hero-title-block {
-    font-size: 1.9rem;
-    line-height: 1.03;
+    font-size: clamp(2.2rem, 7.2vw, 3rem);
+    line-height: 0.98;
   }
   .hero-cta-btn {
     margin-top: .7rem;
@@ -977,6 +980,16 @@ body.card-size-large {
   .hero-tags span {
     padding: 7px 14px;
     font-size: .9rem;
+  }
+  .hero-netflix::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(3, 5, 10, 0.92) 0%, rgba(3, 5, 10, 0.3) 12%, transparent 34%, transparent 66%, rgba(3, 5, 10, 0.3) 88%, rgba(3, 5, 10, 0.92) 100%),
+      linear-gradient(to bottom, transparent 0%, transparent 62%, rgba(3, 5, 10, 0.22) 100%);
   }
 
   .home-shell { padding-top: 5.4rem; }
