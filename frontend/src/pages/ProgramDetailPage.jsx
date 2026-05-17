@@ -21,7 +21,7 @@ function toEmbed(url) {
 function withPlayerParams(url) {
   if (!url) return "";
   const joiner = url.includes("?") ? "&" : "?";
-  return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1&playsinline=1`;
+  return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1&playsinline=1&start=0&rel=0&modestbranding=1`;
 }
 
 function EpisodeCard({ item, weddingId, programId, editMode, onEdit, onDelete }) {

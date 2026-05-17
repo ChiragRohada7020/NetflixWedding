@@ -6,24 +6,12 @@
   <title>{{ title or 'Wedflix' }}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            obsidian: '#0B0D12',
-            ember: '#E50914',
-            frost: '#C7D2FE'
-          }
-        }
-      }
-    }
+    tailwind.config = { theme: { extend: { colors: { obsidian: '#0B0D12', ember: '#E50914', frost: '#C7D2FE' } } } }
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="bg-obsidian text-white min-h-screen ambient-bg" data-page-music="{{ page_music_url or '' }}">
-  <div id="wedflix-intro" class="wedflix-intro-screen">
-    <div class="wedflix-intro-logo">WEDFLIX</div>
-  </div>
+  <div id="wedflix-intro" class="wedflix-intro-screen"><div class="wedflix-intro-logo">WEDFLIX</div></div>
   <div class="fx-orb fx-orb-a"></div>
   <div class="fx-orb fx-orb-b"></div>
 
@@ -33,9 +21,7 @@
     {% if messages %}
       <div class="px-4 md:px-6 pt-2 space-y-2">
         {% for category, message in messages %}
-          <div class="{% if category == 'error' %}bg-red-500/20 border-red-400/40{% else %}bg-emerald-500/20 border-emerald-400/40{% endif %} border text-sm rounded px-3 py-2">
-            {{ message }}
-          </div>
+          <div class="{% if category == 'error' %}bg-red-500/20 border-red-400/40{% else %}bg-emerald-500/20 border-emerald-400/40{% endif %} border text-sm rounded px-3 py-2">{{ message }}</div>
         {% endfor %}
       </div>
     {% endif %}
@@ -45,9 +31,26 @@
     <source src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0f4aa6738.mp3?filename=cinematic-documentary-piano-11120.mp3" type="audio/mpeg">
   </audio>
 
-  <main class="fade-in-up pt-16 md:pt-20">
-    {% block content %}{% endblock %}
-  </main>
+  {% if not current_user.is_authenticated %}
+  <div id="frontend-login-modal" class="hidden fixed inset-0 z-[9999] login-modal-root" aria-hidden="true">
+    <div class="absolute inset-0 bg-black"></div>
+    <div class="absolute inset-0 overflow-y-auto p-4 md:p-8 flex items-center justify-center">
+      <div class="w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-2xl p-6 md:p-8 relative shadow-2xl">
+        <button type="button" id="close-login-modal" class="absolute top-3 right-3 text-zinc-300 hover:text-white">✕</button>
+        <h2 class="text-3xl font-bold mb-2">Welcome Back</h2>
+        <p class="text-zinc-300 mb-6">Login with admin email and password.</p>
+        <form method="post" action="{{ url_for('auth.login') }}" class="space-y-4">
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <input name="email" type="email" required placeholder="Enter email" class="w-full p-3 rounded bg-zinc-800 border border-zinc-600" />
+          <input name="password" type="password" required placeholder="Enter password" class="w-full p-3 rounded bg-zinc-800 border border-zinc-600" />
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-500 rounded p-3 font-semibold">Login</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <main id="app-main" class="fade-in-up pt-16 md:pt-20">{% block content %}{% endblock %}</main>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

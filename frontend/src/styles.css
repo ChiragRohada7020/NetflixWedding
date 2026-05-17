@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   color-scheme: dark;
   --wed-card-size: 156px;
   --wed-add-height: 216px;
@@ -59,6 +59,16 @@ html, #root {
 }
 .brand { color: #e50914; font-weight: 800; font-size: 2.2rem; text-decoration: none; text-transform: lowercase; }
 .nav-actions { display: flex; align-items: center; gap: 12px; }
+.nav-hamburger {
+  display: none;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(15, 23, 42, 0.75);
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
 .nav-audio-error {
   margin: 0 0 0 12px;
   color: #fca5a5;
@@ -689,11 +699,16 @@ html, #root {
   box-shadow: 0 10px 26px rgba(229, 9, 20, 0.34);
 }
 .auth-modal {
-  width: min(520px, 100%);
+  width: min(480px, 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(229, 9, 20, 0.22), transparent 38%),
+    linear-gradient(180deg, rgba(15, 15, 18, 0.98), rgba(4, 4, 6, 0.98));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.72);
 }
 .auth-subtitle {
-  margin: -0.4rem 0 0.8rem;
-  color: #cbd5e1;
+  margin: -0.4rem 0 1rem;
+  color: #d1d5db;
 }
 .auth-error {
   margin: 0;
@@ -873,16 +888,34 @@ body.card-size-large {
 
 @media (max-width: 640px) {
   .nav {
-    padding: 8px 10px;
-    align-items: flex-start;
+    padding: 8px 12px;
+    align-items: center;
     gap: 8px;
   }
   .brand { font-size: 1.6rem; }
+  .nav-hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
   .nav-actions {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 12px;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 210px;
     gap: 8px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    max-width: 68%;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: rgba(9, 12, 18, 0.96);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.52);
+    z-index: 60;
+  }
+  .nav-actions.open {
+    display: flex;
   }
   .music-pill { padding: 8px 10px; font-size: .78rem; }
   .btn { padding: 8px 11px; font-size: .85rem; }
@@ -893,23 +926,48 @@ body.card-size-large {
   }
 
   .hero-netflix { min-height: 100svh; }
+  .hero-program { min-height: 100svh; }
+  .hero-bg-video {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 120svh;
+    transform: scale(2.35) translateY(-36%);
+    transform-origin: top center;
+  }
+  .hero-overlay {
+    background:
+      linear-gradient(to right, rgba(0,0,0,0.42), rgba(0,0,0,0.16) 55%, rgba(0,0,0,0.42)),
+      linear-gradient(to top, rgba(11,13,18,0.62), rgba(11,13,18,0.04) 40%);
+  }
   .hero-content {
-    padding: 6.8rem 1rem 1rem;
-    max-width: 96%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 9svh;
+    padding: 0.9rem 1rem 0.3rem;
+    max-width: 100%;
+    margin: 0 auto;
+    text-align: center;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.64), rgba(0, 0, 0, 0));
   }
   .hero-brand {
-    font-size: 2.2rem;
-    margin-bottom: .35rem;
+    font-size: 1.3rem;
+    margin-bottom: .2rem;
   }
-  .hero-content h1 { font-size: 2.6rem; }
+  .hero-couple {
+    font-size: 1.25rem;
+    margin-bottom: .15rem;
+  }
+  .hero-content h1 { font-size: 1.75rem; }
   .hero-title-block {
-    font-size: 3.1rem;
-    line-height: .94;
+    font-size: 1.9rem;
+    line-height: 1.03;
   }
   .hero-cta-btn {
-    margin-top: 1.2rem;
-    font-size: 1rem;
-    padding: 10px 15px;
+    margin-top: .7rem;
+    font-size: .9rem;
+    padding: 9px 13px;
   }
   .hero-badge {
     padding: 9px 16px;
@@ -925,8 +983,7 @@ body.card-size-large {
 
   .grid {
     padding: 0 12px 18px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
   }
   .section-title {
     margin: 16px 12px 12px;
@@ -936,16 +993,60 @@ body.card-size-large {
   }
   .custom-blocks {
     padding: 0 12px 20px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .custom-blocks > * {
+    flex: 0 0 148px;
+  }
+  .page-wedding-detail .grid,
+  .page-program-detail .grid {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding-bottom: 10px;
+  }
+  .page-wedding-detail .grid > *,
+  .page-program-detail .grid > * {
+    flex: 0 0 148px;
+    scroll-snap-align: start;
   }
   .page-wedding-detail .card,
   .page-program-detail .card {
-    max-width: 100%;
+    max-width: 148px;
+  }
+  .page-wedding-detail .card img,
+  .page-program-detail .card img {
+    height: 148px;
+  }
+  .page-wedding-detail .card h3,
+  .page-program-detail .card h3 {
+    font-size: 0.8rem;
+    margin: 7px 7px 9px;
   }
   .page-wedding-detail .add-card-tile,
   .page-program-detail .add-card-tile {
-    width: 100%;
+    width: 148px;
+    height: 178px;
+  }
+
+  .profiles-grid {
+    grid-template-columns: repeat(2, minmax(128px, 1fr));
+    gap: 14px;
+  }
+  .profile-card img {
+    height: 158px;
+  }
+  .profile-card h3 {
+    font-size: 1.02rem;
   }
   .cms-modal-backdrop {
     padding: 5.4rem .6rem 1rem;
@@ -959,3 +1060,172 @@ body.card-size-large {
     grid-template-columns: 1fr;
   }
 }
+
+/* Login modal hard-isolation */
+body.login-open {
+  overflow: hidden !important;
+}
+
+body.login-open .container {
+  overflow: hidden !important;
+}
+
+.cms-modal-backdrop.auth-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.97);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow: auto;
+}
+
+.cms-modal-backdrop.auth-backdrop .cms-modal.auth-modal {
+  width: min(520px, calc(100% - 24px));
+  max-height: none;
+  margin: 24px auto;
+}
+
+/* Netflix-like login skin */
+.cms-modal-backdrop.auth-backdrop {
+  background:
+    linear-gradient(rgba(0,0,0,0.72), rgba(0,0,0,0.72)),
+    url("https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1800&auto=format&fit=crop") center/cover no-repeat;
+}
+
+.cms-modal.auth-modal.netflix-login {
+  width: min(440px, calc(100% - 24px));
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(2px);
+  padding: 42px 38px 28px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+}
+
+.netflix-login h3 {
+  font-size: 2rem;
+  margin-bottom: 22px;
+  text-shadow: none;
+}
+
+.netflix-login-brand {
+  margin: 0 0 8px;
+  color: #e50914;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  font-size: 1.2rem;
+}
+
+.netflix-login .cms-form {
+  gap: 14px;
+}
+
+.netflix-login .cms-form input {
+  background: rgba(51, 51, 51, 0.92);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  color: #fff;
+  padding: 14px 14px;
+}
+
+.netflix-login .cms-form input::placeholder {
+  color: #b3b3b3;
+}
+
+.netflix-login-btn {
+  width: 100%;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 4px;
+  background: #e50914;
+  color: #fff;
+  font-weight: 700;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.netflix-login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.netflix-login-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+.netflix-login-meta label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.netflix-login-meta input[type="checkbox"] {
+  accent-color: #737373;
+}
+
+.netflix-help-btn {
+  border: 0;
+  background: transparent;
+  color: #b3b3b3;
+  cursor: pointer;
+}
+
+.netflix-help-btn:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .cms-modal-backdrop.auth-backdrop {
+    align-items: center;
+    justify-items: center;
+    padding: 10px;
+    overflow: hidden;
+  }
+
+  .cms-modal.auth-modal.netflix-login {
+    width: min(360px, calc(100% - 12px));
+    margin: 0 auto;
+    padding: 18px 14px 14px;
+    border-radius: 10px;
+    max-height: 92svh;
+    overflow: hidden;
+  }
+
+  .netflix-login h3 {
+    font-size: 1.45rem;
+    margin-bottom: 10px;
+  }
+
+  .netflix-login-brand {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+
+  .netflix-login .cms-form {
+    gap: 8px;
+  }
+
+  .netflix-login .cms-form input {
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .netflix-login-btn {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  .netflix-login-meta {
+    font-size: 0.78rem;
+    margin-top: 4px;
+  }
+}
+
+

@@ -1,23 +1,23 @@
 ﻿{% extends 'base.html' %}
 {% block content %}
 <section class="min-h-[85vh] flex items-center justify-center px-6">
-  <div class="w-full max-w-6xl text-center">
+  <div class="w-full max-w-7xl text-center">
     <h1 class="text-4xl md:text-5xl font-black mb-3">Our Family Wedding Memories</h1>
     <p class="text-gray-300 mb-10">A Home Of Love, Blessings, And Beautiful Moments Together.</p>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 justify-items-center">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-10 justify-items-center">
       {% for wedding in weddings %}
         <a href="{{ url_for('dashboard.wedding_dashboard', wedding_id=wedding._id) }}" class="group text-center invited-card">
-          <div class="w-24 h-24 md:w-28 md:h-28 rounded-lg overflow-hidden bg-white/10 ring-2 ring-transparent group-hover:ring-white/70 transition">
+          <div class="w-32 h-32 md:w-40 md:h-40 rounded-xl overflow-hidden bg-white/10 ring-2 ring-transparent group-hover:ring-white/70 transition">
             <img
               src="{{ wedding.profile_image or ('https://api.dicebear.com/9.x/glass/svg?seed=' ~ wedding.couple_names|replace(' ', '')) }}"
-              onerror="this.onerror=null;this.src='https://api.dicebear.com/9.x/glass/svg?seed={{ wedding.couple_names|replace(' ', '') }}';"
+              onerror="this.onerror=null;this.src='https://picsum.photos/seed/wedding-card-{{ loop.index }}/600/600';"
               alt="{{ wedding.couple_names }}"
               class="w-full h-full object-cover group-hover:scale-105 transition"
             >
           </div>
-          <p class="mt-3 font-semibold text-sm md:text-base group-hover:text-white text-center">{{ wedding.couple_names }}</p>
-          <p class="text-xs text-gray-400 text-center">{{ wedding.wedding_date }}</p>
+          <p class="mt-3 font-semibold text-base md:text-lg group-hover:text-white text-center">{{ wedding.couple_names }}</p>
+          <p class="text-sm text-gray-400 text-center">{{ wedding.wedding_date }}</p>
         </a>
       {% else %}
         <p class="text-gray-300 col-span-full">No Public Weddings Available Right Now.</p>
