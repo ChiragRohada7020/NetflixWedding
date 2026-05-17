@@ -53,16 +53,6 @@ function ProgramCard({ item, weddingId, editMode, onEdit, onDelete }) {
   );
 }
 
-function SearchCard({ to, title, subtitle, thumbnail, alt }) {
-  return (
-    <Link to={to} className="card search-card">
-      <ProgressiveImage src={thumbnail} alt={alt || title} />
-      <h3>{title}</h3>
-      {subtitle && <p>{subtitle}</p>}
-    </Link>
-  );
-}
-
 export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
   const { weddingId } = useParams();
   const queryClient = useQueryClient();
@@ -77,17 +67,11 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
         apiGet(`/api/weddings/${weddingId}`),
         apiGet(`/api/weddings/${weddingId}/programs`),
       ]);
-      const episodesByProgram = Object.fromEntries(
-        await Promise.all(
-          programs.map(async (program) => [program._id, await apiGet(`/api/programs/${program._id}/episodes`)])
-        )
-      );
-      return { wedding, programs, episodesByProgram };
+      return { wedding, programs };
     },
   });
   const wedding = data?.wedding;
   const programs = data?.programs ?? EMPTY_LIST;
-  const episodesByProgram = data?.episodesByProgram ?? {};
   const mainPrograms = useMemo(() => programs.filter((p) => (p.section_key || "main") === "main"), [programs]);
   const customSections = useMemo(() => {
     const src = Array.isArray(wedding?.custom_sections) ? wedding.custom_sections : [];
@@ -114,51 +98,11 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
     onMusicUrlChange(wedding?.music_url || "");
   }, [wedding?.music_url, onMusicUrlChange]);
 
-  const searchTerm = q.trim().toLowerCase();
-  const searchGroups = useMemo(() => {
-    if (!searchTerm) return [];
-    return programs
-      .map((program) => {
-        const episodes = episodesByProgram[program._id] || [];
-        const programMatch = [
-          program.title,
-          program.venue_name,
-          program.event_address,
-          program.event_date,
-          program.event_time,
-        ].some((value) => (value || "").toLowerCase().includes(searchTerm));
-        const episodeMatches = episodes.filter((episode) =>
-          [
-            episode.title,
-            episode.description,
-            episode.event_date,
-            episode.event_time,
-            episode.venue_name,
-          ].some((value) => (value || "").toLowerCase().includes(searchTerm))
-        );
-        if (!programMatch && !episodeMatches.length) return null;
-        return { program, programMatch, episodeMatches };
-      })
-      .filter(Boolean);
-  }, [programs, episodesByProgram, searchTerm]);
-
   const filtered = useMemo(() => {
     const src = ordered.length ? ordered : mainPrograms;
-    if (!searchTerm) return src;
-    return src.filter((p) => {
-      const programMatch = [
-        p.title,
-        p.venue_name,
-        p.event_address,
-        p.event_date,
-        p.event_time,
-      ].some((value) => (value || "").toLowerCase().includes(searchTerm));
-      const episodeMatches = (episodesByProgram[p._id] || []).some((episode) =>
-        [episode.title, episode.description].some((value) => (value || "").toLowerCase().includes(searchTerm))
-      );
-      return programMatch || episodeMatches;
-    });
-  }, [ordered, mainPrograms, searchTerm, episodesByProgram]);
+    if (!q.trim()) return src;
+    return src.filter((p) => (p.title || "").toLowerCase().includes(q.toLowerCase()));
+  }, [ordered, mainPrograms, q]);
 
   const saveProgram = async (payload, programId) => {
     const fd = new FormData();
@@ -273,54 +217,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
       )}
       <input className="search" placeholder="Search Programs" value={q} onChange={(e) => setQ(e.target.value)} />
       {error && <p className="error">{error.message}</p>}
-      {searchTerm ? (
-        <section>
-          <div className="cms-row-head">
-            <h2 className="section-title">Search Results For "{q}"</h2>
-          </div>
-          {searchGroups.length ? (
-            searchGroups.map((group) => (
-              <div key={group.program._id} className="search-group">
-                <div className="cms-row-head">
-                  <h3 className="search-group-title">{group.program.title || "Untitled Program"}</h3>
-                  {group.programMatch && <span className="search-group-pill">Program Match</span>}
-                </div>
-                {group.programMatch && (
-                  <div className="search-group-grid">
-                    <SearchCard
-                      to={`/weddings/${weddingId}/programs/${group.program._id}`}
-                      title={group.program.title || "Untitled Program"}
-                      subtitle={group.program.event_date || ""}
-                      thumbnail={group.program.thumbnail || "https://picsum.photos/seed/program-search/800/450"}
-                    />
-                  </div>
-                )}
-                <div className="search-group-subhead">
-                  <h4>Events</h4>
-                  {!group.episodeMatches.length && <span>No matching events in this program</span>}
-                </div>
-                {group.episodeMatches.length ? (
-                  <div className="search-group-grid">
-                    {group.episodeMatches.map((episode) => (
-                      <SearchCard
-                        key={episode._id}
-                        to={`/weddings/${weddingId}/programs/${group.program._id}/episodes/${episode._id}`}
-                        title={episode.title || "Untitled Event"}
-                        subtitle={episode.description || ""}
-                        thumbnail={episode.thumbnail || "https://picsum.photos/seed/event-search/800/450"}
-                        alt={episode.title}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-300 px-6">No Matching Programs Or Events Found.</p>
-          )}
-        </section>
-      ) : (
-        <>
+      <>
           <div className="cms-row-head" ref={programsSectionRef}>
             <InlineEditableText
               as="h2"
@@ -399,8 +296,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
               </div>
             )}
           </>
-        </>
-      )}
+      </>
       {modal && (
         <div className="cms-modal-backdrop" onClick={() => setModal(null)}>
           <div className="cms-modal" onClick={(e) => e.stopPropagation()}>
