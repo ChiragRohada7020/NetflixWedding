@@ -1,7 +1,7 @@
 ﻿:root {
   color-scheme: dark;
-  --wed-card-size: 156px;
-  --wed-add-height: 216px;
+  --wed-card-size: 176px;
+  --wed-add-height: 236px;
 }
 body {
   margin: 0;
@@ -746,8 +746,8 @@ html, #root {
 .custom-blocks {
   padding: 0 26px 28px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
 }
 .custom-blocks .card,
 .custom-blocks .add-card-tile {
@@ -756,7 +756,7 @@ html, #root {
 .page-wedding-detail .grid,
 .page-program-detail .grid {
   grid-template-columns: repeat(auto-fill, minmax(calc(var(--wed-card-size) - 12px), 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 .page-wedding-detail .card,
 .page-program-detail .card {
@@ -786,16 +786,16 @@ html, #root {
 }
 
 body.card-size-small {
-  --wed-card-size: 140px;
-  --wed-add-height: 200px;
+  --wed-card-size: 160px;
+  --wed-add-height: 220px;
 }
 body.card-size-medium {
-  --wed-card-size: 156px;
-  --wed-add-height: 216px;
+  --wed-card-size: 176px;
+  --wed-add-height: 236px;
 }
 body.card-size-large {
-  --wed-card-size: 178px;
-  --wed-add-height: 242px;
+  --wed-card-size: 200px;
+  --wed-add-height: 260px;
 }
 .custom-block-card {
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -1000,7 +1000,7 @@ body.card-size-large {
 
   .grid {
     padding: 0 12px 18px;
-    gap: 10px;
+    gap: 8px;
   }
   .section-title {
     margin: 16px 12px 12px;
@@ -1011,19 +1011,19 @@ body.card-size-large {
   .custom-blocks {
     padding: 0 12px 20px;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     overflow-x: auto;
     overflow-y: hidden;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
   }
   .custom-blocks > * {
-    flex: 0 0 148px;
+    flex: 0 0 164px;
   }
   .page-wedding-detail .grid,
   .page-program-detail .grid {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     overflow-x: auto;
     overflow-y: hidden;
     flex-wrap: nowrap;
@@ -1033,16 +1033,16 @@ body.card-size-large {
   }
   .page-wedding-detail .grid > *,
   .page-program-detail .grid > * {
-    flex: 0 0 148px;
+    flex: 0 0 164px;
     scroll-snap-align: start;
   }
   .page-wedding-detail .card,
   .page-program-detail .card {
-    max-width: 148px;
+    max-width: 164px;
   }
   .page-wedding-detail .card img,
   .page-program-detail .card img {
-    height: 148px;
+    height: 164px;
   }
   .page-wedding-detail .card h3,
   .page-program-detail .card h3 {
@@ -1051,8 +1051,8 @@ body.card-size-large {
   }
   .page-wedding-detail .add-card-tile,
   .page-program-detail .add-card-tile {
-    width: 148px;
-    height: 178px;
+    width: 164px;
+    height: 194px;
   }
   .page-wedding-detail,
   .page-program-detail {
