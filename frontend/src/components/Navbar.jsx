@@ -18,6 +18,7 @@ export default function Navbar({ musicUrl }) {
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
   const apiHost = import.meta.env.VITE_API_BASE_URL || `${window.location.protocol}//${window.location.hostname}:5000`;
   const queryClient = useQueryClient();
+  const navRef = useRef(null);
   const { data: session } = useQuery({ queryKey: ["session"], queryFn: () => apiGet("/api/session"), retry: false });
   const [backendAuthOk, setBackendAuthOk] = useState(() => localStorage.getItem("wedflix_backend_auth_ok") === "1");
   const isAuthenticated = !!session?.authenticated || backendAuthOk;
@@ -31,8 +32,21 @@ export default function Navbar({ musicUrl }) {
     if (!mobileMenuOpen) return;
     const close = () => setMobileMenuOpen(false);
     window.addEventListener("resize", close);
-    return () => window.removeEventListener("resize", close);
+    const onPointerDown = (event) => {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("resize", close);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
   }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const normalizedMusicUrl = (musicUrl || "").trim();
   const resolvedMusicUrl = normalizedMusicUrl
@@ -134,7 +148,7 @@ export default function Navbar({ musicUrl }) {
 
   return (
     <>
-      <nav className="nav">
+      <nav className="nav" ref={navRef}>
         <audio ref={audioRef} src={resolvedMusicUrl} loop preload="auto" />
         <Link to="/" className="brand">Wedflix</Link>
         <button type="button" className="nav-hamburger" aria-label="Toggle menu" onClick={() => setMobileMenuOpen((v) => !v)}>☰</button>
@@ -146,20 +160,20 @@ export default function Navbar({ musicUrl }) {
             </button>
           )}
           {canEdit && (
-            <button className={`music-pill ${editMode ? "edit-on" : ""}`} type="button" onClick={toggleEditMode}>
+            <button className={`music-pill ${editMode ? "edit-on" : ""}`} type="button" onClick={() => { setMobileMenuOpen(false); toggleEditMode(); }}>
               <span className="pill-icon" aria-hidden="true">✎</span>
               {editMode ? "Edit Mode On" : "Edit Mode Off"}
             </button>
           )}
           {canEdit && editMode && (
-            <select className="music-pill size-select" value={cardSize} onChange={(e) => setCardSize(e.target.value)}>
+            <select className="music-pill size-select" value={cardSize} onChange={(e) => { setCardSize(e.target.value); setMobileMenuOpen(false); }}>
               <option value="small">Small Cards</option>
               <option value="medium">Medium Cards</option>
               <option value="large">Large Cards</option>
             </select>
           )}
-          <button type="button" className="music-pill music-icon-btn" onClick={toggleFullscreen} title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}><span className="pill-icon" aria-hidden="true">{isFullscreen ? "⤫" : "⛶"}</span></button>
-          <button className="music-pill music-icon-btn" type="button" disabled={!resolvedMusicUrl} onClick={toggleMusic} title={resolvedMusicUrl ? (isMusicOn ? "Music On" : "Music Off") : "No Music URL"}><span className="pill-icon" aria-hidden="true">{isMusicOn ? "♪" : "♫"}</span></button>
+          <button type="button" className="music-pill music-icon-btn" onClick={() => { setMobileMenuOpen(false); toggleFullscreen(); }} title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}><span className="pill-icon" aria-hidden="true">{isFullscreen ? "⤫" : "⛶"}</span></button>
+          <button className="music-pill music-icon-btn" type="button" disabled={!resolvedMusicUrl} onClick={() => { setMobileMenuOpen(false); toggleMusic(); }} title={resolvedMusicUrl ? (isMusicOn ? "Music On" : "Music Off") : "No Music URL"}><span className="pill-icon" aria-hidden="true">{isMusicOn ? "♪" : "♫"}</span></button>
           <button type="button" className="btn" onClick={handleAuthClick}><span className="pill-icon" aria-hidden="true">{isAuthenticated ? "↩" : "→"}</span>{isAuthenticated ? "Logout" : "Login"}</button>
         </div>
       </nav>
