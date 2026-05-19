@@ -1,6 +1,6 @@
 import React from "react";
-import ReactPlayer from "react-player";
 import { AnimatePresence, motion } from "framer-motion";
+import WedflixPlayer from "./WedflixPlayer";
 
 export default function VideoModal({ open, url, title, onClose }) {
   return (
@@ -21,25 +21,20 @@ export default function VideoModal({ open, url, title, onClose }) {
             onClick={(e) => e.stopPropagation()}
           >
             <h2>{title}</h2>
-            <div className="player-wrap">
-              <ReactPlayer
-                url={url}
-                controls
-                playing
-                width="100%"
-                height="100%"
-                onPlay={async () => {
-                  window.dispatchEvent(new Event("wedflix-video-playing"));
-                  if (!document.fullscreenElement) {
-                    try {
-                      await document.documentElement.requestFullscreen();
-                    } catch {
-                      // Browser may block auto fullscreen without direct gesture.
-                    }
+            <WedflixPlayer
+              url={url}
+              className="player-wrap"
+              onPlay={async () => {
+                window.dispatchEvent(new Event("wedflix-video-playing"));
+                if (!document.fullscreenElement) {
+                  try {
+                    await document.documentElement.requestFullscreen();
+                  } catch {
+                    // Browser may block auto fullscreen without direct gesture.
                   }
-                }}
-              />
-            </div>
+                }
+              }}
+            />
           </motion.div>
         </motion.div>
       )}
