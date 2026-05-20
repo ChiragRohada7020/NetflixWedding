@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "./components/Navbar";
 import WeddingsPage from "./pages/WeddingsPage";
+import HomePage from "./pages/HomePage";
 import WeddingDetailPage from "./pages/WeddingDetailPage";
 import ProgramDetailPage from "./pages/ProgramDetailPage";
 import EpisodeDetailPage from "./pages/EpisodeDetailPage";
@@ -38,12 +39,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!showIntro || introSoundAttemptedRef.current) return;
-    introSoundAttemptedRef.current = true;
+    if (introSoundAttemptedRef.current) return;
 
     const playIntroChime = async () => {
       const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextCtor) return false;
+      if (!AudioContextCtor) return;
       try {
         const ctx = new AudioContextCtor();
         if (ctx.state === "suspended") {
@@ -78,27 +78,15 @@ export default function App() {
         setTimeout(() => {
           ctx.close().catch(() => {});
         }, 1700);
-        return true;
+        introSoundAttemptedRef.current = true;
       } catch {
-        return false;
+        introSoundAttemptedRef.current = false;
       }
     };
 
-    const result = playIntroChime();
-    if (result instanceof Promise) {
-      result.then((played) => {
-        if (played) return;
-        introSoundAttemptedRef.current = false;
-      });
-    } else if (!result) {
-      introSoundAttemptedRef.current = false;
-    }
-
     const retryOnGesture = () => {
       if (introSoundAttemptedRef.current) return;
-      playIntroChime().finally(() => {
-        introSoundAttemptedRef.current = true;
-      });
+      playIntroChime();
     };
 
     window.addEventListener("pointerdown", retryOnGesture, { once: true });
@@ -110,7 +98,7 @@ export default function App() {
       window.removeEventListener("touchstart", retryOnGesture);
       window.removeEventListener("keydown", retryOnGesture);
     };
-  }, [showIntro]);
+  }, []);
 
   useEffect(() => {
     const tryEnterFullscreen = async () => {
@@ -155,22 +143,23 @@ export default function App() {
     return () => window.removeEventListener("wedflix-auth-changed", onAuthChanged);
   }, []);
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <EditModeProvider canEdit={canEdit}>
-        <ScrollToTop containerRef={containerRef} />
-        {showIntro && (
-          <div className="intro-screen" aria-hidden="true">
-            <p className="intro-logo">WEDFLIX</p>
-          </div>
-        )}
-        <Navbar musicUrl={musicUrl} />
-        <main className="container" ref={containerRef}>
-          <Routes>
-            <Route path="/" element={<WeddingsPage />} />
-            <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
-            <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
-            <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
-          </Routes>
+          <ScrollToTop containerRef={containerRef} />
+          {showIntro && (
+            <div className="intro-screen" aria-hidden="true">
+              <p className="intro-logo">WEDFLIX</p>
+            </div>
+          )}
+          <Navbar musicUrl={musicUrl} />
+          <main className="container" ref={containerRef}>
+            <Routes>
+              <Route path="/" element={<WeddingsPage />} />
+              <Route path="/weddings" element={<HomePage />} />
+              <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
+              <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
+              <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
+            </Routes>
           <footer className="wedflix-footer">
             <p>Wedflix &copy; {new Date().getFullYear()} All Rights Reserved.</p>
           </footer>

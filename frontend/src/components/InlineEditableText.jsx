@@ -23,11 +23,19 @@ export default function InlineEditableText({
   return (
     <Tag
       className={`${className} inline-editable ${editing ? "editing" : ""}`}
-      onClick={() => setEditing(true)}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        setEditing(true);
+      }}
+      onDoubleClick={(e) => {
+        e.preventDefault();
+        setEditing(true);
+      }}
     >
       {editing ? (
         <input
           ref={inputRef}
+          autoFocus
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={async () => {

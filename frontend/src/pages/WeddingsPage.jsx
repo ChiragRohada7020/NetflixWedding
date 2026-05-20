@@ -1,7 +1,5 @@
-import React from "react";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
@@ -9,6 +7,26 @@ import { apiGet, apiPostForm } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
+
+const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
+
+function WeddingPosterCard({ wedding, editMode }) {
+  return (
+    <motion.div key={wedding._id} whileHover={{ scale: 1.04 }} className="profile-wrap">
+      <Link to={`/weddings/${wedding._id}`} className="home-poster profile-card profile-card--watching" onClick={(e) => editMode && e.preventDefault()}>
+        <ProgressiveImage src={wedding.profile_image} alt={wedding.couple_names} className="profile-card__image" />
+        <div className="home-poster__fade" />
+        <div className="home-poster__content">
+          <img src={netflixLogoUrl} alt="" aria-hidden="true" className="home-poster__logo" />
+          <div className="home-poster__text">
+            <p className="home-poster__title">{wedding.couple_names}</p>
+            <p className="home-poster__subtitle">{wedding.wedding_date}</p>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
 
 export default function WeddingsPage() {
   const queryClient = useQueryClient();
@@ -18,6 +36,7 @@ export default function WeddingsPage() {
     queryKey: ["weddings"],
     queryFn: () => apiGet("/api/weddings"),
   });
+
   const saveWedding = async (payload, weddingId) => {
     const fd = new FormData();
     Object.entries(payload).forEach(([k, v]) => fd.append(k, v || ""));
@@ -25,6 +44,7 @@ export default function WeddingsPage() {
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     setModal(null);
   };
+
   const createWedding = async (payload) => {
     const fd = new FormData();
     Object.entries(payload).forEach(([k, v]) => fd.append(k, v || ""));
@@ -32,6 +52,7 @@ export default function WeddingsPage() {
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     setModal(null);
   };
+
   const deleteWedding = async (wedding) => {
     if (!window.confirm(`Delete ${wedding.couple_names}? This removes programs and events too.`)) return;
     await apiPostForm(`/admin/weddings/${wedding._id}/delete`, new FormData());
@@ -60,21 +81,17 @@ export default function WeddingsPage() {
               <div style={{ padding: 10 }}><Skeleton count={2} /></div>
             </div>
           ))}
-        {!isLoading &&
+      {!isLoading &&
           weddings.map((w) => (
-            <motion.div key={w._id} whileHover={{ scale: 1.04 }} className="profile-wrap">
-              <Link to={`/weddings/${w._id}`} className="profile-card" onClick={(e) => editMode && e.preventDefault()}>
-                <ProgressiveImage src={w.profile_image} alt={w.couple_names} />
-                <h3>{w.couple_names}</h3>
-                <p>{w.wedding_date}</p>
-              </Link>
+            <div key={w._id} className="profile-wrap">
+              <WeddingPosterCard wedding={w} editMode={editMode} />
               {canEdit && editMode && (
                 <div className="cms-overlay-actions" onClick={(e) => e.stopPropagation()}>
                   <button type="button" className="cms-fab" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModal({ type: "edit", item: w }); }}>Edit</button>
                   <button type="button" className="cms-fab danger" onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteWedding(w); }}>Delete</button>
                 </div>
               )}
-            </motion.div>
+            </div>
           ))}
       </div>
       {modal && (

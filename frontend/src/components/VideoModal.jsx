@@ -20,7 +20,10 @@ export default function VideoModal({ open, url, title, onClose }) {
             exit={{ scale: 0.96, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2>{title}</h2>
+            <button type="button" className="video-modal-back" onClick={onClose} aria-label="Back">
+              <span aria-hidden="true">←</span>
+              Back
+            </button>
             <WedflixPlayer
               url={url}
               className="player-wrap"

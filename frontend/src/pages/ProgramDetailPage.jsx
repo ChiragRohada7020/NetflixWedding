@@ -32,14 +32,42 @@ function withPlayerParams(url) {
   return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1${loopParams}&playsinline=1&start=0&rel=0&modestbranding=1`;
 }
 
-function EpisodeCard({ item, weddingId, programId, editMode, onEdit, onDelete }) {
+const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
+
+const requestFullscreenFromClick = async () => {
+  if (document.fullscreenElement) return;
+  try {
+    await document.documentElement.requestFullscreen();
+  } catch {
+    // Some browsers block fullscreen if they treat the click as indirect.
+  }
+};
+
+function EpisodeCard({ item, weddingId, programId, editMode, onEdit, onDelete, onPlay }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item._id });
   return (
     <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className="cms-card-wrap">
-      <Link to={`/weddings/${weddingId}/programs/${programId}/episodes/${item._id}`} className="card" onClick={(e) => editMode && e.preventDefault()}>
-        <ProgressiveImage src={item.thumbnail} alt={item.title} />
-        <h3>{item.title}</h3>
-        <p>{item.description}</p>
+      <Link
+        to={`/weddings/${weddingId}/programs/${programId}/episodes/${item._id}`}
+        className="home-poster program-card"
+        onClick={(e) => {
+          if (editMode) {
+            e.preventDefault();
+            return;
+          }
+          e.preventDefault();
+          onPlay?.(item);
+        }}
+      >
+        <ProgressiveImage src={item.thumbnail} alt={item.title} className="program-card__image" />
+        <div className="home-poster__fade" />
+        <div className="home-poster__content">
+          <img src={netflixLogoUrl} alt="" aria-hidden="true" className="home-poster__logo" />
+          <div className="home-poster__text">
+            <h3 className="program-card__title">{item.title}</h3>
+            <p className="program-card__subtitle">{item.description}</p>
+          </div>
+        </div>
       </Link>
       {editMode && (
         <div className="cms-overlay-actions" onClick={(e) => e.stopPropagation()}>
@@ -57,6 +85,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
   const queryClient = useQueryClient();
   const { canEdit, editMode } = useEditMode();
   const [openVideo, setOpenVideo] = useState(false);
+  const [activeEpisode, setActiveEpisode] = useState(null);
+  const [episodeVideoOpen, setEpisodeVideoOpen] = useState(false);
   const [modal, setModal] = useState(null);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["program", weddingId, programId],
@@ -135,27 +165,51 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
 
   return (
-    <section className="page-program-detail">
-      <header className="hero-netflix hero-program">
-        {(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url) && (
-          <iframe className="hero-bg-video" src={withPlayerParams(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url)} title="Program Hero" allowFullScreen />
-        )}
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <h2 className="hero-couple">{wedding?.couple_names || "Wedding Couple"}</h2>
+    <section className="home-page home-page--detail page-program-detail">
+      <header className="home-hero page-program-hero">
+        <div className={`home-hero__media ${toEmbed(program?.hero_video_url) || ordered[0]?.embed_url ? "has-video" : ""}`}>
+          {(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url) ? (
+            <iframe
+              className="home-hero__video"
+              src={withPlayerParams(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url)}
+              title="Program Hero"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <ProgressiveImage
+              src={program?.thumbnail || ordered[0]?.thumbnail || "https://picsum.photos/seed/program-hero/1200/800"}
+              alt={program?.title || "Program"}
+              className="home-hero__image"
+            />
+          )}
+          <div className="home-hero__shade" />
+        </div>
+        <div className="home-hero__content page-program-hero__content">
+          <p className="home-hero__kicker">{wedding?.couple_names || "Wedding Couple"}</p>
           <InlineEditableText
             as="h1"
+            className="home-hero__names page-program-hero__title"
             enabled={canEdit && editMode}
             value={program?.title || "Program"}
+            placeholder="Program"
             onSave={(v) => saveProgramField("title", v)}
           />
-          <InlineEditableText
-            as="p"
-            enabled={canEdit && editMode}
-            value={program?.event_date || "Date TBD"}
-            onSave={(v) => saveProgramField("event_date", v)}
-          />
-          {!!(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url) && <button className="play-btn" onClick={() => setOpenVideo(true)}>Play Fullscreen</button>}
+          <p className="home-hero__description">
+            {program?.event_date || "Date TBD"}
+          </p>
+          <div className="home-hero__actions">
+            {!!(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url) && (
+              <button type="button" className="home-btn home-btn--primary" onClick={() => setOpenVideo(true)}>
+                <span aria-hidden="true">▶</span>
+                Play Fullscreen
+              </button>
+            )}
+            <Link to={`/weddings/${weddingId}`} className="home-btn home-btn--secondary">
+              <span aria-hidden="true">ⓘ</span>
+              More Info
+            </Link>
+          </div>
         </div>
       </header>
       {error && <p className="error">{error.message}</p>}
@@ -175,10 +229,15 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
                 editMode={canEdit && editMode}
                 onEdit={(item) => setModal({ type: "edit", item })}
                 onDelete={deleteEpisode}
+                onPlay={(item) => {
+                  requestFullscreenFromClick();
+                  setActiveEpisode(item);
+                  setEpisodeVideoOpen(true);
+                }}
               />
             ))}
             {canEdit && editMode && (
-              <button className="add-card-tile" onClick={() => setModal({ type: "create", item: {} })}>
+              <button type="button" className="add-card-tile" onClick={() => setModal({ type: "create", item: {} })}>
                 <span className="add-card-plus">+</span>
                 <span>Add Event</span>
               </button>
@@ -187,6 +246,15 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
         </SortableContext>
       </DndContext>
       <VideoModal open={openVideo} title={program?.title || "Event Video"} url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url} onClose={() => setOpenVideo(false)} />
+      <VideoModal
+        open={episodeVideoOpen}
+        title={activeEpisode?.title || "Event Video"}
+        url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
+        onClose={() => {
+          setEpisodeVideoOpen(false);
+          setActiveEpisode(null);
+        }}
+      />
       {modal && (
         <div className="cms-modal-backdrop" onClick={() => setModal(null)}>
           <div className="cms-modal" onClick={(e) => e.stopPropagation()}>

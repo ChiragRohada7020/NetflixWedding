@@ -7,15 +7,38 @@ import { apiGet, apiPost } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import AsyncState from "../components/AsyncState";
 import WedflixPlayer from "../components/WedflixPlayer";
+import VideoModal from "../components/VideoModal";
 
-function NextEventCard({ item, weddingId, programId }) {
+const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
+
+const requestFullscreenFromClick = async () => {
+  if (document.fullscreenElement) return;
+  try {
+    await document.documentElement.requestFullscreen();
+  } catch {
+    // Browsers may reject fullscreen if the gesture context is lost.
+  }
+};
+
+function NextEventCard({ item, weddingId, programId, onPlay }) {
   return (
-    <Link to={`/weddings/${weddingId}/programs/${programId}/episodes/${item._id}`} className="next-event-card">
-      <ProgressiveImage src={item.thumbnail || "https://picsum.photos/seed/next-event/800/450"} alt={item.title || "Next event"} />
-      <div className="next-event-copy">
-        <span className="next-event-kicker">Next Event</span>
-        <h3>{item.title || "Untitled Event"}</h3>
-        {item.description && <p>{item.description}</p>}
+    <Link
+      to={`/weddings/${weddingId}/programs/${programId}/episodes/${item._id}`}
+      className="home-poster next-event-card"
+      onClick={(e) => {
+        e.preventDefault();
+        onPlay?.(item);
+      }}
+    >
+      <ProgressiveImage src={item.thumbnail || "https://picsum.photos/seed/next-event/800/450"} alt={item.title || "Next event"} className="next-event-card__image" />
+      <div className="home-poster__fade" />
+      <div className="home-poster__content">
+        <img src={netflixLogoUrl} alt="" aria-hidden="true" className="home-poster__logo" />
+        <div className="home-poster__text next-event-copy">
+          <span className="next-event-kicker">Next Event</span>
+          <h3>{item.title || "Untitled Event"}</h3>
+          {item.description && <p>{item.description}</p>}
+        </div>
       </div>
     </Link>
   );
@@ -25,6 +48,8 @@ export default function EpisodeDetailPage() {
   const { weddingId, programId, episodeId } = useParams();
   const [text, setText] = useState("");
   const [error, setError] = useState("");
+  const [activeEpisode, setActiveEpisode] = useState(null);
+  const [episodeVideoOpen, setEpisodeVideoOpen] = useState(false);
   const queryClient = useQueryClient();
   const watchedKey = `wedflix_watched_episodes_${programId}`;
 
@@ -112,6 +137,15 @@ export default function EpisodeDetailPage() {
       {isLoading && <Skeleton count={3} height={36} />}
 
       {error && <p className="error">{error}</p>}
+      <VideoModal
+        open={episodeVideoOpen}
+        title={activeEpisode?.title || "Event Video"}
+        url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
+        onClose={() => {
+          setEpisodeVideoOpen(false);
+          setActiveEpisode(null);
+        }}
+      />
 
       <div className="episode-section-shell">
         <div className="cms-row-head">
@@ -120,7 +154,17 @@ export default function EpisodeDetailPage() {
         {nextEpisodes.length ? (
           <div className="next-events-rail">
             {nextEpisodes.map((item) => (
-              <NextEventCard key={item._id} item={item} weddingId={weddingId} programId={programId} />
+              <NextEventCard
+                key={item._id}
+                item={item}
+                weddingId={weddingId}
+                programId={programId}
+                onPlay={(nextItem) => {
+                  requestFullscreenFromClick();
+                  setActiveEpisode(nextItem);
+                  setEpisodeVideoOpen(true);
+                }}
+              />
             ))}
           </div>
         ) : (

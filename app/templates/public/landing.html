@@ -1,28 +1,92 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
+{% block body_class %}home-page{% endblock %}
 {% block content %}
-<section class="min-h-[85vh] flex items-center justify-center px-6">
-  <div class="w-full max-w-7xl text-center">
-    <h1 class="text-4xl md:text-5xl font-black mb-3">Our Family Wedding Memories</h1>
-    <p class="text-gray-300 mb-10">A Home Of Love, Blessings, And Beautiful Moments Together.</p>
-
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-10 justify-items-center">
-      {% for wedding in weddings %}
-        <a href="{{ url_for('dashboard.wedding_dashboard', wedding_id=wedding._id) }}" class="group text-center invited-card">
-          <div class="w-32 h-32 md:w-40 md:h-40 rounded-xl overflow-hidden bg-white/10 ring-2 ring-transparent group-hover:ring-white/70 transition">
-            <img
-              src="{{ wedding.profile_image or ('https://api.dicebear.com/9.x/glass/svg?seed=' ~ wedding.couple_names|replace(' ', '')) }}"
-              onerror="this.onerror=null;this.src='https://picsum.photos/seed/wedding-card-{{ loop.index }}/600/600';"
-              alt="{{ wedding.couple_names }}"
-              class="w-full h-full object-cover group-hover:scale-105 transition"
-            >
-          </div>
-          <p class="mt-3 font-semibold text-base md:text-lg group-hover:text-white text-center">{{ wedding.couple_names }}</p>
-          <p class="text-sm text-gray-400 text-center">{{ wedding.wedding_date }}</p>
-        </a>
-      {% else %}
-        <p class="text-gray-300 col-span-full">No Public Weddings Available Right Now.</p>
-      {% endfor %}
-    </div>
+<section class="home-screen" id="home">
+  <div class="site-nav__mobile-tabs" aria-label="Home navigation tabs">
+    <a href="#home" class="site-nav__mobile-tab site-nav__mobile-tab--active">Home</a>
+    <button type="button" class="site-nav__mobile-tab">
+      Categories <span aria-hidden="true">&#9662;</span>
+    </button>
   </div>
+
+  <header class="home-hero">
+    <div class="home-hero__backdrop">
+      <img
+        src="{{ featured.hero_image or featured.profile_image or 'https://picsum.photos/seed/wedflix-hero/1600/900' }}"
+        alt="{{ featured.couple_names }}"
+        class="home-hero__image"
+        onerror="this.onerror=null;this.src='https://picsum.photos/seed/wedflix-hero/1600/900';"
+      >
+      <div class="home-hero__shade"></div>
+    </div>
+
+    <div class="home-hero__content">
+      <p class="home-hero__kicker">A WEDDING ORIGINAL</p>
+      <h1 class="home-hero__names">{{ featured.couple_names }}</h1>
+
+      <div class="home-hero__headline">
+        <span class="home-hero__badge">
+          <strong>TOP</strong>
+          <strong>10</strong>
+        </span>
+        <h2>#1 Love In Every Frame</h2>
+      </div>
+
+      <p class="home-hero__description">
+        {{ featured.description or 'A simple hello turned into a lifetime together. Through laughter, memories, and countless moments, their story found its way to forever.' }}
+      </p>
+
+      <div class="home-hero__meta">
+        <span>Celebration</span>
+        <span>Family</span>
+        <span>Romance</span>
+      </div>
+
+      <div class="home-hero__actions">
+        <a href="{{ hero_play_url }}" class="home-btn home-btn--primary">
+          <span aria-hidden="true">&#9654;</span>
+          Play
+        </a>
+        <a href="{{ hero_info_url }}" class="home-btn home-btn--secondary">
+          <span aria-hidden="true">&#9432;</span>
+          More Info
+        </a>
+      </div>
+    </div>
+
+    <button id="music-toggle" type="button" aria-pressed="false" class="home-sound-toggle" title="Toggle Background Music">
+      <span data-music-icon aria-hidden="true">&#9834;</span>
+      <span data-music-label>Music Off</span>
+    </button>
+  </header>
+
+  {% for row in home_rows %}
+    <section class="home-rail" id="{{ row.id }}">
+      <div class="home-rail__header">
+        <h2 class="home-rail__title">{{ row.title }}</h2>
+      </div>
+      <div class="home-rail__track">
+        {% for card in row.cards %}
+          <a href="{{ card.href }}" class="home-poster">
+            <img
+              src="{{ card.image }}"
+              alt="{{ card.title }}"
+              class="home-poster__image"
+              onerror="this.onerror=null;this.src='https://picsum.photos/seed/wedflix-card-{{ loop.index0 }}/800/450';"
+            >
+            <div class="home-poster__overlay">
+              <span class="home-poster__logo">N</span>
+              <div class="home-poster__copy">
+                <p class="home-poster__title">{{ card.title }}</p>
+                {% if card.subtitle %}
+                  <p class="home-poster__subtitle">{{ card.subtitle }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+  {% endfor %}
 </section>
 {% endblock %}

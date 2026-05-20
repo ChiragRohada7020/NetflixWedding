@@ -7,11 +7,12 @@ import { apiGet, apiPost } from "../api";
 export default function Navbar({ musicUrl }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const homeHref = "/";
   const { canEdit, editMode, toggleEditMode, cardSize, setCardSize } = useEditMode();
   const audioRef = useRef(null);
   const [isMusicOn, setIsMusicOn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [authForm, setAuthForm] = useState({ email: "", password: "" });
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
@@ -29,12 +30,12 @@ export default function Navbar({ musicUrl }) {
   }, [showLogin]);
 
   useEffect(() => {
-    if (!mobileMenuOpen) return;
-    const close = () => setMobileMenuOpen(false);
+    if (!profileMenuOpen) return;
+    const close = () => setProfileMenuOpen(false);
     window.addEventListener("resize", close);
     const onPointerDown = (event) => {
       if (navRef.current && !navRef.current.contains(event.target)) {
-        setMobileMenuOpen(false);
+        setProfileMenuOpen(false);
       }
     };
     document.addEventListener("pointerdown", onPointerDown);
@@ -42,10 +43,10 @@ export default function Navbar({ musicUrl }) {
       window.removeEventListener("resize", close);
       document.removeEventListener("pointerdown", onPointerDown);
     };
-  }, [mobileMenuOpen]);
+  }, [profileMenuOpen]);
 
   useEffect(() => {
-    setMobileMenuOpen(false);
+    setProfileMenuOpen(false);
   }, [location.pathname]);
 
   const normalizedMusicUrl = (musicUrl || "").trim();
@@ -110,7 +111,7 @@ export default function Navbar({ musicUrl }) {
   }, []);
 
   const handleAuthClick = async () => {
-    setMobileMenuOpen(false);
+    setProfileMenuOpen(false);
     if (isAuthenticated) {
       await apiPost("/api/session/logout", {});
       localStorage.setItem("wedflix_backend_auth_ok", "0");
@@ -126,7 +127,6 @@ export default function Navbar({ musicUrl }) {
   const goBack = () => {
     if (location.pathname === "/") return;
     navigate(-1);
-    setMobileMenuOpen(false);
   };
 
   const submitLogin = async (e) => {
@@ -158,33 +158,64 @@ export default function Navbar({ musicUrl }) {
 
   return (
     <>
-      <nav className="nav" ref={navRef}>
-        <audio ref={audioRef} src={resolvedMusicUrl} loop preload="auto" />
-        <Link to="/" className="brand">Wedflix</Link>
-        <button type="button" className="nav-hamburger" aria-label="Toggle menu" onClick={() => setMobileMenuOpen((v) => !v)}>☰</button>
-        <div className={`nav-actions ${mobileMenuOpen ? "open" : ""}`}>
-          {location.pathname !== "/" && (
-            <button type="button" className="music-pill" onClick={goBack}>
-              <span className="pill-icon" aria-hidden="true">←</span>
-              Back
+      <nav className="nav nav-home" ref={navRef}>
+        <div className="nav-home__top">
+          <Link to={homeHref} className="nav-home__brand nav-home__brand--desktop">WEDFLIX</Link>
+          <Link to={homeHref} className="nav-home__brand nav-home__brand--mobile" aria-label="Wedflix home">W</Link>
+
+          <div className="nav-home__profile">
+            <button
+              type="button"
+              className="nav-home__avatar"
+              onClick={() => setProfileMenuOpen((v) => !v)}
+              title={isAuthenticated ? "Admin menu" : "Sign in"}
+              aria-expanded={profileMenuOpen}
+              aria-haspopup="menu"
+            >
+              <span className="nav-home__avatar-face" aria-hidden="true">☺</span>
+              <span className="nav-home__avatar-caret" aria-hidden="true">▾</span>
             </button>
-          )}
-          {canEdit && (
-            <button className={`music-pill ${editMode ? "edit-on" : ""}`} type="button" onClick={() => { setMobileMenuOpen(false); toggleEditMode(); }}>
-              <span className="pill-icon" aria-hidden="true">✎</span>
-              {editMode ? "Edit Mode On" : "Edit Mode Off"}
-            </button>
-          )}
-          {canEdit && editMode && (
-            <select className="music-pill size-select" value={cardSize} onChange={(e) => { setCardSize(e.target.value); setMobileMenuOpen(false); }}>
-              <option value="small">Small Cards</option>
-              <option value="medium">Medium Cards</option>
-              <option value="large">Large Cards</option>
-            </select>
-          )}
-          <button type="button" className="music-pill music-icon-btn" onClick={() => { setMobileMenuOpen(false); toggleFullscreen(); }} title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}><span className="pill-icon" aria-hidden="true">{isFullscreen ? "⤫" : "⛶"}</span></button>
-          <button className="music-pill music-icon-btn" type="button" disabled={!resolvedMusicUrl} onClick={() => { setMobileMenuOpen(false); toggleMusic(); }} title={resolvedMusicUrl ? (isMusicOn ? "Music On" : "Music Off") : "No Music URL"}><span className="pill-icon" aria-hidden="true">{isMusicOn ? "♪" : "♫"}</span></button>
-          <button type="button" className="btn" onClick={handleAuthClick}><span className="pill-icon" aria-hidden="true">{isAuthenticated ? "↩" : "→"}</span>{isAuthenticated ? "Logout" : "Login"}</button>
+
+            {profileMenuOpen && (
+              <div className="nav-home__profile-menu" role="menu" aria-label="Profile actions">
+                <button
+                  type="button"
+                  className="nav-home__profile-item"
+                  onClick={async () => {
+                    setProfileMenuOpen(false);
+                    await toggleFullscreen();
+                  }}
+                >
+                  <span aria-hidden="true">{isFullscreen ? "⤫" : "⛶"}</span>
+                  {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                </button>
+                <button
+                  type="button"
+                  className={`nav-home__profile-item ${editMode ? "is-active" : ""} ${!canEdit ? "is-disabled" : ""}`}
+                  onClick={() => {
+                    setProfileMenuOpen(false);
+                    toggleEditMode();
+                  }}
+                  aria-disabled={!canEdit}
+                  title={canEdit ? "Toggle edit mode" : "Edit mode unavailable"}
+                >
+                  <span aria-hidden="true">✎</span>
+                  {editMode ? "Edit Mode On" : "Edit"}
+                </button>
+                <button
+                  type="button"
+                  className="nav-home__profile-item"
+                  onClick={async () => {
+                    setProfileMenuOpen(false);
+                    await handleAuthClick();
+                  }}
+                >
+                  <span aria-hidden="true">{isAuthenticated ? "↩" : "→"}</span>
+                  {isAuthenticated ? "Logout" : "Login"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 

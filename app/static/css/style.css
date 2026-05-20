@@ -1,5 +1,7 @@
-﻿body {
+body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: #000;
+  color: #fff;
 }
 
 body.login-open {
@@ -17,7 +19,8 @@ body.login-open nav {
 }
 
 .ambient-bg {
-  background: radial-gradient(circle at 15% 10%, rgba(229, 9, 20, 0.12), transparent 30%),
+  background:
+    radial-gradient(circle at 15% 10%, rgba(229, 9, 20, 0.12), transparent 30%),
     radial-gradient(circle at 85% 90%, rgba(56, 189, 248, 0.08), transparent 35%),
     #0b0d12;
 }
@@ -34,48 +37,753 @@ body.login-open nav {
   animation: drift 16s ease-in-out infinite;
 }
 
-.fx-orb-a { background: #e50914; top: -130px; left: -90px; }
-.fx-orb-b { background: #0ea5e9; bottom: -180px; right: -120px; animation-delay: 4s; }
-
-.wedflix-intro-screen { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: #000; animation: wedflixIntroOut 0.8s ease 1.4s forwards; }
-.wedflix-intro-logo { color: #e50914; font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif; font-size: clamp(42px, 11vw, 150px); letter-spacing: 0.14em; animation: wedflixIntroIn 1.2s ease forwards; text-shadow: 0 0 26px rgba(229, 9, 20, 0.5); }
-
-main, nav { position: relative; z-index: 1; }
-body.hero-only-page nav { display: none; }
-body.hero-only-page #app-main { padding-top: 0; }
-
-.rail::-webkit-scrollbar { height: 8px; }
-.rail::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.25); border-radius: 9999px; }
-a, button { transition: all 0.2s ease; }
-
-.music-toggle-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); border-radius: 9999px; padding: 8px 12px; font-size: 12px; font-weight: 600; }
-.music-toggle-pill:hover { background: rgba(255,255,255,0.2); }
-.music-toggle-pill[aria-pressed="true"] { background: rgba(14, 165, 233, 0.24); border-color: rgba(14, 165, 233, 0.5); }
-
-.invited-card { width: 100%; max-width: 140px; margin-inline: auto; display: flex; flex-direction: column; align-items: center; }
-.hero-section { margin-top: -64px; padding-top: 64px; min-height: calc(100vh + 64px); }
-.hero-fullscreen { display: flex; align-items: center; justify-content: center; }
-.hero-copy-shell { transform: translateY(-8px); width: 100%; display: flex; align-items: center; justify-content: center; }
-.hero-main-title { text-wrap: balance; letter-spacing: -0.05em; }
-
-@media (max-width: 640px) {
-  .hero-cover-video { top: 0; left: 0; width: 100vw; height: 100dvh; min-width: 100vw; min-height: 100dvh; max-width: none; transform: none; }
-  .hero-section { margin-top: -58px; padding-top: 58px; min-height: calc(100dvh + 58px); }
-  .hero-copy-shell { transform: translateY(0); }
-  .hero-main-title { font-size: clamp(5rem, 18vw, 7.4rem); line-height: 0.82; }
-  .episode-intro-title { font-size: clamp(5rem, 18vw, 7.5rem); }
-  .music-toggle-pill { padding: 7px 10px; gap: 6px; font-size: 11px; }
+.fx-orb-a {
+  background: #e50914;
+  top: -130px;
+  left: -90px;
 }
 
-.fade-in-up { animation: fadeUp 650ms ease both; }
-.netflix-intro { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; background: #000; animation: introFadeOut 2.2s ease 1.4s forwards; pointer-events: none; }
-.netflix-intro-logo { color: #e50914; font-weight: 900; letter-spacing: 0.16em; font-size: clamp(34px, 9vw, 120px); transform: scale(0.7); opacity: 0; animation: introLogoIn 1.4s ease forwards; text-shadow: 0 0 20px rgba(229, 9, 20, 0.35); }
-.episode-intro-title { color: #ef4444; font-size: clamp(56px, 12vw, 132px); letter-spacing: 0.06em; font-weight: 900; text-transform: capitalize; font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif; text-shadow: 0 0 18px rgba(239, 68, 68, 0.55); animation: introTitlePulse 1.2s ease-in-out infinite alternate; }
+.fx-orb-b {
+  background: #0ea5e9;
+  bottom: -180px;
+  right: -120px;
+  animation-delay: 4s;
+}
 
-@keyframes introTitlePulse { from { transform: scale(0.98); opacity: 0.92; } to { transform: scale(1.03); opacity: 1; } }
-@keyframes introLogoIn { 0% { opacity: 0; transform: scale(0.7);} 50% { opacity: 1; transform: scale(1.03);} 100% { opacity: 1; transform: scale(1);} }
-@keyframes introFadeOut { from { opacity: 1; visibility: visible;} to { opacity: 0; visibility: hidden;} }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(12px);} to { opacity: 1; transform: translateY(0);} }
-@keyframes wedflixIntroIn { 0% { opacity: 0; transform: scale(0.8);} 100% { opacity: 1; transform: scale(1);} }
-@keyframes wedflixIntroOut { to { opacity: 0; visibility: hidden;} }
-@keyframes drift { 0%,100% { transform: translate(0,0) scale(1);} 50% { transform: translate(18px,-14px) scale(1.05);} }
+.wedflix-intro-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  animation: wedflixIntroOut 0.8s ease 1.4s forwards;
+}
+
+.wedflix-intro-logo {
+  color: #e50914;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(42px, 11vw, 150px);
+  letter-spacing: 0.14em;
+  animation: wedflixIntroIn 1.2s ease forwards;
+  text-shadow: 0 0 26px rgba(229, 9, 20, 0.5);
+}
+
+main,
+nav {
+  position: relative;
+  z-index: 1;
+}
+
+a,
+button {
+  transition: all 0.2s ease;
+}
+
+.music-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.music-toggle-pill:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.music-toggle-pill[aria-pressed="true"] {
+  background: rgba(14, 165, 233, 0.24);
+  border-color: rgba(14, 165, 233, 0.5);
+}
+
+.rail::-webkit-scrollbar {
+  height: 8px;
+}
+
+.rail::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+}
+
+.invited-card {
+  width: 100%;
+  max-width: 140px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-section {
+  margin-top: -64px;
+  padding-top: 64px;
+  min-height: calc(100vh + 64px);
+}
+
+.hero-fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-copy-shell {
+  transform: translateY(-8px);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-main-title {
+  text-wrap: balance;
+  letter-spacing: -0.05em;
+}
+
+.home-page #app-main {
+  padding-top: 0 !important;
+}
+
+.home-page .wedflix-footer {
+  display: none;
+}
+
+.site-nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  color: #fff;
+}
+
+.site-nav--home {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.96), rgba(0, 0, 0, 0.82));
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.site-nav__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 12px 28px;
+}
+
+.site-nav__brand {
+  text-decoration: none;
+  color: #fff;
+}
+
+.site-nav__brand--netflix {
+  color: #e50914;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1;
+}
+
+.site-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.site-nav__links a {
+  color: #f3f4f6;
+  text-decoration: none;
+  font-size: 1.03rem;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+.site-nav__links a:hover {
+  opacity: 1;
+}
+
+.site-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-nav__avatar {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff4d4f, #e50914);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(229, 9, 20, 0.28);
+}
+
+.site-nav__avatar-face {
+  font-size: 1.55rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.site-nav__avatar-caret {
+  position: absolute;
+  right: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  color: #fff;
+}
+
+.site-nav__mobile-tabs {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 12px;
+}
+
+.site-nav__mobile-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font-size: 0.84rem;
+  text-decoration: none;
+}
+
+.site-nav__mobile-tab--active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.home-screen {
+  padding: 0 0 2rem;
+}
+
+.home-hero {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  scroll-margin-top: 88px;
+}
+
+.home-hero__backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.home-hero__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.04);
+  filter: saturate(0.95) contrast(0.98);
+}
+
+.home-hero__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.94) 0%, rgba(0, 0, 0, 0.76) 36%, rgba(0, 0, 0, 0.18) 64%, rgba(0, 0, 0, 0.82) 100%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.08) 42%);
+}
+
+.home-hero__content {
+  position: relative;
+  z-index: 2;
+  width: min(760px, calc(100% - 48px));
+  padding: clamp(8.5rem, 14vh, 12rem) 0 5rem 42px;
+}
+
+.home-hero__kicker {
+  margin: 0 0 1.3rem;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: clamp(0.86rem, 1.5vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.36em;
+}
+
+.home-hero__names {
+  margin: 0 0 1.05rem;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.2rem, 5.7vw, 5.9rem);
+  line-height: 0.86;
+  font-weight: 500;
+  text-shadow: 0 12px 30px rgba(0, 0, 0, 0.52);
+}
+
+.home-hero__headline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 1.1rem;
+}
+
+.home-hero__badge {
+  width: 42px;
+  min-width: 42px;
+  padding: 8px 5px;
+  border-radius: 8px;
+  background: #e50914;
+  color: #fff;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 0.72rem;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(229, 9, 20, 0.32);
+}
+
+.home-hero__headline h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  font-weight: 800;
+}
+
+.home-hero__description {
+  margin: 0 0 1.25rem;
+  max-width: 32rem;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: clamp(1rem, 1.6vw, 1.22rem);
+  line-height: 1.6;
+}
+
+.home-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 1.7rem;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(0.98rem, 1.2vw, 1.1rem);
+}
+
+.home-hero__meta span::after {
+  content: "•";
+  margin-left: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.home-hero__meta span:last-child::after {
+  content: "";
+  margin-left: 0;
+}
+
+.home-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.home-btn {
+  min-width: 160px;
+  padding: 14px 24px;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.home-btn:hover {
+  transform: translateY(-1px);
+}
+
+.home-btn--primary {
+  background: #fff;
+  color: #000;
+}
+
+.home-btn--secondary {
+  background: rgba(109, 109, 110, 0.72);
+  color: #fff;
+}
+
+.home-sound-toggle {
+  position: absolute;
+  right: 28px;
+  bottom: 28px;
+  z-index: 3;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(0, 0, 0, 0.36);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.home-sound-toggle span:last-child {
+  display: none;
+}
+
+.home-rail {
+  padding: 0 0 1.5rem;
+  scroll-margin-top: 88px;
+}
+
+.home-rail__header {
+  padding: 0 0 10px 24px;
+}
+
+.home-rail__title {
+  margin: 0;
+  color: #fff;
+  font-size: 1.12rem;
+  font-weight: 900;
+}
+
+.home-rail__track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 24px 8px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-rail__track::-webkit-scrollbar {
+  height: 8px;
+}
+
+.home-rail__track::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+}
+
+.home-poster {
+  position: relative;
+  flex: 0 0 280px;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: #fff;
+  background: #111;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+  scroll-snap-align: start;
+}
+
+.home-poster__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.01);
+  transition: transform 0.3s ease;
+}
+
+.home-poster:hover .home-poster__image {
+  transform: scale(1.08);
+}
+
+.home-poster__overlay {
+  position: absolute;
+  inset: auto 0 0;
+  min-height: 50%;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.3) 55%, transparent);
+}
+
+.home-poster__logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  background: #e50914;
+  color: #fff;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-size: 0.95rem;
+}
+
+.home-poster__copy {
+  min-width: 0;
+}
+
+.home-poster__title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.home-poster__subtitle {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.82rem;
+}
+
+.fade-in-up {
+  animation: fadeUp 650ms ease both;
+}
+
+.netflix-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  animation: introFadeOut 2.2s ease 1.4s forwards;
+  pointer-events: none;
+}
+
+.netflix-intro-logo {
+  color: #e50914;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  font-size: clamp(34px, 9vw, 120px);
+  transform: scale(0.7);
+  opacity: 0;
+  animation: introLogoIn 1.4s ease forwards;
+  text-shadow: 0 0 20px rgba(229, 9, 20, 0.35);
+}
+
+.episode-intro-title {
+  color: #ef4444;
+  font-size: clamp(56px, 12vw, 132px);
+  letter-spacing: 0.06em;
+  font-weight: 900;
+  text-transform: capitalize;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  text-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
+  animation: introTitlePulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes introTitlePulse {
+  from { transform: scale(0.98); opacity: 0.92; }
+  to { transform: scale(1.03); opacity: 1; }
+}
+
+@keyframes introLogoIn {
+  0% { opacity: 0; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes introFadeOut {
+  from { opacity: 1; visibility: visible; }
+  to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wedflixIntroIn {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes wedflixIntroOut {
+  to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(18px, -14px) scale(1.05); }
+}
+
+@media (max-width: 640px) {
+  .site-nav__top {
+    padding: 10px 12px 8px;
+  }
+
+  .site-nav__brand--netflix {
+    font-size: 1.85rem;
+  }
+
+  .site-nav__links--desktop {
+    display: none;
+  }
+
+  .site-nav__mobile-tabs {
+    display: flex;
+  }
+
+  .site-nav__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .site-nav__avatar-face {
+    font-size: 1.25rem;
+  }
+
+  .site-nav__avatar-caret {
+    right: -12px;
+  }
+
+  .home-screen {
+    padding-top: 56px;
+  }
+
+  .home-hero {
+    min-height: auto;
+    padding: 10px 12px 18px;
+  }
+
+  .home-hero__backdrop {
+    position: relative;
+    height: 74svh;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.44);
+  }
+
+  .home-hero__image {
+    transform: none;
+  }
+
+  .home-hero__shade {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 10%, rgba(0, 0, 0, 0.42) 44%, rgba(0, 0, 0, 0.14) 100%);
+  }
+
+  .home-hero__content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    padding: 16px 16px 18px;
+    text-align: center;
+  }
+
+  .home-hero__kicker {
+    font-size: 0.76rem;
+    letter-spacing: 0.32em;
+    margin-bottom: 0.9rem;
+  }
+
+  .home-hero__names {
+    font-size: clamp(2.8rem, 13vw, 4.2rem);
+    line-height: 0.86;
+    margin-bottom: 0.9rem;
+  }
+
+  .home-hero__headline {
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .home-hero__headline h2 {
+    font-size: 1.1rem;
+    max-width: 18ch;
+  }
+
+  .home-hero__description {
+    font-size: 0.92rem;
+    max-width: 22rem;
+    margin-inline: auto;
+  }
+
+  .home-hero__meta {
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .home-hero__meta span::after {
+    margin-left: 10px;
+  }
+
+  .home-hero__actions {
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .home-btn {
+    min-width: 0;
+    flex: 1 1 128px;
+    max-width: 140px;
+    padding: 11px 14px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+  }
+
+  .home-sound-toggle {
+    right: 12px;
+    top: 12px;
+    bottom: auto;
+    width: 42px;
+    height: 42px;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .home-sound-toggle span:first-child {
+    font-size: 0.95rem;
+  }
+
+  .home-rail__header {
+    padding: 0 0 8px 12px;
+  }
+
+  .home-rail__title {
+    font-size: 1rem;
+  }
+
+  .home-rail__track {
+    padding: 0 12px 8px;
+    gap: 10px;
+  }
+
+  .home-poster {
+    flex-basis: 84vw;
+    max-width: 84vw;
+    aspect-ratio: 1 / 1.14;
+    border-radius: 14px;
+  }
+
+  .home-poster__overlay {
+    padding: 0.9rem;
+    min-height: 54%;
+  }
+
+  .home-poster__logo {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+
+  .home-poster__title {
+    font-size: 0.95rem;
+  }
+
+  .home-poster__subtitle {
+    font-size: 0.76rem;
+  }
+}
