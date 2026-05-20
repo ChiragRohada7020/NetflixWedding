@@ -31,6 +31,7 @@ def create_app(env_name="development"):
         "FRONTEND_ORIGIN",
         # "http://localhost:5173",
         "https://wedflix.space",
+        "https://www.wedflix.space",
 
     )
 
@@ -39,7 +40,8 @@ def create_app(env_name="development"):
         origins=[
         "https://netflix-wedding-eta.vercel.app",
         # "http://localhost:5173",
-        "https://wedflix.space"
+        "https://wedflix.space",
+        "https://www.wedflix.space",
     ],
         supports_credentials=True,
     )
