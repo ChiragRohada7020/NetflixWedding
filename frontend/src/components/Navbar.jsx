@@ -10,7 +10,7 @@ export default function Navbar({ musicUrl }) {
   const homeHref = "/";
   const { canEdit, editMode, toggleEditMode, cardSize, setCardSize } = useEditMode();
   const audioRef = useRef(null);
-  const [isMusicOn, setIsMusicOn] = useState(false);
+  const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const [showLogin, setShowLogin] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [authForm, setAuthForm] = useState({ email: "", password: "" });
@@ -59,7 +59,8 @@ export default function Navbar({ musicUrl }) {
       setIsMusicOn(false);
       return;
     }
-    setIsMusicOn(true);
+    const saved = localStorage.getItem("wedflix_music_on");
+    setIsMusicOn(saved === "0" ? false : true);
   }, [resolvedMusicUrl]);
 
   useEffect(() => {
@@ -72,27 +73,33 @@ export default function Navbar({ musicUrl }) {
   }, [resolvedMusicUrl, isMusicOn]);
 
   useEffect(() => {
-    const pauseMusicForVideo = () => {
-      if (!audioRef.current) return;
-      audioRef.current.pause();
-      setIsMusicOn(false);
+    if (!resolvedMusicUrl || !isMusicOn) return;
+    const tryPlayOnGesture = () => {
+      audioRef.current?.play().catch(() => {});
     };
-    window.addEventListener("wedflix-video-playing", pauseMusicForVideo);
-    return () => window.removeEventListener("wedflix-video-playing", pauseMusicForVideo);
-  }, []);
+    window.addEventListener("pointerdown", tryPlayOnGesture, { once: true });
+    window.addEventListener("touchstart", tryPlayOnGesture, { once: true, passive: true });
+    return () => {
+      window.removeEventListener("pointerdown", tryPlayOnGesture);
+      window.removeEventListener("touchstart", tryPlayOnGesture);
+    };
+  }, [resolvedMusicUrl, isMusicOn]);
 
   const toggleMusic = async () => {
     if (!audioRef.current || !resolvedMusicUrl) return;
     if (isMusicOn) {
       audioRef.current.pause();
       setIsMusicOn(false);
+      localStorage.setItem("wedflix_music_on", "0");
       return;
     }
     try {
       await audioRef.current.play();
       setIsMusicOn(true);
+      localStorage.setItem("wedflix_music_on", "1");
     } catch {
       setIsMusicOn(false);
+      localStorage.setItem("wedflix_music_on", "0");
     }
   };
 

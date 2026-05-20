@@ -297,14 +297,15 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
     subtitle: program.event_date || program.venue_name || `Season ${index + 1}`,
   })).filter((card) => matchesSearch(card.item));
 
-  const [isMusicOn, setIsMusicOn] = useState(false);
+  const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const audioRef = useRef(null);
 
   useEffect(() => {
     if (!audioRef.current) return;
     audioRef.current.pause();
     audioRef.current.load();
-    setIsMusicOn(false);
+    const saved = localStorage.getItem("wedflix_music_on");
+    setIsMusicOn(saved === "0" ? false : !!pageMusicUrl);
   }, [pageMusicUrl]);
 
   const toggleMusic = async () => {
@@ -312,13 +313,16 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
     if (isMusicOn) {
       audioRef.current.pause();
       setIsMusicOn(false);
+      localStorage.setItem("wedflix_music_on", "0");
       return;
     }
     try {
       await audioRef.current.play();
       setIsMusicOn(true);
+      localStorage.setItem("wedflix_music_on", "1");
     } catch {
       setIsMusicOn(false);
+      localStorage.setItem("wedflix_music_on", "0");
     }
   };
 
