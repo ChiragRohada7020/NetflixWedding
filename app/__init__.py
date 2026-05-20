@@ -29,7 +29,9 @@ def create_app(env_name="development"):
 
     frontend_origin = os.getenv(
         "FRONTEND_ORIGIN",
-        "http://localhost:5173"
+        "http://localhost:5173",
+        "https://wedflix.space",
+
     )
 
     CORS(
