@@ -305,7 +305,11 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
     audioRef.current.pause();
     audioRef.current.load();
     const saved = localStorage.getItem("wedflix_music_on");
-    setIsMusicOn(saved === "0" ? false : !!pageMusicUrl);
+    const shouldPlay = saved === "0" ? false : !!pageMusicUrl;
+    setIsMusicOn(shouldPlay);
+    if (shouldPlay && pageMusicUrl) {
+      audioRef.current.play().catch(() => {});
+    }
   }, [pageMusicUrl]);
 
   const toggleMusic = async () => {

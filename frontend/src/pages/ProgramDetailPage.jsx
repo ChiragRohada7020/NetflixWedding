@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DndContext, closestCenter } from "@dnd-kit/core";
@@ -88,6 +88,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
   const [activeEpisode, setActiveEpisode] = useState(null);
   const [episodeVideoOpen, setEpisodeVideoOpen] = useState(false);
   const [modal, setModal] = useState(null);
+  const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
+  const audioRef = useRef(null);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["program", weddingId, programId],
     queryFn: async () => {
@@ -104,9 +106,38 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
   const episodes = data?.episodes || [];
   const [ordered, setOrdered] = useState([]);
   React.useEffect(() => setOrdered(episodes), [episodes]);
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.pause();
+    audioRef.current.load();
+    const saved = localStorage.getItem("wedflix_music_on");
+    const shouldPlay = saved === "0" ? false : !!(program?.music_url || wedding?.music_url);
+    setIsMusicOn(shouldPlay);
+    if (shouldPlay && (program?.music_url || wedding?.music_url)) {
+      audioRef.current.play().catch(() => {});
+    }
+  }, [program?.music_url, wedding?.music_url]);
   React.useEffect(() => {
     onMusicUrlChange(program?.music_url || wedding?.music_url || "");
   }, [program?.music_url, wedding?.music_url, onMusicUrlChange]);
+
+  const toggleMusic = async () => {
+    if (!audioRef.current || !(program?.music_url || wedding?.music_url)) return;
+    if (isMusicOn) {
+      audioRef.current.pause();
+      setIsMusicOn(false);
+      localStorage.setItem("wedflix_music_on", "0");
+      return;
+    }
+    try {
+      await audioRef.current.play();
+      setIsMusicOn(true);
+      localStorage.setItem("wedflix_music_on", "1");
+    } catch {
+      setIsMusicOn(false);
+      localStorage.setItem("wedflix_music_on", "0");
+    }
+  };
 
   const saveEpisode = async (values, episodeId) => {
     const fd = new FormData();
@@ -166,6 +197,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
 
   return (
     <section className="home-page home-page--detail page-program-detail">
+      <audio ref={audioRef} src={program?.music_url || wedding?.music_url || ""} loop preload="auto" />
       <header className="home-hero page-program-hero">
         <div className={`home-hero__media ${toEmbed(program?.hero_video_url) || ordered[0]?.embed_url ? "has-video" : ""}`}>
           {(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url) ? (
@@ -202,7 +234,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
             {!!(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url) && (
               <button type="button" className="home-btn home-btn--primary" onClick={() => setOpenVideo(true)}>
                 <span aria-hidden="true">▶</span>
-                Play Fullscreen
+                Play
               </button>
             )}
             <Link to={`/weddings/${weddingId}`} className="home-btn home-btn--secondary">
@@ -211,6 +243,15 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
             </Link>
           </div>
         </div>
+        <button
+          type="button"
+          className={`home-sound-toggle ${isMusicOn ? "is-on" : ""}`}
+          onClick={toggleMusic}
+          disabled={!(program?.music_url || wedding?.music_url)}
+          title={program?.music_url || wedding?.music_url ? (isMusicOn ? "Music On" : "Music Off") : "No page music"}
+        >
+          <span aria-hidden="true">{isMusicOn ? "♪" : "♫"}</span>
+        </button>
       </header>
       {error && <p className="error">{error.message}</p>}
       <div className="cms-row-head">

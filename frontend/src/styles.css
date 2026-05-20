@@ -1432,16 +1432,16 @@ body.card-size-large {
     padding: 10px 10px 8px;
     left: 10px;
     right: 10px;
-    bottom: 30px;
+    bottom: 42px;
   }
   .wedflix-player-progress {
     min-width: 100%;
   }
   .wedflix-player-chrome-mask {
-    height: 36%;
+    height: 48%;
   }
   .wedflix-player-top-mask {
-    height: 64px;
+    height: 72px;
   }
   .wedflix-player-cover-brand {
     font-size: 0.98rem;
@@ -2752,8 +2752,8 @@ body.login-open .container {
   }
 
   .home-poster-wrap {
-    flex: 0 0 176px;
-    max-width: 176px;
+    flex: 0 0 188px;
+    max-width: 188px;
     scroll-snap-align: start;
   }
 
@@ -2796,14 +2796,14 @@ body.login-open .container {
   }
 
   .home-rail__grid .add-card-tile {
-    flex: 0 0 176px;
-    max-width: 176px;
+    flex: 0 0 188px;
+    max-width: 188px;
     aspect-ratio: 0.78 / 1;
   }
 
   .add-card-tile {
-    flex: 0 0 176px;
-    max-width: 176px;
+    flex: 0 0 188px;
+    max-width: 188px;
     height: auto;
     aspect-ratio: 0.78 / 1;
     order: -1;
@@ -2822,7 +2822,7 @@ body.login-open .container {
   }
 
   .program-card {
-    max-width: 176px;
+    max-width: 188px;
   }
 
   .program-card__title {

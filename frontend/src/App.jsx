@@ -105,7 +105,11 @@ export default function App() {
       if (fullscreenAttemptedRef.current || document.fullscreenElement) return;
       fullscreenAttemptedRef.current = true;
       try {
-        await document.documentElement.requestFullscreen();
+        const root = document.documentElement;
+        if (root.requestFullscreen) await root.requestFullscreen();
+        else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen();
+        else if (root.mozRequestFullScreen) root.mozRequestFullScreen();
+        else if (root.msRequestFullscreen) root.msRequestFullscreen();
       } catch {
         fullscreenAttemptedRef.current = false;
       }
@@ -119,11 +123,17 @@ export default function App() {
       tryEnterFullscreen();
     }
 
+    const mobileAutoTry = window.setTimeout(() => {
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      if (isMobile) tryEnterFullscreen();
+    }, showIntro ? 2400 : 250);
+
     window.addEventListener("pointerdown", onFirstGesture, { once: true });
     window.addEventListener("keydown", onFirstGesture, { once: true });
     window.addEventListener("touchstart", onFirstGesture, { once: true, passive: true });
 
     return () => {
+      window.clearTimeout(mobileAutoTry);
       window.removeEventListener("pointerdown", onFirstGesture);
       window.removeEventListener("keydown", onFirstGesture);
       window.removeEventListener("touchstart", onFirstGesture);

@@ -35,8 +35,9 @@ def create_app(env_name="development"):
     CORS(
         app,
         origins=[
-        "https://netflix-wedding-eta.vercel.app"
-        # "http://localhost:5173"
+        "https://netflix-wedding-eta.vercel.app",
+        "http://localhost:5173",
+        "https://wedflix.space"
     ],
         supports_credentials=True,
     )
