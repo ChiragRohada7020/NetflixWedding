@@ -176,19 +176,21 @@ def site():
     contact_phone = os.getenv("WEDFLIX_CONTACT_PHONE", "+91 98765 43210")
     contact_email = os.getenv("WEDFLIX_CONTACT_EMAIL", "hello@wedflix.space")
     whatsapp_url = os.getenv("WEDFLIX_WHATSAPP_URL", "https://wa.me/919876543210")
+    instagram_handle = os.getenv("WEDFLIX_INSTAGRAM_HANDLE", "@wed_flixx")
+    instagram_url = os.getenv("WEDFLIX_INSTAGRAM_URL", "https://www.instagram.com/wed_flixx/")
 
     sections = [
         {
             "title": "Wedding Films",
-            "copy": "Cinematic hero edits, emotional highlight reels, and polished storytelling that feels premium and timeless.",
+            "copy": "Cinematic hero edits, emotional highlight reels, and family-first storytelling that keeps every blessing, tear, and laugh close.",
         },
         {
             "title": "Programs & Events",
-            "copy": "Separate beautiful pages for Haldi, Mehendi, Sangeet, Reception, and every moment in between.",
+            "copy": "Separate beautiful pages for Haldi, Mehendi, Sangeet, Pithi, Bhaat, Sehra Bandi, Baraat, Sakhar Puda, Antarpat, Mangalashtak, Nikaah, Anand Karaj, Church Vows, Varmala, Pheras, Bidaai, Reception, and every moment in between.",
         },
         {
             "title": "Guest Memories",
-            "copy": "Photos, comments, and memories organized in a premium Netflix-style experience for families and friends.",
+            "copy": "Photos, comments, and memories organized so both sides of the family can relive the celebration together.",
         },
         {
             "title": "Private or Public",
@@ -207,22 +209,28 @@ def site():
 
     reviews = [
         {
-            "name": "Jennifer Davis",
-            "handle": "@jennbunnylynn",
-            "quote": "The best part was that it never felt like a production. The team blended in and captured moments that still feel alive every time we watch them.",
+            "name": "Rohit & Neha Ahuja",
+            "handle": "Sindhi family wedding",
+            "quote": "It felt like the whole Sindhi family was sitting together again. From the sehra bandi to the dhol, every chacha, bua, and cousin found a moment that felt like ours.",
             "image": "https://images.unsplash.com/photo-1525338078858-d762b5e32f2c?auto=format&fit=crop&w=900&q=80",
         },
         {
-            "name": "Laurie Roundtree",
-            "handle": "@laurieroundtree",
-            "quote": "Wedflix gave our wedding an unforgettable digital home. It felt premium, emotional, and incredibly easy to share with family.",
+            "name": "Kritika & Harsh Khandelwal",
+            "handle": "Marwadi family wedding",
+            "quote": "Our Marwadi rituals were shown with so much warmth. The mehendi, bhaat, pithi, pheras, and bidaai all felt emotional without losing the family masti.",
             "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80",
         },
         {
-            "name": "Kelsey Agar",
-            "handle": "@kelseyagar",
-            "quote": "Their eye for details and pacing made the whole experience feel cinematic. It looked and felt like a film premiere.",
+            "name": "Aarohi & Nikhil Deshmukh",
+            "handle": "Marathi family wedding",
+            "quote": "Our Marathi wedding felt complete on Wedflix. The sakhar puda, antarpat, mangalashtak, varmala, and every family blessing were shown with so much respect.",
             "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
+        },
+        {
+            "name": "Families Across Traditions",
+            "handle": "Indian wedding celebrations",
+            "quote": "Every community has its own way of making a wedding special. Wedflix gave our rituals, prayers, family entries, and reception moments a premium place to shine.",
+            "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80",
         },
     ]
 
@@ -237,6 +245,8 @@ def site():
         contact_phone=contact_phone,
         contact_email=contact_email,
         whatsapp_url=whatsapp_url,
+        instagram_handle=instagram_handle,
+        instagram_url=instagram_url,
         sections=sections,
         features=features,
         reviews=reviews,

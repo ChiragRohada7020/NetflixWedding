@@ -19,18 +19,23 @@ const featuredFilms = [
 const testimonials = [
   {
     quote:
-      "Every frame felt soft, intentional, and full of heart. Watching our film felt like stepping back into the exact feeling of that day.",
-    couple: "Amelia & Jude",
+      "It felt like the whole Sindhi family was sitting together again. From the sehra bandi to the dhol, every chacha, bua, and cousin found a moment that felt like ours.",
+    couple: "Rohit & Neha Ahuja",
   },
   {
     quote:
-      "They caught the vows, the nervous smiles, my father crying, and the wild laughter at dinner. It feels elegant without losing what was real.",
-    couple: "Priya & Neil",
+      "Our Marwadi rituals were shown with so much warmth. The mehendi, bhaat, pithi, pheras, and bidaai all felt emotional without losing the family masti.",
+    couple: "Kritika & Harsh Khandelwal",
   },
   {
     quote:
-      "The final experience feels like an editorial love story. It is refined, emotional, and something our families keep coming back to.",
-    couple: "Layla & Sam",
+      "Our Marathi wedding felt complete on Wedflix. The sakhar puda, antarpat, mangalashtak, varmala, and every family blessing were shown with so much respect.",
+    couple: "Aarohi & Nikhil Deshmukh",
+  },
+  {
+    quote:
+      "Every community has its own way of making a wedding special. Wedflix gave our rituals, prayers, family entries, and reception moments a premium place to shine.",
+    couple: "Families Across Traditions",
   },
 ];
 
@@ -40,6 +45,16 @@ const navLinks = [
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
 ];
+
+function InstagramIcon({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
+    </svg>
+  );
+}
 
 function useScrollReveal() {
   useEffect(() => {
@@ -128,6 +143,9 @@ export default function SitePage() {
           <h1>wedding films, memories, and moments in one beautiful place</h1>
           <p className="site-lux__lede">
             Wedflix helps couples present their wedding story through cinematic films, elegant galleries, event pages, and a premium digital experience guests will love to revisit.
+          </p>
+          <p className="site-lux__trust">
+            Trusted by <strong>1K+ reviews</strong>
           </p>
           <div className="site-lux__actions">
             <a href={wedflixStoryUrl} target="_blank" rel="noreferrer" className="site-lux__button site-lux__button--primary">
@@ -225,7 +243,7 @@ export default function SitePage() {
             moments into one refined destination that feels personal, premium, and easy to share.
           </p>
           <p>
-            From the main love story to haldi, mehendi, sangeet, ceremony, and reception,
+            From the main love story to haldi, mehendi, sangeet, pithi, bhaat, sehra bandi, baraat, sakhar puda, antarpat, mangalashtak, nikaah, anand karaj, church vows, varmala, pheras, bidaai, and reception,
             Wedflix gives every part of the celebration a beautiful place to live online.
           </p>
         </div>
@@ -245,7 +263,7 @@ export default function SitePage() {
               data-reveal
               style={{ transitionDelay: `${index * 80}ms` }}
             >
-              <span className="site-lux__quote-mark">“</span>
+              <span className="site-lux__quote-mark">"</span>
               <p>{item.quote}</p>
               <strong>{item.couple}</strong>
             </article>
@@ -266,11 +284,15 @@ export default function SitePage() {
             rel="noreferrer"
             className="site-lux__button site-lux__button--primary"
           >
+            <InstagramIcon className="site-lux__button-icon" />
             DM {instagramHandle}
           </a>
         </div>
         <div className="site-lux__contact-card">
-          <p className="site-lux__contact-label">Instagram</p>
+          <p className="site-lux__contact-label">
+            <InstagramIcon className="site-lux__contact-icon" />
+            Instagram
+          </p>
           <a href={instagramUrl} target="_blank" rel="noreferrer" className="site-lux__contact-handle">
             {instagramHandle}
           </a>
