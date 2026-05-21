@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import os
 from urllib.parse import quote
 
 from flask import Blueprint, Response, render_template, request
@@ -170,6 +171,56 @@ def landing():
     )
 
 
+@public_bp.route("/site")
+def site():
+    contact_phone = os.getenv("WEDFLIX_CONTACT_PHONE", "+91 98765 43210")
+    contact_email = os.getenv("WEDFLIX_CONTACT_EMAIL", "hello@wedflix.space")
+    whatsapp_url = os.getenv("WEDFLIX_WHATSAPP_URL", "https://wa.me/919876543210")
+
+    sections = [
+        {
+            "title": "Wedding Films",
+            "copy": "Cinematic hero edits, emotional highlight reels, and polished storytelling that feels premium and timeless.",
+        },
+        {
+            "title": "Programs & Events",
+            "copy": "Separate beautiful pages for Haldi, Mehendi, Sangeet, Reception, and every moment in between.",
+        },
+        {
+            "title": "Guest Memories",
+            "copy": "Photos, comments, and memories organized in a premium Netflix-style experience for families and friends.",
+        },
+        {
+            "title": "Private or Public",
+            "copy": "Keep your wedding private with protected access or open selected stories to the world with public pages.",
+        },
+    ]
+
+    features = [
+        "Netflix-inspired visual design",
+        "Mobile-first experience",
+        "Fast loading public pages",
+        "SEO-friendly structure",
+        "Music, video, and gallery support",
+        "Admin tools for easy updates",
+    ]
+
+    return render_template(
+        "public/site.html",
+        title="Wedflix | Wedding Website Design, Films & Memories",
+        og_title="Wedflix | Wedding Website Design, Films & Memories",
+        meta_description="Wedflix builds premium wedding websites with cinematic visuals, films, programs, memories, and contact-ready pages.",
+        canonical_url=_absolute_url("/site"),
+        og_image=_public_image_url("/favicon.svg"),
+        og_type="website",
+        contact_phone=contact_phone,
+        contact_email=contact_email,
+        whatsapp_url=whatsapp_url,
+        sections=sections,
+        features=features,
+    )
+
+
 @public_bp.route("/robots.txt")
 def robots_txt():
     body = "\n".join(
@@ -190,6 +241,7 @@ def sitemap_xml():
     urls = [
         _absolute_url("/"),
         _absolute_url("/weddings"),
+        _absolute_url("/site"),
     ]
 
     weddings = Wedding.all()

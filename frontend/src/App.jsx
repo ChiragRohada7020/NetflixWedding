@@ -8,6 +8,7 @@ import HomePage from "./pages/HomePage";
 import WeddingDetailPage from "./pages/WeddingDetailPage";
 import ProgramDetailPage from "./pages/ProgramDetailPage";
 import EpisodeDetailPage from "./pages/EpisodeDetailPage";
+import SitePage from "./pages/SitePage";
 import "./styles.css";
 import "react-loading-skeleton/dist/skeleton.css";
 import { apiGet } from "./api";
@@ -165,6 +166,7 @@ export default function App() {
           <main className="container" ref={containerRef}>
             <Routes>
               <Route path="/" element={<WeddingsPage />} />
+              <Route path="/site" element={<SitePage />} />
               <Route path="/weddings" element={<HomePage />} />
               <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
               <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
