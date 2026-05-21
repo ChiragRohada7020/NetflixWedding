@@ -1,8 +1,17 @@
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import WedflixPlayer from "./WedflixPlayer";
+import { useEffect } from "react";
 
 export default function VideoModal({ open, url, title, onClose }) {
+  useEffect(() => {
+    if (!open) return;
+    window.dispatchEvent(new Event("wedflix-video-playing"));
+    return () => {
+      window.dispatchEvent(new Event("wedflix-video-stopped"));
+    };
+  }, [open]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -27,6 +36,7 @@ export default function VideoModal({ open, url, title, onClose }) {
             <WedflixPlayer
               url={url}
               className="player-wrap"
+              autoPlay
               onPlay={async () => {
                 window.dispatchEvent(new Event("wedflix-video-playing"));
                 if (!document.fullscreenElement) {

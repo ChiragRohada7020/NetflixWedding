@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "./components/Navbar";
 import WeddingsPage from "./pages/WeddingsPage";
-import HomePage from "./pages/HomePage";
 import WeddingDetailPage from "./pages/WeddingDetailPage";
 import ProgramDetailPage from "./pages/ProgramDetailPage";
 import EpisodeDetailPage from "./pages/EpisodeDetailPage";
@@ -167,7 +166,6 @@ export default function App() {
             <Routes>
               <Route path="/" element={<WeddingsPage />} />
               <Route path="/site" element={<SitePage />} />
-              <Route path="/weddings" element={<HomePage />} />
               <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
               <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
               <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />

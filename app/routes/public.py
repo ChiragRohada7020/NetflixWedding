@@ -205,6 +205,27 @@ def site():
         "Admin tools for easy updates",
     ]
 
+    reviews = [
+        {
+            "name": "Jennifer Davis",
+            "handle": "@jennbunnylynn",
+            "quote": "The best part was that it never felt like a production. The team blended in and captured moments that still feel alive every time we watch them.",
+            "image": "https://images.unsplash.com/photo-1525338078858-d762b5e32f2c?auto=format&fit=crop&w=900&q=80",
+        },
+        {
+            "name": "Laurie Roundtree",
+            "handle": "@laurieroundtree",
+            "quote": "Wedflix gave our wedding an unforgettable digital home. It felt premium, emotional, and incredibly easy to share with family.",
+            "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80",
+        },
+        {
+            "name": "Kelsey Agar",
+            "handle": "@kelseyagar",
+            "quote": "Their eye for details and pacing made the whole experience feel cinematic. It looked and felt like a film premiere.",
+            "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
+        },
+    ]
+
     return render_template(
         "public/site.html",
         title="Wedflix | Wedding Website Design, Films & Memories",
@@ -218,6 +239,7 @@ def site():
         whatsapp_url=whatsapp_url,
         sections=sections,
         features=features,
+        reviews=reviews,
     )
 
 

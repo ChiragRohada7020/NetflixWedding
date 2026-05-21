@@ -89,8 +89,10 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
   const [activeEpisode, setActiveEpisode] = useState(null);
   const [episodeVideoOpen, setEpisodeVideoOpen] = useState(false);
   const [modal, setModal] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const audioRef = useRef(null);
+  const pausedForVideoRef = useRef(false);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["program", weddingId, programId],
     queryFn: async () => {
@@ -107,6 +109,23 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
   const episodes = data?.episodes || [];
   const [ordered, setOrdered] = useState([]);
   React.useEffect(() => setOrdered(episodes), [episodes]);
+  const filteredEpisodes = React.useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return ordered;
+    return ordered.filter((episode) => {
+      const haystack = [
+        episode.title,
+        episode.description,
+        episode.youtube_url,
+        episode.season_number,
+        episode.order,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(term);
+    });
+  }, [ordered, searchTerm]);
   useEffect(() => {
     if (!audioRef.current) return;
     audioRef.current.pause();
@@ -118,6 +137,25 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
       audioRef.current.play().catch(() => {});
     }
   }, [program?.music_url, wedding?.music_url]);
+
+  useEffect(() => {
+    const pauseMusicForVideo = () => {
+      if (!audioRef.current || !(program?.music_url || wedding?.music_url)) return;
+      pausedForVideoRef.current = true;
+      audioRef.current.pause();
+    };
+    const resumeMusicAfterVideo = () => {
+      if (!audioRef.current || !(program?.music_url || wedding?.music_url) || !isMusicOn || !pausedForVideoRef.current) return;
+      pausedForVideoRef.current = false;
+      audioRef.current.play().catch(() => {});
+    };
+    window.addEventListener("wedflix-video-playing", pauseMusicForVideo);
+    window.addEventListener("wedflix-video-stopped", resumeMusicAfterVideo);
+    return () => {
+      window.removeEventListener("wedflix-video-playing", pauseMusicForVideo);
+      window.removeEventListener("wedflix-video-stopped", resumeMusicAfterVideo);
+    };
+  }, [program?.music_url, wedding?.music_url, isMusicOn]);
   React.useEffect(() => {
     onMusicUrlChange(program?.music_url || wedding?.music_url || "");
   }, [program?.music_url, wedding?.music_url, onMusicUrlChange]);
@@ -240,10 +278,17 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
           </p>
           <div className="home-hero__actions">
             {!!(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url) && (
-              <button type="button" className="home-btn home-btn--primary" onClick={() => setOpenVideo(true)}>
-                <span aria-hidden="true">▶</span>
-                Play
-              </button>
+            <button
+              type="button"
+              className="home-btn home-btn--primary"
+              onClick={() => {
+                window.dispatchEvent(new Event("wedflix-video-playing"));
+                setOpenVideo(true);
+              }}
+            >
+              <span aria-hidden="true">▶</span>
+              Play
+            </button>
             )}
             <Link to={`/weddings/${weddingId}`} className="home-btn home-btn--secondary">
               <span aria-hidden="true">ⓘ</span>
@@ -265,11 +310,21 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
       <div className="cms-row-head">
         <h2 className="section-title">Events</h2>
       </div>
+      <div className="wedding-detail-search-wrap wedding-detail-search-wrap--events">
+        <input
+          className="search wedding-detail-search"
+          type="search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search events, videos, dates..."
+          aria-label="Search program events"
+        />
+      </div>
       {isLoading && <Skeleton count={4} height={34} />}
       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <SortableContext items={ordered.map((e) => e._id)} strategy={rectSortingStrategy}>
+        <SortableContext items={filteredEpisodes.map((e) => e._id)} strategy={rectSortingStrategy}>
           <div className="grid">
-            {ordered.map((e) => (
+            {filteredEpisodes.map((e) => (
               <EpisodeCard
                 key={e._id}
                 item={e}
@@ -279,6 +334,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
                 onEdit={(item) => setModal({ type: "edit", item })}
                 onDelete={deleteEpisode}
                 onPlay={(item) => {
+                  window.dispatchEvent(new Event("wedflix-video-playing"));
                   requestFullscreenFromClick();
                   setActiveEpisode(item);
                   setEpisodeVideoOpen(true);
@@ -294,6 +350,9 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
           </div>
         </SortableContext>
       </DndContext>
+      {!isLoading && filteredEpisodes.length === 0 && (
+        <p className="empty-rail">No events matched your search.</p>
+      )}
       <VideoModal open={openVideo} title={program?.title || "Event Video"} url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url} onClose={() => setOpenVideo(false)} />
       <VideoModal
         open={episodeVideoOpen}

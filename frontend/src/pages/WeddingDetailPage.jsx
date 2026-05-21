@@ -300,6 +300,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
 
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const audioRef = useRef(null);
+  const pausedForVideoRef = useRef(false);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -312,6 +313,25 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
       audioRef.current.play().catch(() => {});
     }
   }, [pageMusicUrl]);
+
+  useEffect(() => {
+    const pauseMusicForVideo = () => {
+      if (!audioRef.current || !pageMusicUrl) return;
+      pausedForVideoRef.current = true;
+      audioRef.current.pause();
+    };
+    const resumeMusicAfterVideo = () => {
+      if (!audioRef.current || !pageMusicUrl || !isMusicOn || !pausedForVideoRef.current) return;
+      pausedForVideoRef.current = false;
+      audioRef.current.play().catch(() => {});
+    };
+    window.addEventListener("wedflix-video-playing", pauseMusicForVideo);
+    window.addEventListener("wedflix-video-stopped", resumeMusicAfterVideo);
+    return () => {
+      window.removeEventListener("wedflix-video-playing", pauseMusicForVideo);
+      window.removeEventListener("wedflix-video-stopped", resumeMusicAfterVideo);
+    };
+  }, [pageMusicUrl, isMusicOn]);
 
   const toggleMusic = async () => {
     if (!audioRef.current || !pageMusicUrl) return;
@@ -428,16 +448,6 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
 
       <div className="home-rails">
         <section className="home-rail" id="programs">
-          <div className="home-rail__header">
-            <InlineEditableText
-              as="h2"
-              className="home-rail__heading-editable"
-              enabled={canEdit && editMode}
-              value={wedding?.programs_section_title || "The Celebration Series"}
-              placeholder="The Celebration Series"
-              onSave={(v) => saveWeddingField("programs_section_title", v)}
-            />
-          </div>
           <div className="wedding-detail-search-wrap">
             <input
               className="search wedding-detail-search"
@@ -446,6 +456,16 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search programs, dates, venues..."
               aria-label="Search wedding programs"
+            />
+          </div>
+          <div className="home-rail__header">
+            <InlineEditableText
+              as="h2"
+              className="home-rail__heading-editable"
+              enabled={canEdit && editMode}
+              value={wedding?.programs_section_title || "The Celebration Series"}
+              placeholder="The Celebration Series"
+              onSave={(v) => saveWeddingField("programs_section_title", v)}
             />
           </div>
           {isLoading && mainRailCardsVisible.length === 0 ? (

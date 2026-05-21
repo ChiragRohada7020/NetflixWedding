@@ -462,6 +462,44 @@ html, #root {
 .wedding-detail-search {
   width: min(560px, 100%);
   margin: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(18, 18, 24, 0.98), rgba(9, 10, 14, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.96);
+  padding: 15px 22px;
+  font-size: 1.02rem;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.wedding-detail-search::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.wedding-detail-search:focus {
+  border-color: rgba(229, 9, 20, 0.65);
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.34),
+    0 0 0 3px rgba(229, 9, 20, 0.16);
+  transform: translateY(-1px);
+}
+
+.page-program-detail .section-title,
+.page-wedding-detail .section-title {
+  margin-top: 38px;
+  margin-bottom: 10px;
+}
+
+.page-program-detail .wedding-detail-search-wrap {
+  padding-top: 0;
+  padding-bottom: 12px;
+}
+
+.page-program-detail .wedding-detail-search-wrap--events {
+  margin-top: -2px;
 }
 .grid {
   display: grid;
@@ -1250,9 +1288,15 @@ body.card-size-large {
   background: transparent;
   box-shadow: none;
 }
+
+.async-state--loading::before,
+.async-state--loading::after {
+  display: none;
+}
+
 .async-spinner {
-  width: 58px;
-  height: 58px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   border: 4px solid rgba(255, 255, 255, 0.18);
   border-top-color: #e50914;
@@ -3350,6 +3394,235 @@ body.login-open .container {
 .site-contact-card--primary {
   border-color: rgba(229, 9, 20, 0.45);
   background: linear-gradient(135deg, rgba(229, 9, 20, 0.96), rgba(178, 7, 16, 0.96));
+}
+
+.site-contact-card--home {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Wedflix-style site landing override */
+.site-page {
+  min-height: 100svh;
+  color: #fff;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(229, 9, 20, 0.28), transparent 22%),
+    radial-gradient(circle at 85% 12%, rgba(59, 130, 246, 0.08), transparent 18%),
+    linear-gradient(180deg, #050505 0%, #020202 46%, #050505 100%);
+}
+
+.site-page .site-hero,
+.site-page .site-section,
+.site-page .site-band,
+.site-page .site-contact {
+  width: min(1280px, calc(100% - 32px));
+}
+
+.site-page .site-hero {
+  padding: 112px 0 42px;
+}
+
+.site-page .site-hero__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: 28px;
+  align-items: center;
+}
+
+.site-page .site-title {
+  max-width: 10ch;
+  font-size: clamp(3.3rem, 7vw, 7rem);
+  letter-spacing: -0.05em;
+}
+
+.site-page .site-summary {
+  max-width: 52ch;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.site-page .site-hero__visuals {
+  min-height: 640px;
+}
+
+.site-page .site-hero__card {
+  border-radius: 30px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+}
+
+.site-page .site-hero__card--wide {
+  inset: 0 16% 0 0;
+}
+
+.site-page .site-hero__card--one {
+  top: 18px;
+  right: 0;
+  height: 50%;
+}
+
+.site-page .site-hero__card--two {
+  right: 1%;
+  bottom: 0;
+  height: 40%;
+}
+
+.site-page .site-story-grid {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.site-page .site-story-card {
+  min-height: 360px;
+}
+
+.site-page .site-philosophy,
+.site-page .site-reviews {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 24px;
+  align-items: stretch;
+  padding-top: 34px;
+}
+
+.site-page .site-philosophy__copy {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px;
+  padding: 28px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.3);
+}
+
+.site-page .site-philosophy__copy h2 {
+  margin: 14px 0 0;
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  line-height: 1.02;
+}
+
+.site-page .site-philosophy__copy p {
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.75;
+}
+
+.site-page .site-philosophy__visual {
+  border-radius: 30px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.44);
+}
+
+.site-page .site-philosophy__visual img {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  object-fit: cover;
+  display: block;
+}
+
+.site-page .site-review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.site-page .site-review-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  background: rgba(10, 10, 10, 0.9);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+  overflow: hidden;
+  padding: 16px;
+}
+
+.site-page .site-review-card__image-wrap {
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.site-page .site-review-card__image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.site-page .site-review-card__quote {
+  margin: 16px 0 0;
+  color: rgba(255, 255, 255, 0.84);
+  line-height: 1.72;
+  font-size: 1rem;
+}
+
+.site-page .site-review-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.site-page .site-review-card__meta strong {
+  font-size: 1.08rem;
+}
+
+.site-page .site-review-card__meta span {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 1100px) {
+  .site-page .site-hero__content,
+  .site-page .site-philosophy,
+  .site-page .site-reviews {
+    grid-template-columns: 1fr;
+  }
+
+  .site-page .site-hero__visuals {
+    min-height: 540px;
+    order: -1;
+  }
+
+  .site-page .site-story-grid,
+  .site-page .site-review-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .site-page .site-hero,
+  .site-page .site-section,
+  .site-page .site-band,
+  .site-page .site-contact {
+    width: calc(100% - 20px);
+  }
+
+  .site-page .site-hero {
+    padding: 88px 0 26px;
+  }
+
+  .site-page .site-hero__visuals {
+    min-height: 470px;
+  }
+
+  .site-page .site-story-grid,
+  .site-page .site-review-grid,
+  .site-page .site-stats,
+  .site-page .site-metrics,
+  .site-page .site-contact__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .site-page .site-philosophy__copy,
+  .site-page .site-contact__panel,
+  .site-page .site-band__content {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .site-page .site-story-card,
+  .site-page .site-review-card {
+    border-radius: 20px;
+  }
 }
 
 @media (max-width: 900px) {

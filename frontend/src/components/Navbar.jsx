@@ -10,6 +10,7 @@ export default function Navbar({ musicUrl }) {
   const homeHref = "/";
   const { canEdit, editMode, toggleEditMode, cardSize, setCardSize } = useEditMode();
   const audioRef = useRef(null);
+  const pausedForVideoRef = useRef(false);
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const [showLogin, setShowLogin] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -62,6 +63,25 @@ export default function Navbar({ musicUrl }) {
     const saved = localStorage.getItem("wedflix_music_on");
     setIsMusicOn(saved === "0" ? false : true);
   }, [resolvedMusicUrl]);
+
+  useEffect(() => {
+    const pauseMusicForVideo = () => {
+      if (!audioRef.current || !resolvedMusicUrl) return;
+      pausedForVideoRef.current = true;
+      audioRef.current.pause();
+    };
+    const resumeMusicAfterVideo = () => {
+      if (!resolvedMusicUrl || !isMusicOn || !pausedForVideoRef.current) return;
+      pausedForVideoRef.current = false;
+      audioRef.current?.play().catch(() => {});
+    };
+    window.addEventListener("wedflix-video-playing", pauseMusicForVideo);
+    window.addEventListener("wedflix-video-stopped", resumeMusicAfterVideo);
+    return () => {
+      window.removeEventListener("wedflix-video-playing", pauseMusicForVideo);
+      window.removeEventListener("wedflix-video-stopped", resumeMusicAfterVideo);
+    };
+  }, [resolvedMusicUrl, isMusicOn]);
 
   useEffect(() => {
     if (!audioRef.current) return;

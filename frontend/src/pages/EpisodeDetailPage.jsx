@@ -168,6 +168,7 @@ export default function EpisodeDetailPage() {
                 weddingId={weddingId}
                 programId={programId}
                 onPlay={(nextItem) => {
+                  window.dispatchEvent(new Event("wedflix-video-playing"));
                   requestFullscreenFromClick();
                   setActiveEpisode(nextItem);
                   setEpisodeVideoOpen(true);

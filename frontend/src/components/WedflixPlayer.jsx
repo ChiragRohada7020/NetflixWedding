@@ -25,6 +25,7 @@ export default function WedflixPlayer({
   useEffect(() => {
     setIsReady(false);
     setShowCover(true);
+    setPlaying(autoPlay);
   }, [url]);
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export default function WedflixPlayer({
           config={{
             youtube: {
               playerVars: {
+                autoplay: 1,
                 modestbranding: 1,
                 rel: 0,
                 iv_load_policy: 3,
@@ -71,7 +73,12 @@ export default function WedflixPlayer({
             setPlaying(false);
             onPause?.();
           }}
-          onReady={() => setIsReady(true)}
+          onReady={() => {
+            setIsReady(true);
+            if (autoPlay) {
+              setPlaying(true);
+            }
+          }}
           onProgress={({ playedSeconds: current }) => setPlayedSeconds(current)}
           onDuration={(value) => setDuration(value)}
         />
