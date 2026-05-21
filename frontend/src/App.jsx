@@ -25,6 +25,37 @@ function ScrollToTop({ containerRef }) {
   return null;
 }
 
+function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
+  const location = useLocation();
+  const isSiteRoute = location.pathname === "/site";
+
+  return (
+    <>
+      <ScrollToTop containerRef={containerRef} />
+      {showIntro && (
+        <div className="intro-screen" aria-hidden="true">
+          <p className="intro-logo">WEDFLIX</p>
+        </div>
+      )}
+      {!isSiteRoute && <Navbar musicUrl={musicUrl} />}
+      <main className={`container ${isSiteRoute ? "container--site" : ""}`} ref={containerRef}>
+        <Routes>
+          <Route path="/" element={<WeddingsPage />} />
+          <Route path="/site" element={<SitePage />} />
+          <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
+          <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
+          <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
+        </Routes>
+        {!isSiteRoute && (
+          <footer className="wedflix-footer">
+            <p>Wedflix &copy; {new Date().getFullYear()} All Rights Reserved.</p>
+          </footer>
+        )}
+      </main>
+    </>
+  );
+}
+
 export default function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [musicUrl, setMusicUrl] = useState("");
@@ -155,25 +186,12 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <EditModeProvider canEdit={canEdit}>
-          <ScrollToTop containerRef={containerRef} />
-          {showIntro && (
-            <div className="intro-screen" aria-hidden="true">
-              <p className="intro-logo">WEDFLIX</p>
-            </div>
-          )}
-          <Navbar musicUrl={musicUrl} />
-          <main className="container" ref={containerRef}>
-            <Routes>
-              <Route path="/" element={<WeddingsPage />} />
-              <Route path="/site" element={<SitePage />} />
-              <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
-              <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
-              <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
-            </Routes>
-          <footer className="wedflix-footer">
-            <p>Wedflix &copy; {new Date().getFullYear()} All Rights Reserved.</p>
-          </footer>
-        </main>
+        <AppShell
+          containerRef={containerRef}
+          musicUrl={musicUrl}
+          setMusicUrl={setMusicUrl}
+          showIntro={showIntro}
+        />
       </EditModeProvider>
     </BrowserRouter>
   );
