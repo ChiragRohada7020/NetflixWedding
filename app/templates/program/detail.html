@@ -1,5 +1,19 @@
 {% extends 'base.html' %}
 {% block body_class %}hero-only-page{% endblock %}
+{% block head_extra %}
+<script type="application/ld+json">
+  {{ {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": program.title,
+    "description": program.event_date or program.venue_name or program.title,
+    "thumbnailUrl": [program.thumbnail or wedding.profile_image],
+    "uploadDate": program.event_date,
+    "embedUrl": program_hero_embed_url,
+    "url": canonical_url
+  } | tojson }}
+</script>
+{% endblock %}
 {% block content %}
 <section class="relative min-h-screen overflow-hidden hero-section hero-fullscreen">
   {% if program_hero_embed_url %}

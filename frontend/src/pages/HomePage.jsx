@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { apiGet, apiPostForm } from "../api";
 import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
+import SeoHead from "../components/SeoHead";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -182,6 +183,12 @@ export default function HomePage() {
 
   return (
     <section className="home-page">
+      <SeoHead
+        title={featuredWedding ? `${featuredWedding.couple_names} | Wedflix` : "Wedflix | Wedding Stories"}
+        description={featuredWedding?.description || "Wedflix is a cinematic wedding streaming platform for wedding stories, programs, and episode galleries."}
+        canonicalPath="/weddings"
+        image={featuredWedding?.profile_image || featuredWedding?.hero_image || `${window.location.origin}/favicon.svg`}
+      />
       <audio ref={audioRef} src={pageMusicUrl} loop preload="auto" />
 
       {isLoading && weddings.length === 0 && <AsyncState mode="loading" />}

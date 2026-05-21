@@ -7,6 +7,7 @@ import { apiGet, apiPostForm } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
+import SeoHead from "../components/SeoHead";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
@@ -61,6 +62,11 @@ export default function WeddingsPage() {
 
   return (
     <section className="home-shell home-profiles-netflix">
+      <SeoHead
+        title="Wedflix | Who's Watching?"
+        description="Choose a wedding story profile on Wedflix and start streaming programs, episodes, and wedding memories."
+        canonicalPath="/"
+      />
       {isLoading && weddings.length === 0 && <AsyncState mode="loading" />}
       {error && weddings.length === 0 && <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />}
       <div className="home-center">

@@ -8,6 +8,7 @@ import ProgressiveImage from "../components/ProgressiveImage";
 import AsyncState from "../components/AsyncState";
 import WedflixPlayer from "../components/WedflixPlayer";
 import VideoModal from "../components/VideoModal";
+import SeoHead from "../components/SeoHead";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
@@ -123,6 +124,13 @@ export default function EpisodeDetailPage() {
 
   return (
     <section className="page-episode-detail">
+      <SeoHead
+        title={episode ? `${episode.title} | Wedflix` : "Wedflix | Episode"}
+        description={episode?.description || "Watch wedding episodes, comments, and behind-the-scenes memories on Wedflix."}
+        canonicalPath={episode ? `/weddings/${weddingId}/programs/${programId}/episodes/${episodeId}` : `/weddings/${weddingId}`}
+        image={episode?.thumbnail || `${window.location.origin}/favicon.svg`}
+        type="video.other"
+      />
       <div className="episode-watch-shell">
         {episode && (
           <>

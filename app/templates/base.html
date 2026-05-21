@@ -4,11 +4,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ title or 'Wedflix' }}</title>
+  {% if meta_description %}
+  <meta name="description" content="{{ meta_description }}">
+  {% endif %}
+  <meta name="robots" content="{{ meta_robots or 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1' }}">
+  {% if canonical_url %}
+  <link rel="canonical" href="{{ canonical_url }}">
+  {% endif %}
+  <meta property="og:site_name" content="Wedflix">
+  <meta property="og:type" content="{{ og_type or 'website' }}">
+  <meta property="og:title" content="{{ og_title or title or 'Wedflix' }}">
+  {% if meta_description %}
+  <meta property="og:description" content="{{ meta_description }}">
+  {% endif %}
+  {% if og_image %}
+  <meta property="og:image" content="{{ og_image }}">
+  {% endif %}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ og_title or title or 'Wedflix' }}">
+  {% if meta_description %}
+  <meta name="twitter:description" content="{{ meta_description }}">
+  {% endif %}
+  {% if og_image %}
+  <meta name="twitter:image" content="{{ og_image }}">
+  {% endif %}
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { theme: { extend: { colors: { obsidian: '#0B0D12', ember: '#E50914', frost: '#C7D2FE' } } } }
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head_extra %}{% endblock %}
 </head>
 <body class="bg-obsidian text-white min-h-screen ambient-bg {% block body_class %}{% endblock %}" data-page-music="{{ page_music_url or '' }}">
   <div id="wedflix-intro" class="wedflix-intro-screen"><div class="wedflix-intro-logo">WEDFLIX</div></div>

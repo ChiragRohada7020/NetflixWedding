@@ -1,5 +1,16 @@
 {% extends 'base.html' %}
 {% block body_class %}home-page{% endblock %}
+{% block head_extra %}
+<script type="application/ld+json">
+  {{ {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Wedflix",
+    "url": canonical_url,
+    "description": meta_description
+  } | tojson }}
+</script>
+{% endblock %}
 {% block content %}
 <section class="home-screen" id="home">
   <div class="site-nav__mobile-tabs" aria-label="Home navigation tabs">

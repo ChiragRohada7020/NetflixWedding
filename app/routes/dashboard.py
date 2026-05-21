@@ -16,6 +16,18 @@ from app.utils.video import youtube_embed_url, youtube_video_id
 dashboard_bp = Blueprint("dashboard", __name__)
 
 
+def _absolute_url(path):
+    return request.url_root.rstrip("/") + path
+
+
+def _public_image_url(candidate):
+    if isinstance(candidate, str) and candidate.startswith(("http://", "https://")):
+        return candidate
+    if isinstance(candidate, str) and candidate.startswith("/"):
+        return _absolute_url(candidate)
+    return _absolute_url("/favicon.svg")
+
+
 @dashboard_bp.route("/<wedding_id>")
 def wedding_dashboard(wedding_id):
     wedding = Wedding.get(wedding_id)
@@ -65,6 +77,13 @@ def wedding_dashboard(wedding_id):
         q=q,
         event_results=event_results,
         page_music_url=wedding.get("music_url", ""),
+        title=f"{wedding.get('couple_names')} | Wedflix",
+        og_title=f"{wedding.get('couple_names')} | Wedflix",
+        meta_description=wedding.get("description")
+        or f"Watch the wedding story of {wedding.get('couple_names')} on Wedflix.",
+        canonical_url=_absolute_url(f"/weddings/{wedding_id}"),
+        og_image=_public_image_url(wedding.get("profile_image")),
+        og_type="article",
     )
 
 
@@ -98,6 +117,16 @@ def program_detail(wedding_id, program_id):
         program_hero_embed_url=program_hero_embed_url,
         program_hero_video_id=program_hero_video_id,
         page_music_url=program.get("music_url") or wedding.get("music_url", ""),
+        title=f"{program.get('title')} | {wedding.get('couple_names')} | Wedflix",
+        og_title=f"{program.get('title')} | {wedding.get('couple_names')} | Wedflix",
+        meta_description=(
+            program.get("event_date")
+            or program.get("venue_name")
+            or f"{program.get('title')} from the wedding story of {wedding.get('couple_names')}."
+        ),
+        canonical_url=_absolute_url(f"/weddings/{wedding_id}/programs/{program_id}"),
+        og_image=_public_image_url(program.get("thumbnail") or wedding.get("profile_image")),
+        og_type="article",
     )
 
 
@@ -129,4 +158,10 @@ def episode_detail(wedding_id, program_id, episode_id):
         photos=photos,
         comments=comments,
         page_music_url="",
+        title=f"{episode.get('title')} | Wedflix",
+        og_title=f"{episode.get('title')} | Wedflix",
+        meta_description=episode.get("description") or f"Watch {episode.get('title')} from the Wedflix wedding story.",
+        canonical_url=_absolute_url(f"/weddings/{wedding_id}/programs/{program_id}/episodes/{episode_id}"),
+        og_image=_public_image_url(episode.get("thumbnail") or program.get("thumbnail") or wedding.get("profile_image")),
+        og_type="video.other",
     )

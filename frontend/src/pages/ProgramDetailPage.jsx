@@ -11,6 +11,7 @@ import VideoModal from "../components/VideoModal";
 import { useEditMode } from "../components/EditModeContext";
 import InlineEditableText from "../components/InlineEditableText";
 import AsyncState from "../components/AsyncState";
+import SeoHead from "../components/SeoHead";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -197,6 +198,13 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
 
   return (
     <section className="home-page home-page--detail page-program-detail">
+      <SeoHead
+        title={program ? `${program.title} | ${wedding?.couple_names || "Wedflix"} | Wedflix` : "Wedflix | Wedding Program"}
+        description={program?.event_date || program?.venue_name || "Watch wedding program highlights and events on Wedflix."}
+        canonicalPath={program ? `/weddings/${weddingId}/programs/${programId}` : `/weddings/${weddingId}`}
+        image={program?.thumbnail || wedding?.profile_image || `${window.location.origin}/favicon.svg`}
+        type="article"
+      />
       <audio ref={audioRef} src={program?.music_url || wedding?.music_url || ""} loop preload="auto" />
       <header className="home-hero page-program-hero">
         <div className={`home-hero__media ${toEmbed(program?.hero_video_url) || ordered[0]?.embed_url ? "has-video" : ""}`}>

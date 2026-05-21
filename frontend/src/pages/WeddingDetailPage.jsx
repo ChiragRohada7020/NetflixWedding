@@ -10,6 +10,7 @@ import { apiGet, apiPostForm } from "../api";
 import { useEditMode } from "../components/EditModeContext";
 import InlineEditableText from "../components/InlineEditableText";
 import AsyncState from "../components/AsyncState";
+import SeoHead from "../components/SeoHead";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -335,6 +336,13 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
 
   return (
     <section className="home-page home-page--detail">
+      <SeoHead
+        title={wedding ? `${wedding.couple_names} | Wedflix` : "Wedflix | Wedding Story"}
+        description={wedding?.description || "Watch wedding programs, stories, and cinematic memories on Wedflix."}
+        canonicalPath={wedding ? `/weddings/${weddingId}` : "/weddings"}
+        image={wedding?.profile_image || heroImage}
+        type="article"
+      />
       <audio ref={audioRef} src={pageMusicUrl} loop preload="auto" />
 
       {isLoading && !wedding && <AsyncState mode="loading" />}

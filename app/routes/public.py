@@ -1,13 +1,27 @@
+from datetime import datetime, timezone
 from urllib.parse import quote
 
-from flask import Blueprint, render_template
+from flask import Blueprint, Response, render_template, request
 from flask_login import current_user
 
+from app.models.episode import Episode
 from app.models.program import Program
 from app.models.wedding import Wedding
 from app.utils.video import youtube_embed_url
 
 public_bp = Blueprint("public", __name__)
+
+
+def _absolute_url(path):
+    return request.url_root.rstrip("/") + path
+
+
+def _public_image_url(candidate):
+    if isinstance(candidate, str) and candidate.startswith(("http://", "https://")):
+        return candidate
+    if isinstance(candidate, str) and candidate.startswith("/"):
+        return _absolute_url(candidate)
+    return _absolute_url("/favicon.svg")
 
 
 def _placeholder_image(label):
@@ -144,4 +158,72 @@ def landing():
         hero_play_url=hero_play_url,
         hero_info_url=hero_info_url,
         home_page=True,
+        title=f"{featured.get('couple_names') if featured else 'Wedflix'} | Wedflix",
+        og_title=f"{featured.get('couple_names') if featured else 'Wedflix'} | Wedflix",
+        meta_description=(
+            (featured.get("description") if featured else None)
+            or "Wedflix is a cinematic wedding streaming platform featuring wedding stories, programs, and episodes."
+        ),
+        canonical_url=_absolute_url("/"),
+        og_image=_public_image_url(featured.get("profile_image") if featured else None),
+        og_type="website",
     )
+
+
+@public_bp.route("/robots.txt")
+def robots_txt():
+    body = "\n".join(
+        [
+            "User-agent: *",
+            "Allow: /",
+            "Allow: /weddings/",
+            "Allow: /weddings/*",
+            "Sitemap: " + _absolute_url("/sitemap.xml"),
+            "",
+        ]
+    )
+    return Response(body, mimetype="text/plain")
+
+
+@public_bp.route("/sitemap.xml")
+def sitemap_xml():
+    urls = [
+        _absolute_url("/"),
+        _absolute_url("/weddings"),
+    ]
+
+    weddings = Wedding.all()
+    public_weddings = [w for w in weddings if (w.get("access_level") or "private") == "public"]
+    for wedding in public_weddings:
+        wedding_id = str(wedding.get("_id"))
+        urls.append(_absolute_url(f"/weddings/{wedding_id}"))
+        for program in Program.by_wedding(wedding_id):
+            program_id = str(program.get("_id"))
+            urls.append(_absolute_url(f"/weddings/{wedding_id}/programs/{program_id}"))
+
+    # Include episode detail URLs for public content.
+    for wedding in public_weddings:
+        wedding_id = str(wedding.get("_id"))
+        for program in Program.by_wedding(wedding_id):
+            program_id = str(program.get("_id"))
+            for episode in Episode.by_program(program_id):
+                episode_id = str(episode.get("_id"))
+                urls.append(_absolute_url(f"/weddings/{wedding_id}/programs/{program_id}/episodes/{episode_id}"))
+
+    seen = set()
+    unique_urls = []
+    for url in urls:
+        if url in seen:
+            continue
+        seen.add(url)
+        unique_urls.append(url)
+
+    lastmod = datetime.now(timezone.utc).date().isoformat()
+    xml = ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>", '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for url in unique_urls:
+        xml.append("  <url>")
+        xml.append(f"    <loc>{url}</loc>")
+        xml.append(f"    <lastmod>{lastmod}</lastmod>")
+        xml.append("  </url>")
+    xml.append("</urlset>")
+    return Response("\n".join(xml), mimetype="application/xml")

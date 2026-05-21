@@ -1,5 +1,18 @@
 {% extends 'base.html' %}
 {% block body_class %}hero-only-page{% endblock %}
+{% block head_extra %}
+<script type="application/ld+json">
+  {{ {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": episode.title,
+    "description": episode.description or episode.title,
+    "thumbnailUrl": [episode.thumbnail or program.thumbnail or wedding.profile_image],
+    "embedUrl": episode_video_url or episode.embed_url,
+    "url": canonical_url
+  } | tojson }}
+</script>
+{% endblock %}
 {% block content %}
 <section class="relative min-h-screen overflow-hidden hero-fullscreen">
   <div id="netflix-intro" class="netflix-intro">
