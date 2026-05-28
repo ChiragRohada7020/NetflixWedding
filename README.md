@@ -3,6 +3,7 @@
 Wedflix is now split into:
 - `frontend/` React (Vite)
 - `app/` Flask backend API + admin
+- `face_service/` optional separate face-vector worker/API
 
 ## Local Run
 
@@ -43,3 +44,6 @@ If users are missing in MongoDB, backend auto-creates default admin/guest at sta
 - Flask backend on Render:
   - Start command: `gunicorn run:app`
 - React frontend on Vercel/Netlify/Render Static.
+
+## Optional Face Vector Service
+The main backend can queue face-indexing jobs without running any AI model. Set `FACE_INDEX_ENABLED=1` in the backend, then run `face_service/worker.py` on a separate server. See `face_service/README.md`.

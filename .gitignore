@@ -3,3 +3,4 @@
 .venv310/
 __pycache__/
 *.pyc
+face_service/.env

@@ -2241,75 +2241,6 @@ html, #root {
   font-weight: 900;
   cursor: pointer;
 }
-.photo-gallery-modal__face-btn {
-  min-height: 38px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  border-radius: 999px;
-  background: #111;
-  color: #fff;
-  padding: 0 16px;
-  font-weight: 900;
-  cursor: pointer;
-}
-.photo-gallery-modal__face-btn:hover {
-  background: #e50914;
-  border-color: #e50914;
-}
-.photo-gallery-face-search {
-  display: grid;
-  grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
-  gap: 16px;
-  align-items: center;
-  margin: 0 0 18px;
-  padding: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 8px;
-  background: #fff;
-}
-.photo-gallery-face-search__video {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 8px;
-  background: #111;
-  object-fit: cover;
-  transform: scaleX(-1);
-}
-.photo-gallery-face-search__controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-.photo-gallery-face-search__controls span {
-  flex: 1 1 100%;
-  min-width: 0;
-  color: #333;
-  font-weight: 800;
-  line-height: 1.35;
-  white-space: normal;
-}
-.photo-gallery-face-search__controls button {
-  border: 0;
-  border-radius: 999px;
-  background: #111;
-  color: #fff;
-  padding: 9px 14px;
-  font-weight: 900;
-  cursor: pointer;
-}
-.photo-gallery-face-search__controls button:first-of-type {
-  background: linear-gradient(135deg, #16a34a, #06b6d4, #8b5cf6);
-}
-.photo-gallery-face-search__controls button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.photo-gallery-modal__empty {
-  margin: 18px 0 0;
-  color: #4b5563;
-  font-weight: 800;
-}
 .photo-gallery-modal__grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -3409,17 +3340,6 @@ body.card-size-large {
   .photo-gallery-modal__header-actions {
     flex-direction: column-reverse;
     align-items: flex-end;
-  }
-  .photo-gallery-modal__face-btn {
-    min-height: 34px;
-    padding: 0 12px;
-    font-size: 0.78rem;
-  }
-  .photo-gallery-face-search {
-    grid-template-columns: 1fr;
-  }
-  .photo-gallery-face-search__video {
-    max-height: 280px;
   }
   .photo-gallery-modal__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

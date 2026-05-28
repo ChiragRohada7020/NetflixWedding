@@ -129,13 +129,6 @@ def create_app(env_name="development"):
 
     with app.app_context():
         ensure_default_users()
-        if os.getenv("ENABLE_FACE_MATCH") == "1" and os.getenv("PRELOAD_FACE_MODEL") == "1":
-            try:
-                from app.utils.face_match import start_face_model_preload
-
-                start_face_model_preload()
-            except Exception as exc:
-                app.logger.warning("Face recognition model preload skipped: %s", exc)
 
     @app.errorhandler(413)
     def request_entity_too_large(_error):

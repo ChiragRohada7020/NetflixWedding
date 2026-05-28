@@ -1,11 +1,8 @@
 import mimetypes
 import os
-import json
-import tempfile
-from pathlib import Path
 
 import requests
-from flask import Blueprint, Response, current_app, jsonify, redirect, request, stream_with_context
+from flask import Blueprint, Response, jsonify, redirect, request, stream_with_context
 from flask_login import current_user, login_required, login_user, logout_user
 from bson import ObjectId
 
@@ -16,14 +13,11 @@ from app.models.photo import Photo
 from app.models.program import Program
 from app.models.wedding import Wedding
 from app.models.user import User
-from app.utils.face_match import FaceMatchError, compare_reference_to_indexed_photos, queue_missing_embeddings, queue_photo_embedding
+from app.utils.face_client import FaceServiceError, search_faces
+from app.utils.face_jobs import enqueue_face_index_job
 from app.utils.telegram_media import TelegramMediaError, upload_photo_to_telegram
 
 api_bp = Blueprint("api", __name__)
-
-
-def _face_match_enabled():
-    return os.getenv("ENABLE_FACE_MATCH") == "1"
 
 
 def _to_jsonable(value):
@@ -42,13 +36,13 @@ def _can_view_wedding(wedding):
     return (wedding.get("access_level") or "private") == "public" or current_user.is_authenticated
 
 
-def _can_view_photo(photo):
-    episode = Episode.get(str(photo.get("episode_id")))
-    if not episode:
-        return False
-    program = Program.get(str(episode.get("program_id")))
-    wedding = Wedding.get(str(program.get("wedding_id"))) if program else None
-    return _can_view_wedding(wedding)
+def _absolute_media_url(media_path):
+    if not media_path:
+        return ""
+    if media_path.startswith("http://") or media_path.startswith("https://"):
+        return media_path
+    base_url = (os.getenv("PUBLIC_BACKEND_URL") or request.host_url).strip().rstrip("/")
+    return f"{base_url}/{media_path.lstrip('/')}"
 
 
 @api_bp.route("/health", methods=["GET"])
@@ -181,31 +175,15 @@ def episode_photos(episode_id):
 
         existing_count = mongo.db.photos.count_documents({"episode_id": ObjectId(episode_id)})
         inserted = []
-        face_match_enabled = _face_match_enabled()
         for index, file_storage in enumerate(files):
             if not file_storage or not file_storage.filename:
                 continue
-            index_copy = None
-            if face_match_enabled:
-                suffix = Path(file_storage.filename).suffix or ".jpg"
-                index_copy = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-                try:
-                    file_storage.stream.seek(0)
-                    index_copy.write(file_storage.stream.read())
-                    index_copy.close()
-                    file_storage.stream.seek(0)
-                except Exception:
-                    index_copy.close()
-                    Path(index_copy.name).unlink(missing_ok=True)
-                    index_copy = None
             try:
                 image_url = upload_photo_to_telegram(
                     file_storage,
                     caption=f"{episode.get('title') or 'Wedflix event'} photo",
                 )
             except TelegramMediaError as exc:
-                if index_copy:
-                    Path(index_copy.name).unlink(missing_ok=True)
                 return jsonify({"error": f"Could not upload {file_storage.filename}: {exc}"}), 400
 
             doc = {
@@ -214,19 +192,15 @@ def episode_photos(episode_id):
                 "caption": "",
                 "order": existing_count + index + 1,
                 "uploaded_by": getattr(current_user, "name", "") or "",
-                "face_index_status": "queued" if face_match_enabled else "disabled",
             }
             result = mongo.db.photos.insert_one(doc)
             doc["_id"] = result.inserted_id
-            if index_copy and face_match_enabled:
-                queue_photo_embedding(
-                    current_app._get_current_object(),
-                    str(result.inserted_id),
-                    request.host_url.rstrip("/") + "/",
-                    local_path=index_copy.name,
-                )
-            elif index_copy:
-                Path(index_copy.name).unlink(missing_ok=True)
+            enqueue_face_index_job(
+                str(result.inserted_id),
+                _absolute_media_url(image_url),
+                episode_id=episode_id,
+                wedding_id=str(wedding.get("_id")) if wedding else None,
+            )
             inserted.append(Photo.serialize(doc))
 
         return jsonify(_to_jsonable(inserted)), 201
@@ -234,69 +208,43 @@ def episode_photos(episode_id):
     return jsonify(_to_jsonable(Photo.by_episode(episode_id)))
 
 
-@api_bp.route("/photos/face-match", methods=["POST"])
-def photo_face_match():
-    if not _face_match_enabled():
-        return jsonify({"error": "Face match is disabled on this server."}), 503
+@api_bp.route("/photos/face-search", methods=["POST"])
+def photo_face_search():
+    wedding_id = (request.form.get("wedding_id") or "").strip()
+    wedding = Wedding.get(wedding_id) if wedding_id else None
+    if not wedding:
+        return jsonify({"error": "Wedding not found"}), 404
+    if not _can_view_wedding(wedding):
+        return jsonify({"error": "Unauthorized"}), 401
 
-    reference = request.files.get("reference")
+    reference = request.files.get("photo") or request.files.get("reference")
     if not reference:
-        return jsonify({"error": "Please capture or choose a face photo first."}), 400
+        return jsonify({"error": "Please choose a clear selfie or face photo."}), 400
 
     try:
-        photo_ids = json.loads(request.form.get("photo_ids") or "[]")
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid photo list."}), 400
+        result = search_faces(reference, wedding_id=wedding_id)
+    except FaceServiceError as exc:
+        return jsonify({"error": str(exc)}), 503
 
-    object_ids = []
-    for photo_id in photo_ids[:120]:
+    match_ids = []
+    for match in result.get("matches") or []:
         try:
-            object_ids.append(ObjectId(photo_id))
+            match_ids.append(ObjectId(match.get("photo_id")))
         except Exception:
             continue
-    if not object_ids:
-        return jsonify({"matched_photo_ids": [], "matches": [], "scanned": 0, "skipped": 0})
+    photos = list(mongo.db.photos.find({"_id": {"$in": match_ids}})) if match_ids else []
+    by_id = {str(photo["_id"]): Photo.serialize(photo) for photo in photos}
+    ordered_photos = [by_id[str(photo_id)] for photo_id in match_ids if str(photo_id) in by_id]
 
-    photos = list(mongo.db.photos.find({"_id": {"$in": object_ids}}))
-    allowed_photos = [photo for photo in photos if _can_view_photo(photo)]
-    base_url = request.host_url.rstrip("/") + "/"
-    queued = queue_missing_embeddings(current_app._get_current_object(), allowed_photos, base_url)
-    try:
-        result = compare_reference_to_indexed_photos(
-            reference,
-            allowed_photos,
+    return jsonify(
+        _to_jsonable(
+            {
+                "matches": result.get("matches") or [],
+                "photos": ordered_photos,
+                "face_count": result.get("face_count", 0),
+            }
         )
-    except FaceMatchError as exc:
-        return jsonify({"error": str(exc)}), 400
-
-    result["indexing_queued"] = queued
-    return jsonify(_to_jsonable(result))
-
-
-@api_bp.route("/photos/face-index", methods=["POST"])
-def photo_face_index():
-    if not _face_match_enabled():
-        return jsonify({"queued": 0, "disabled": True})
-
-    payload = request.get_json(silent=True) or {}
-    photo_ids = payload.get("photo_ids") or []
-    object_ids = []
-    for photo_id in photo_ids[:120]:
-        try:
-            object_ids.append(ObjectId(photo_id))
-        except Exception:
-            continue
-    if not object_ids:
-        return jsonify({"queued": 0})
-
-    photos = list(mongo.db.photos.find({"_id": {"$in": object_ids}}))
-    allowed_photos = [photo for photo in photos if _can_view_photo(photo)]
-    queued = queue_missing_embeddings(
-        current_app._get_current_object(),
-        allowed_photos,
-        request.host_url.rstrip("/") + "/",
     )
-    return jsonify({"queued": queued})
 
 
 @api_bp.route("/photos/<photo_id>", methods=["PATCH", "DELETE"])
