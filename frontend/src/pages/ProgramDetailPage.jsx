@@ -12,6 +12,7 @@ import InlineEditableText from "../components/InlineEditableText";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import PhotoGalleryModal from "../components/PhotoGalleryModal";
+import LazyHeroVideo from "../components/LazyHeroVideo";
 import { preparePhotoForUpload, preparePhotosForUpload } from "../utils/imageUpload";
 
 const noop = () => {};
@@ -21,6 +22,20 @@ function toEmbed(url) {
   if (!url) return "";
   const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
   return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+}
+
+function getVideoId(url) {
+  if (!url) return "";
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : "";
+}
+
+function withPlayerParams(url) {
+  if (!url) return "";
+  const joiner = url.includes("?") ? "&" : "?";
+  const videoId = getVideoId(url);
+  const loopParams = videoId ? `&playlist=${videoId}` : "";
+  return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1${loopParams}&playsinline=1&start=0&rel=0&modestbranding=1`;
 }
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
@@ -280,6 +295,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
 
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
+  const programHeroVideo = toEmbed(program?.hero_video_url) || ordered[0]?.embed_url || "";
+  const programHeroImage = program?.thumbnail || ordered[0]?.thumbnail || "https://picsum.photos/seed/program-hero/1200/800";
 
   return (
     <section className="home-page home-page--detail page-program-detail">
@@ -292,13 +309,22 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
       />
       <audio ref={audioRef} src={program?.music_url || wedding?.music_url || ""} loop preload="none" />
       <header className="home-hero page-program-hero">
-        <div className={`home-hero__media ${toEmbed(program?.hero_video_url) || ordered[0]?.embed_url ? "has-video" : ""}`}>
-          <ProgressiveImage
-            src={program?.thumbnail || ordered[0]?.thumbnail || "https://picsum.photos/seed/program-hero/1200/800"}
-            alt={program?.title || "Program"}
-            className="home-hero__image"
-            loading="eager"
-          />
+        <div className={`home-hero__media ${programHeroVideo ? "has-video" : ""}`}>
+          {programHeroVideo ? (
+            <LazyHeroVideo
+              src={withPlayerParams(programHeroVideo)}
+              title="Program Hero"
+              poster={programHeroImage}
+              alt={program?.title || "Program"}
+            />
+          ) : (
+            <ProgressiveImage
+              src={programHeroImage}
+              alt={program?.title || "Program"}
+              className="home-hero__image"
+              loading="eager"
+            />
+          )}
           <div className="home-hero__shade" />
         </div>
         <div className="home-hero__content page-program-hero__content">
@@ -315,7 +341,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
             {program?.event_date || "Date TBD"}
           </p>
           <div className="home-hero__actions">
-            {!!(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url) && (
+            {!!programHeroVideo && (
             <button
               type="button"
               className="home-btn home-btn--primary"
