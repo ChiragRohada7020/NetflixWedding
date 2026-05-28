@@ -189,7 +189,7 @@ export default function HomePage() {
         canonicalPath="/weddings"
         image={featuredWedding?.profile_image || featuredWedding?.hero_image || `${window.location.origin}/favicon.svg`}
       />
-      <audio ref={audioRef} src={pageMusicUrl} loop preload="auto" />
+      <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />
 
       {isLoading && weddings.length === 0 && <AsyncState mode="loading" />}
       {error && weddings.length === 0 && <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />}

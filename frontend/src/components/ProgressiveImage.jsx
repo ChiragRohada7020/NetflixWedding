@@ -4,7 +4,7 @@ import { mediaUrl } from "../api";
 
 const DEFAULT_HASH = "LEHV6nWB2yk8pyo0adR*.7kCMdnj";
 
-export default function ProgressiveImage({ src, alt, className, hash = DEFAULT_HASH }) {
+export default function ProgressiveImage({ src, alt, className, hash = DEFAULT_HASH, loading = "lazy" }) {
   const [loaded, setLoaded] = useState(false);
   const resolvedSrc = mediaUrl(src);
 
@@ -19,6 +19,8 @@ export default function ProgressiveImage({ src, alt, className, hash = DEFAULT_H
         src={resolvedSrc}
         alt={alt}
         className={`progressive-img ${loaded ? "is-loaded" : ""}`}
+        loading={loading}
+        decoding="async"
         onLoad={() => setLoaded(true)}
       />
     </div>

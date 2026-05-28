@@ -1,9 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { DndContext, closestCenter } from "@dnd-kit/core";
-import { SortableContext, rectSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
 import { apiGet, apiPostForm } from "../api";
@@ -11,6 +8,7 @@ import { useEditMode } from "../components/EditModeContext";
 import InlineEditableText from "../components/InlineEditableText";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
+import LazyHeroVideo from "../components/LazyHeroVideo";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -108,25 +106,6 @@ function RailPoster({ item, href, title, subtitle, editMode, onEdit, onDelete, d
         </div>
       )}
     </motion.div>
-  );
-}
-
-function SortableRailPoster({ item, href, title, subtitle, editMode, onEdit, onDelete }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item._id });
-  const style = { transform: CSS.Transform.toString(transform), transition };
-  return (
-    <div ref={setNodeRef} style={style}>
-      <RailPoster
-        item={item}
-        href={href}
-        title={title}
-        subtitle={subtitle}
-        editMode={editMode}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        dragProps={{ ...attributes, ...listeners }}
-      />
-    </div>
   );
 }
 
@@ -258,18 +237,6 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
     await saveWeddingField("custom_sections", nextSections);
   };
 
-  const onDragEnd = async ({ active, over }) => {
-    if (!editMode || !over || active.id === over.id) return;
-    const oldIndex = ordered.findIndex((x) => x._id === active.id);
-    const newIndex = ordered.findIndex((x) => x._id === over.id);
-    const next = arrayMove(ordered, oldIndex, newIndex).map((x, i) => ({ ...x, order: i }));
-    setOrdered(next);
-    for (const program of next) {
-      await saveProgram({ ...program, thumbnail: program.thumbnail }, program._id);
-    }
-    await queryClient.invalidateQueries({ queryKey: ["wedding", weddingId] });
-  };
-
   const featuredProgram = ordered[0] || mainPrograms[0] || programs[0] || null;
   const featuredVideoUrl = useMemo(() => withPlayerParams(toEmbed(wedding?.hero_video_url || featuredProgram?.hero_video_url)), [wedding?.hero_video_url, featuredProgram?.hero_video_url]);
   const heroImage = wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names);
@@ -282,13 +249,6 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(normalizedSearch));
   };
-
-  const mainRailCards = (ordered.length ? ordered : mainPrograms).slice(0, 3).map((program, index) => ({
-    item: program,
-    href: `/weddings/${weddingId}/programs/${program._id}`,
-    title: program.title || `Season ${index + 1}`,
-    subtitle: program.event_date || program.venue_name || `Season ${index + 1}`,
-  }));
 
   const mainRailSource = ordered.length ? ordered : (mainPrograms.length ? mainPrograms : programs);
   const mainRailCardsVisible = mainRailSource.slice(0, 3).map((program, index) => ({
@@ -363,7 +323,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
         image={wedding?.profile_image || heroImage}
         type="article"
       />
-      <audio ref={audioRef} src={pageMusicUrl} loop preload="auto" />
+      <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />
 
       {isLoading && !wedding && <AsyncState mode="loading" />}
       {error && !wedding && <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />}
@@ -372,15 +332,14 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
         <header className="home-hero">
           <div className={`home-hero__media ${featuredVideoUrl ? "has-video" : ""}`}>
             {featuredVideoUrl ? (
-              <iframe
-                className="home-hero__video"
+              <LazyHeroVideo
                 src={featuredVideoUrl}
                 title="Wedding Hero"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
+                poster={heroImage}
+                alt={wedding.couple_names}
               />
             ) : (
-              <img className="home-hero__image" src={heroImage} alt={wedding.couple_names} />
+              <img className="home-hero__image" src={heroImage} alt={wedding.couple_names} loading="eager" decoding="async" />
             )}
             <div
               className="home-hero__mobile-art"

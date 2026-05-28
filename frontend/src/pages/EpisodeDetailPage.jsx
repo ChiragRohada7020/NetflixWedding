@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Skeleton from "react-loading-skeleton";
@@ -6,14 +6,14 @@ import { Link, useParams } from "react-router-dom";
 import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import AsyncState from "../components/AsyncState";
-import WedflixPlayer from "../components/WedflixPlayer";
-import VideoModal from "../components/VideoModal";
 import SeoHead from "../components/SeoHead";
 import { useEditMode } from "../components/EditModeContext";
 import PhotoGalleryModal from "../components/PhotoGalleryModal";
 import { preparePhotosForUpload } from "../utils/imageUpload";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
+const WedflixPlayer = React.lazy(() => import("../components/WedflixPlayer"));
+const VideoModal = React.lazy(() => import("../components/VideoModal"));
 
 function NextEventCard({ item, weddingId, programId, onPlay }) {
   return (
@@ -178,27 +178,29 @@ export default function EpisodeDetailPage() {
       />
       <div className="episode-watch-shell">
         {episode && (
-          <>
+          <Suspense fallback={<AsyncState mode="loading" />}>
             <WedflixPlayer
               url={episode.embed_url || episode.video_url || episode.youtube_url}
               className="video-wrap video-watch-stage"
               onPlay={() => window.dispatchEvent(new Event("wedflix-video-playing"))}
             />
-          </>
+          </Suspense>
         )}
       </div>
       {isLoading && <Skeleton count={3} height={36} />}
 
       {error && <p className="error">{error}</p>}
-      <VideoModal
-        open={episodeVideoOpen}
-        title={activeEpisode?.title || "Event Video"}
-        url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
-        onClose={() => {
-          setEpisodeVideoOpen(false);
-          setActiveEpisode(null);
-        }}
-      />
+      <Suspense fallback={null}>
+        <VideoModal
+          open={episodeVideoOpen}
+          title={activeEpisode?.title || "Event Video"}
+          url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
+          onClose={() => {
+            setEpisodeVideoOpen(false);
+            setActiveEpisode(null);
+          }}
+        />
+      </Suspense>
 
       <div className="episode-section-shell">
         <div className="cms-row-head">

@@ -129,6 +129,35 @@ def program_episodes(program_id):
     return jsonify(_to_jsonable(Episode.by_program(program_id)))
 
 
+@api_bp.route("/programs/<program_id>/photos", methods=["GET"])
+def program_photos(program_id):
+    program = Program.get(program_id)
+    if not program:
+        return jsonify({"error": "Program not found"}), 404
+
+    wedding = Wedding.get(str(program.get("wedding_id")))
+    if not wedding:
+        return jsonify({"error": "Wedding not found"}), 404
+    if not _can_view_wedding(wedding):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    episodes = Episode.by_program(program_id)
+    if not episodes:
+        return jsonify([])
+
+    episode_title_by_id = {str(episode.get("_id")): episode.get("title") or "Event" for episode in episodes}
+    episode_ids = [ObjectId(episode_id) for episode_id in episode_title_by_id.keys()]
+    photos = list(
+        mongo.db.photos.find({"episode_id": {"$in": episode_ids}}).sort([("order", 1), ("_id", 1)])
+    )
+    serialized = []
+    for photo in photos:
+        item = Photo.serialize(photo)
+        item["episode_title"] = episode_title_by_id.get(str(photo.get("episode_id")), "Event")
+        serialized.append(item)
+    return jsonify(_to_jsonable(serialized))
+
+
 @api_bp.route("/episodes/<episode_id>", methods=["GET"])
 def episode_detail(episode_id):
     episode = Episode.get(episode_id)

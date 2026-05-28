@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DndContext, closestCenter } from "@dnd-kit/core";
@@ -7,7 +7,6 @@ import { CSS } from "@dnd-kit/utilities";
 import Skeleton from "react-loading-skeleton";
 import { apiDelete, apiGet, apiPatch, apiPostForm } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
-import VideoModal from "../components/VideoModal";
 import { useEditMode } from "../components/EditModeContext";
 import InlineEditableText from "../components/InlineEditableText";
 import AsyncState from "../components/AsyncState";
@@ -16,25 +15,12 @@ import PhotoGalleryModal from "../components/PhotoGalleryModal";
 import { preparePhotoForUpload, preparePhotosForUpload } from "../utils/imageUpload";
 
 const noop = () => {};
+const VideoModal = React.lazy(() => import("../components/VideoModal"));
 
 function toEmbed(url) {
   if (!url) return "";
   const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
   return m ? `https://www.youtube.com/embed/${m[1]}` : url;
-}
-
-function getVideoId(url) {
-  if (!url) return "";
-  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : "";
-}
-
-function withPlayerParams(url) {
-  if (!url) return "";
-  const joiner = url.includes("?") ? "&" : "?";
-  const videoId = getVideoId(url);
-  const loopParams = videoId ? `&playlist=${videoId}` : "";
-  return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1${loopParams}&playsinline=1&start=0&rel=0&modestbranding=1`;
 }
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
@@ -101,16 +87,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
         apiGet(`/api/weddings/${weddingId}/programs`),
         apiGet(`/api/programs/${programId}/episodes`),
       ]);
-      const photoGroups = await Promise.all(
-        episodes.map(async (episode) => {
-          const photos = await apiGet(`/api/episodes/${episode._id}/photos`);
-          return photos.map((photo) => ({
-            ...photo,
-            episode_title: episode.title || "Event",
-          }));
-        })
-      );
-      return { wedding, program: programs.find((p) => p._id === programId) || null, episodes, photos: photoGroups.flat() };
+      const photos = await apiGet(`/api/programs/${programId}/photos`);
+      return { wedding, program: programs.find((p) => p._id === programId) || null, episodes, photos };
     },
   });
   const wedding = data?.wedding;
@@ -312,24 +290,15 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
         image={program?.thumbnail || wedding?.profile_image || `${window.location.origin}/favicon.svg`}
         type="article"
       />
-      <audio ref={audioRef} src={program?.music_url || wedding?.music_url || ""} loop preload="auto" />
+      <audio ref={audioRef} src={program?.music_url || wedding?.music_url || ""} loop preload="none" />
       <header className="home-hero page-program-hero">
         <div className={`home-hero__media ${toEmbed(program?.hero_video_url) || ordered[0]?.embed_url ? "has-video" : ""}`}>
-          {(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url) ? (
-            <iframe
-              className="home-hero__video"
-              src={withPlayerParams(toEmbed(program?.hero_video_url) || ordered[0]?.embed_url)}
-              title="Program Hero"
-              allow="autoplay; encrypted-media; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <ProgressiveImage
-              src={program?.thumbnail || ordered[0]?.thumbnail || "https://picsum.photos/seed/program-hero/1200/800"}
-              alt={program?.title || "Program"}
-              className="home-hero__image"
-            />
-          )}
+          <ProgressiveImage
+            src={program?.thumbnail || ordered[0]?.thumbnail || "https://picsum.photos/seed/program-hero/1200/800"}
+            alt={program?.title || "Program"}
+            className="home-hero__image"
+            loading="eager"
+          />
           <div className="home-hero__shade" />
         </div>
         <div className="home-hero__content page-program-hero__content">
@@ -487,7 +456,9 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
         )}
       </div>
 
-      <VideoModal open={openVideo} title={program?.title || "Event Video"} url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url} onClose={() => setOpenVideo(false)} />
+      <Suspense fallback={null}>
+        <VideoModal open={openVideo} title={program?.title || "Event Video"} url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url} onClose={() => setOpenVideo(false)} />
+      </Suspense>
       <PhotoGalleryModal
         open={photoGalleryOpen}
         title={program?.title ? `${program.title} Gallery` : "Photo Gallery"}
@@ -498,15 +469,17 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
         onDeletePhoto={deleteProgramPhoto}
         onClose={() => setPhotoGalleryOpen(false)}
       />
-      <VideoModal
-        open={episodeVideoOpen}
-        title={activeEpisode?.title || "Event Video"}
-        url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
-        onClose={() => {
-          setEpisodeVideoOpen(false);
-          setActiveEpisode(null);
-        }}
-      />
+      <Suspense fallback={null}>
+        <VideoModal
+          open={episodeVideoOpen}
+          title={activeEpisode?.title || "Event Video"}
+          url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
+          onClose={() => {
+            setEpisodeVideoOpen(false);
+            setActiveEpisode(null);
+          }}
+        />
+      </Suspense>
       {modal && (
         <div className="cms-modal-backdrop" onClick={() => setModal(null)}>
           <div className="cms-modal" onClick={(e) => e.stopPropagation()}>

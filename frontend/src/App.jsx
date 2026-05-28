@@ -1,17 +1,19 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "./components/Navbar";
-import WeddingsPage from "./pages/WeddingsPage";
-import WeddingDetailPage from "./pages/WeddingDetailPage";
-import ProgramDetailPage from "./pages/ProgramDetailPage";
-import EpisodeDetailPage from "./pages/EpisodeDetailPage";
-import SitePage from "./pages/SitePage";
 import "./styles.css";
 import "react-loading-skeleton/dist/skeleton.css";
 import { apiGet } from "./api";
 import { EditModeProvider } from "./components/EditModeContext";
+import AsyncState from "./components/AsyncState";
+
+const WeddingsPage = React.lazy(() => import("./pages/WeddingsPage"));
+const WeddingDetailPage = React.lazy(() => import("./pages/WeddingDetailPage"));
+const ProgramDetailPage = React.lazy(() => import("./pages/ProgramDetailPage"));
+const EpisodeDetailPage = React.lazy(() => import("./pages/EpisodeDetailPage"));
+const SitePage = React.lazy(() => import("./pages/SitePage"));
 
 function ScrollToTop({ containerRef }) {
   const { pathname } = useLocation();
@@ -39,13 +41,15 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
       )}
       {!isSiteRoute && <Navbar musicUrl={musicUrl} />}
       <main className={`container ${isSiteRoute ? "container--site" : ""}`} ref={containerRef}>
-        <Routes>
-          <Route path="/" element={<WeddingsPage />} />
-          <Route path="/site" element={<SitePage />} />
-          <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
-          <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
-          <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
-        </Routes>
+        <Suspense fallback={<AsyncState mode="loading" />}>
+          <Routes>
+            <Route path="/" element={<WeddingsPage />} />
+            <Route path="/site" element={<SitePage />} />
+            <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
+            <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
+            <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
+          </Routes>
+        </Suspense>
         {!isSiteRoute && (
           <footer className="wedflix-footer">
             <p>Wedflix &copy; {new Date().getFullYear()} All Rights Reserved.</p>
@@ -67,6 +71,24 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(() => setShowIntro(false), 2200);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const prefetchRoutes = () => {
+      import("./pages/WeddingDetailPage");
+      import("./pages/ProgramDetailPage");
+      import("./pages/EpisodeDetailPage");
+    };
+    const idleId = "requestIdleCallback" in window
+      ? window.requestIdleCallback(prefetchRoutes, { timeout: 3500 })
+      : window.setTimeout(prefetchRoutes, 2500);
+    return () => {
+      if ("cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      } else {
+        window.clearTimeout(idleId);
+      }
+    };
   }, []);
 
   useEffect(() => {
