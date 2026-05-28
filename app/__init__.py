@@ -20,33 +20,35 @@ def create_app(env_name="development"):
         config_map.get(env_name, config_map["development"])
     )
 
-    is_production = env_name == "production"
+    is_production = env_name == "production" or os.getenv("RENDER") == "true"
     app.config["SESSION_COOKIE_SAMESITE"] = "None" if is_production else "Lax"
     app.config["SESSION_COOKIE_SECURE"] = is_production
+    app.config["REMEMBER_COOKIE_SAMESITE"] = "None" if is_production else "Lax"
+    app.config["REMEMBER_COOKIE_SECURE"] = is_production
 
     mongo.init_app(app)
     login_manager.init_app(app)
     jwt.init_app(app)
 
-    frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    configured_origins = os.getenv("FRONTEND_ORIGINS") or os.getenv("FRONTEND_ORIGIN") or ""
     cors_origins = {
-        frontend_origin,
+        "https://netflix-wedding-eta.vercel.app",
+        "https://wedflix.space",
+        "https://www.wedflix.space",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     }
-    if is_production:
-        cors_origins.update(
-            {
-                "https://netflix-wedding-eta.vercel.app",
-                "https://wedflix.space",
-                "https://www.wedflix.space",
-            }
-        )
+    cors_origins.update(
+        origin.strip().rstrip("/")
+        for origin in configured_origins.split(",")
+        if origin.strip() and origin.strip() != "*"
+    )
 
     CORS(
         app,
         origins=sorted(cors_origins),
         supports_credentials=True,
+        vary_header=True,
     )
 
     @app.after_request
