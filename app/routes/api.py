@@ -22,6 +22,10 @@ from app.utils.telegram_media import TelegramMediaError, upload_photo_to_telegra
 api_bp = Blueprint("api", __name__)
 
 
+def _face_match_enabled():
+    return os.getenv("ENABLE_FACE_MATCH") == "1"
+
+
 def _to_jsonable(value):
     if isinstance(value, ObjectId):
         return str(value)
@@ -207,17 +211,19 @@ def episode_photos(episode_id):
                 "caption": "",
                 "order": existing_count + index + 1,
                 "uploaded_by": getattr(current_user, "name", "") or "",
-                "face_index_status": "queued",
+                "face_index_status": "queued" if _face_match_enabled() else "disabled",
             }
             result = mongo.db.photos.insert_one(doc)
             doc["_id"] = result.inserted_id
-            if index_copy:
+            if index_copy and _face_match_enabled():
                 queue_photo_embedding(
                     current_app._get_current_object(),
                     str(result.inserted_id),
                     request.host_url.rstrip("/") + "/",
                     local_path=index_copy.name,
                 )
+            elif index_copy:
+                Path(index_copy.name).unlink(missing_ok=True)
             inserted.append(Photo.serialize(doc))
 
         return jsonify(_to_jsonable(inserted)), 201
@@ -227,6 +233,9 @@ def episode_photos(episode_id):
 
 @api_bp.route("/photos/face-match", methods=["POST"])
 def photo_face_match():
+    if not _face_match_enabled():
+        return jsonify({"error": "Face match is disabled on this server."}), 503
+
     reference = request.files.get("reference")
     if not reference:
         return jsonify({"error": "Please capture or choose a face photo first."}), 400
@@ -263,6 +272,9 @@ def photo_face_match():
 
 @api_bp.route("/photos/face-index", methods=["POST"])
 def photo_face_index():
+    if not _face_match_enabled():
+        return jsonify({"queued": 0, "disabled": True})
+
     payload = request.get_json(silent=True) or {}
     photo_ids = payload.get("photo_ids") or []
     object_ids = []

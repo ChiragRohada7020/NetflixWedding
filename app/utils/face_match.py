@@ -41,7 +41,7 @@ def _load_deepface():
             from deepface.modules.verification import find_threshold
         except Exception as exc:
             raise FaceMatchError(
-                "DeepFace is not available. Use Python 3.10/3.11/3.12 and install requirements again."
+                "DeepFace is not available. Install requirements-face.txt on a larger server and set ENABLE_FACE_MATCH=1."
             ) from exc
 
         try:
@@ -61,7 +61,7 @@ def _cosine_distance(left, right):
     try:
         import numpy as np
     except Exception as exc:
-        raise FaceMatchError("NumPy is not installed in this Python environment. Run the backend with .venv310.") from exc
+        raise FaceMatchError("NumPy is not installed. Install requirements-face.txt on a larger server.") from exc
 
     left_vector = np.asarray(left, dtype=np.float32)
     right_vector = np.asarray(right, dtype=np.float32)
