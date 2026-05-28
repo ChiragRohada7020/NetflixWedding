@@ -1,5 +1,6 @@
 import os
 import threading
+import time
 
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
@@ -13,6 +14,7 @@ from .config import config
 _model = None
 _model_loading = False
 _model_error = None
+_model_started_at = None
 _model_lock = threading.Lock()
 
 
@@ -21,11 +23,12 @@ class FaceEmbeddingError(RuntimeError):
 
 
 def _load_insightface_model():
-    global _model, _model_error, _model_loading
+    global _model, _model_error, _model_loading, _model_started_at
     with _model_lock:
         if _model is not None:
             return _model
         _model_loading = True
+        _model_started_at = time.monotonic()
         _model_error = None
         try:
             from insightface.app import FaceAnalysis
@@ -56,9 +59,13 @@ def preload_model():
 
 
 def model_status():
+    loading_seconds = None
+    if _model_loading and _model_started_at is not None:
+        loading_seconds = round(time.monotonic() - _model_started_at, 1)
     return {
         "ready": _model is not None,
         "loading": _model_loading,
+        "loading_seconds": loading_seconds,
         "error": _model_error,
         "model": config.FACE_MODEL_NAME,
         "provider": config.FACE_MODEL_PROVIDER,

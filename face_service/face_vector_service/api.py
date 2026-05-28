@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import numpy as np
 from bson import ObjectId
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
 
 from .config import config
 from .db import db
@@ -37,7 +37,7 @@ def create_app():
 
     @app.before_request
     def check_auth():
-        if request.path in {"/", "/health"}:
+        if request.path in {"/", "/health", "/favicon.ico"}:
             return None
         if not require_token():
             return jsonify({"error": "Unauthorized"}), 401
@@ -51,6 +51,20 @@ def create_app():
     def health():
         return jsonify({"status": "ok", **model_status()})
 
+    @app.route("/favicon.ico", methods=["GET"])
+    def favicon():
+        return Response(status=204)
+
+    def model_not_ready_response(status):
+        loading_seconds = status.get("loading_seconds")
+        message = "Face model is still loading. Try again in a minute."
+        if loading_seconds and loading_seconds > 180:
+            message = (
+                f"Face model is still loading after {loading_seconds}s. "
+                "On Render free 512MB this usually means the instance does not have enough memory for InsightFace."
+            )
+        return jsonify({"error": message, **status}), 503
+
     @app.route("/embed", methods=["POST"])
     def embed():
         file_storage = request.files.get("photo")
@@ -58,7 +72,7 @@ def create_app():
             return jsonify({"error": "photo file is required"}), 400
         status = model_status()
         if not status["ready"]:
-            return jsonify({"error": "Face model is still loading. Try again in a minute.", **status}), 503
+            return model_not_ready_response(status)
         image_bgr = image_bytes_to_bgr(file_storage.read())
         faces = extract_faces(image_bgr)
         return jsonify({"faces": faces, "face_count": len(faces)})
@@ -76,7 +90,7 @@ def create_app():
             return jsonify({"error": "photo file is required"}), 400
         status = model_status()
         if not status["ready"]:
-            return jsonify({"error": "Face model is still loading. Try again in a minute.", **status}), 503
+            return model_not_ready_response(status)
 
         image_bgr = image_bytes_to_bgr(file_storage.read())
         faces = extract_faces(image_bgr)

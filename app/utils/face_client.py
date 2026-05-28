@@ -47,6 +47,13 @@ def search_faces(reference_file, wedding_id=None):
     if not response.ok:
         message = payload.get("error") or f"Face search failed with HTTP {response.status_code}."
         if response.status_code == 503 and payload.get("loading"):
-            message = "Face search is still warming up. Please try again in a minute."
+            loading_seconds = payload.get("loading_seconds")
+            if loading_seconds and loading_seconds > 180:
+                message = (
+                    "Face search service is still loading the AI model. "
+                    "This Render instance likely needs more memory than the free 512MB plan."
+                )
+            else:
+                message = "Face search is still warming up. Please try again in a minute."
         raise FaceServiceError(message)
     return payload
