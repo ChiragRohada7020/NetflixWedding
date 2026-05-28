@@ -3,23 +3,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Skeleton from "react-loading-skeleton";
 import { Link, useParams } from "react-router-dom";
-import { apiGet, apiPost } from "../api";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import AsyncState from "../components/AsyncState";
 import WedflixPlayer from "../components/WedflixPlayer";
 import VideoModal from "../components/VideoModal";
 import SeoHead from "../components/SeoHead";
+import { useEditMode } from "../components/EditModeContext";
+import PhotoGalleryModal from "../components/PhotoGalleryModal";
+import { preparePhotosForUpload } from "../utils/imageUpload";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
-
-const requestFullscreenFromClick = async () => {
-  if (document.fullscreenElement) return;
-  try {
-    await document.documentElement.requestFullscreen();
-  } catch {
-    // Browsers may reject fullscreen if the gesture context is lost.
-  }
-};
 
 function NextEventCard({ item, weddingId, programId, onPlay }) {
   return (
@@ -51,26 +45,36 @@ export default function EpisodeDetailPage() {
   const [error, setError] = useState("");
   const [activeEpisode, setActiveEpisode] = useState(null);
   const [episodeVideoOpen, setEpisodeVideoOpen] = useState(false);
+  const [photoFiles, setPhotoFiles] = useState([]);
+  const [photoUploadError, setPhotoUploadError] = useState("");
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [photoGalleryOpen, setPhotoGalleryOpen] = useState(false);
+  const { canEdit, editMode } = useEditMode();
   const queryClient = useQueryClient();
   const watchedKey = `wedflix_watched_episodes_${programId}`;
 
   const { data, isLoading, isError, error: loadError, refetch } = useQuery({
     queryKey: ["episode", weddingId, programId, episodeId],
     queryFn: async () => {
-      const [episode, comments, programEpisodes] = await Promise.all([
+      const [episode, comments, programEpisodes, photos] = await Promise.all([
         apiGet(`/api/episodes/${episodeId}`),
         apiGet(`/api/episodes/${episodeId}/comments`),
         apiGet(`/api/programs/${programId}/episodes`),
+        apiGet(`/api/episodes/${episodeId}/photos`),
       ]);
       return {
         episode,
         comments,
         programEpisodes,
+        photos,
       };
     },
   });
   const episode = data?.episode;
   const comments = data?.comments || [];
+  const photos = data?.photos || [];
+  const visiblePhotos = photos.slice(0, 7);
+  const hiddenPhotoCount = Math.max(0, photos.length - visiblePhotos.length);
   const programEpisodes = data?.programEpisodes || [];
   const watchedEpisodeIds = useMemo(() => {
     try {
@@ -119,6 +123,43 @@ export default function EpisodeDetailPage() {
     }
   };
 
+  const uploadPhotos = async (ev) => {
+    ev.preventDefault();
+    const formEl = ev.currentTarget;
+    if (!photoFiles.length) return;
+    const oversized = photoFiles.find((file) => file.size > 50 * 1024 * 1024);
+    if (oversized) {
+      setPhotoUploadError(`${oversized.name} is ${(oversized.size / (1024 * 1024)).toFixed(1)} MB. Please choose photos under 50 MB.`);
+      return;
+    }
+    setPhotoUploadError("");
+    setIsUploadingPhotos(true);
+    try {
+      const preparedPhotos = await preparePhotosForUpload(photoFiles);
+      const fd = new FormData();
+      preparedPhotos.forEach((file) => fd.append("photos", file));
+      await apiPostForm(`/api/episodes/${episodeId}/photos`, fd);
+      setPhotoFiles([]);
+      formEl?.reset();
+      await queryClient.invalidateQueries({ queryKey: ["episode", weddingId, programId, episodeId] });
+    } catch (err) {
+      const message = err?.message || "Photo upload failed. Please try again.";
+      setPhotoUploadError(message);
+    } finally {
+      setIsUploadingPhotos(false);
+    }
+  };
+
+  const updatePhoto = async (photo, values) => {
+    await apiPatch(`/api/photos/${photo._id}`, values);
+    await queryClient.invalidateQueries({ queryKey: ["episode", weddingId, programId, episodeId] });
+  };
+
+  const deletePhoto = async (photo) => {
+    await apiDelete(`/api/photos/${photo._id}`);
+    await queryClient.invalidateQueries({ queryKey: ["episode", weddingId, programId, episodeId] });
+  };
+
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (isError && !data) return <AsyncState mode="error" message={loadError?.message} onRetry={() => refetch()} />;
 
@@ -135,7 +176,7 @@ export default function EpisodeDetailPage() {
         {episode && (
           <>
             <WedflixPlayer
-              url={episode.embed_url}
+              url={episode.embed_url || episode.video_url || episode.youtube_url}
               className="video-wrap video-watch-stage"
               onPlay={() => window.dispatchEvent(new Event("wedflix-video-playing"))}
             />
@@ -169,7 +210,6 @@ export default function EpisodeDetailPage() {
                 programId={programId}
                 onPlay={(nextItem) => {
                   window.dispatchEvent(new Event("wedflix-video-playing"));
-                  requestFullscreenFromClick();
                   setActiveEpisode(nextItem);
                   setEpisodeVideoOpen(true);
                 }}
@@ -178,6 +218,64 @@ export default function EpisodeDetailPage() {
           </div>
         ) : (
           <p className="empty-rail">No more unwatched events in this program yet.</p>
+        )}
+      </div>
+
+      <div className="episode-section-shell">
+        <div className="cms-row-head">
+          <h2 className="section-title">Photo Gallery</h2>
+        </div>
+        {canEdit && editMode && (
+          <>
+            <form onSubmit={uploadPhotos} className="photo-upload-row">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => setPhotoFiles(Array.from(e.target.files || []))}
+              />
+              <button type="submit" disabled={!photoFiles.length || isUploadingPhotos}>
+                {isUploadingPhotos ? "Uploading..." : `Upload${photoFiles.length ? ` ${photoFiles.length}` : ""} Photos`}
+              </button>
+            </form>
+            {photoUploadError && <p className="error">{photoUploadError}</p>}
+          </>
+        )}
+        {photos.length ? (
+          <div className="program-gallery-diary" aria-label="Event photo gallery preview">
+            <div className="program-gallery-diary__topline">
+              <span>{photos.length} photos</span>
+              <button type="button" onClick={() => setPhotoGalleryOpen(true)}>View All</button>
+            </div>
+            <div className="program-gallery-diary__stage">
+              {visiblePhotos.map((photo, index) => (
+                <div
+                  key={photo._id}
+                  className={`program-gallery-diary__card program-gallery-diary__card--${index}`}
+                  onClick={() => setPhotoGalleryOpen(true)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setPhotoGalleryOpen(true);
+                  }}
+                >
+                  <ProgressiveImage src={photo.url} alt={photo.caption || episode?.title || "Event photo"} className="program-gallery-diary__image" />
+                  {index === 3 && (
+                    <span className="program-gallery-diary__label">{episode?.title}</span>
+                  )}
+                  {index === visiblePhotos.length - 1 && hiddenPhotoCount > 0 && (
+                    <span className="program-gallery-diary__more">+{hiddenPhotoCount}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="program-gallery-diary__dots" aria-hidden="true">
+              <span />
+              <span />
+            </div>
+          </div>
+        ) : (
+          <p className="empty-rail">No photos uploaded for this event yet.</p>
         )}
       </div>
 
@@ -196,6 +294,15 @@ export default function EpisodeDetailPage() {
           ))}
         </div>
       </div>
+      <PhotoGalleryModal
+        open={photoGalleryOpen}
+        title={episode?.title ? `${episode.title} Gallery` : "Photo Gallery"}
+        photos={photos}
+        canManage={canEdit && editMode}
+        onUpdatePhoto={updatePhoto}
+        onDeletePhoto={deletePhoto}
+        onClose={() => setPhotoGalleryOpen(false)}
+      />
     </section>
   );
 }

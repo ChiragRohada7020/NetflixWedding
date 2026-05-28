@@ -37,15 +37,8 @@ export default function VideoModal({ open, url, title, onClose }) {
               url={url}
               className="player-wrap"
               autoPlay
-              onPlay={async () => {
+              onPlay={() => {
                 window.dispatchEvent(new Event("wedflix-video-playing"));
-                if (!document.fullscreenElement) {
-                  try {
-                    await document.documentElement.requestFullscreen();
-                  } catch {
-                    // Browser may block auto fullscreen without direct gesture.
-                  }
-                }
               }}
             />
           </motion.div>

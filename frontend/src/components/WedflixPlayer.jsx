@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
+import { apiUrl } from "../api";
 
 function formatTime(seconds) {
   const total = Math.max(0, Math.floor(seconds || 0));
@@ -15,6 +16,7 @@ export default function WedflixPlayer({
   onPause,
   className = "",
 }) {
+  const playerUrl = apiUrl(url);
   const playerRef = useRef(null);
   const [playing, setPlaying] = useState(autoPlay);
   const [duration, setDuration] = useState(0);
@@ -41,13 +43,14 @@ export default function WedflixPlayer({
     player.seekTo(next, "seconds");
     setPlayedSeconds(next);
   };
+  const progressPercent = duration ? Math.min(100, Math.max(0, (playedSeconds / duration) * 100)) : 0;
 
   return (
     <div className={`wedflix-player ${className}`.trim()}>
       <div className="wedflix-player-surface">
         <ReactPlayer
           ref={playerRef}
-          url={url}
+          url={playerUrl}
           playing={playing}
           controls={false}
           width="100%"
@@ -99,6 +102,7 @@ export default function WedflixPlayer({
             max={duration || 0}
             step="0.1"
             value={Math.min(playedSeconds, duration || playedSeconds || 0)}
+            style={{ "--progress": `${progressPercent}%` }}
             onChange={(e) => seekTo(e.target.value)}
             aria-label="Video progress"
           />

@@ -180,7 +180,7 @@
         </div>
         <input name="title" class="w-full bg-black/40 p-3 rounded" placeholder="Event Title" required>
         <textarea name="description" class="w-full bg-black/40 p-3 rounded" placeholder="Event Description"></textarea>
-        <input name="youtube_url" class="w-full bg-black/40 p-3 rounded" placeholder="YouTube URL" required>
+        <input name="youtube_url" class="w-full bg-black/40 p-3 rounded" placeholder="YouTube URL">
         <input name="thumbnail" class="w-full bg-black/40 p-3 rounded" placeholder="Event Thumbnail URL (Optional)">
         <div>
           <label class="text-sm text-gray-300">Or Upload Event Thumbnail</label>
@@ -204,7 +204,7 @@
                 <input name="order" type="number" min="0" class="bg-black/40 p-2 rounded" value="{{ ep.order or 0 }}">
                 <input name="title" class="bg-black/40 p-2 rounded md:col-span-2" value="{{ ep.title }}" required>
                 <textarea name="description" class="bg-black/40 p-2 rounded md:col-span-2">{{ ep.description or '' }}</textarea>
-                <input name="youtube_url" class="bg-black/40 p-2 rounded md:col-span-2" value="{{ ep.youtube_url or '' }}" required>
+                <input name="youtube_url" class="bg-black/40 p-2 rounded md:col-span-2" value="{{ ep.youtube_url or '' }}" placeholder="YouTube URL">
                 <input name="thumbnail" class="bg-black/40 p-2 rounded md:col-span-2" value="{{ ep.thumbnail or '' }}" placeholder="Event Thumbnail URL (Optional)">
                 <div class="md:col-span-2">
                   <label class="text-sm text-gray-300">Or Upload Event Thumbnail</label>

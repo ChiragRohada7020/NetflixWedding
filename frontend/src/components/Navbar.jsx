@@ -23,7 +23,15 @@ export default function Navbar({ musicUrl }) {
   const navRef = useRef(null);
   const { data: session } = useQuery({ queryKey: ["session"], queryFn: () => apiGet("/api/session"), retry: false });
   const [backendAuthOk, setBackendAuthOk] = useState(() => localStorage.getItem("wedflix_backend_auth_ok") === "1");
-  const isAuthenticated = !!session?.authenticated || backendAuthOk;
+  const isAuthenticated = !!session?.authenticated;
+
+  useEffect(() => {
+    if (session && !session.authenticated && backendAuthOk) {
+      localStorage.setItem("wedflix_backend_auth_ok", "0");
+      setBackendAuthOk(false);
+      window.dispatchEvent(new Event("wedflix-auth-changed"));
+    }
+  }, [backendAuthOk, session]);
 
   useEffect(() => {
     document.body.classList.toggle("login-open", showLogin);

@@ -1,13 +1,23 @@
-from flask import Blueprint, jsonify, request
+import mimetypes
+import os
+import json
+import tempfile
+from pathlib import Path
+
+import requests
+from flask import Blueprint, Response, current_app, jsonify, redirect, request, stream_with_context
 from flask_login import current_user, login_required, login_user, logout_user
 from bson import ObjectId
 
+from app import mongo
 from app.models.comment import Comment
 from app.models.episode import Episode
 from app.models.photo import Photo
 from app.models.program import Program
 from app.models.wedding import Wedding
 from app.models.user import User
+from app.utils.face_match import FaceMatchError, compare_reference_to_indexed_photos, queue_missing_embeddings, queue_photo_embedding
+from app.utils.telegram_media import TelegramMediaError, upload_photo_to_telegram
 
 api_bp = Blueprint("api", __name__)
 
@@ -26,6 +36,15 @@ def _can_view_wedding(wedding):
     if not wedding:
         return False
     return (wedding.get("access_level") or "private") == "public" or current_user.is_authenticated
+
+
+def _can_view_photo(photo):
+    episode = Episode.get(str(photo.get("episode_id")))
+    if not episode:
+        return False
+    program = Program.get(str(episode.get("program_id")))
+    wedding = Wedding.get(str(program.get("wedding_id"))) if program else None
+    return _can_view_wedding(wedding)
 
 
 @api_bp.route("/health", methods=["GET"])
@@ -132,7 +151,7 @@ def episode_detail(episode_id):
     return jsonify(_to_jsonable(episode))
 
 
-@api_bp.route("/episodes/<episode_id>/photos", methods=["GET"])
+@api_bp.route("/episodes/<episode_id>/photos", methods=["GET", "POST"])
 def episode_photos(episode_id):
     episode = Episode.get(episode_id)
     if not episode:
@@ -143,7 +162,165 @@ def episode_photos(episode_id):
     if not _can_view_wedding(wedding):
         return jsonify({"error": "Unauthorized"}), 401
 
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            return jsonify({"error": "Login required"}), 401
+
+        files = request.files.getlist("photos")
+        if not files:
+            files = request.files.getlist("photos[]")
+        if not files:
+            single_photo = request.files.get("photo")
+            files = [single_photo] if single_photo else []
+        if not files:
+            return jsonify({"error": "Please choose at least one photo"}), 400
+
+        existing_count = mongo.db.photos.count_documents({"episode_id": ObjectId(episode_id)})
+        inserted = []
+        for index, file_storage in enumerate(files):
+            if not file_storage or not file_storage.filename:
+                continue
+            suffix = Path(file_storage.filename).suffix or ".jpg"
+            index_copy = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+            try:
+                file_storage.stream.seek(0)
+                index_copy.write(file_storage.stream.read())
+                index_copy.close()
+                file_storage.stream.seek(0)
+            except Exception:
+                index_copy.close()
+                Path(index_copy.name).unlink(missing_ok=True)
+                index_copy = None
+            try:
+                image_url = upload_photo_to_telegram(
+                    file_storage,
+                    caption=f"{episode.get('title') or 'Wedflix event'} photo",
+                )
+            except TelegramMediaError as exc:
+                if index_copy:
+                    Path(index_copy.name).unlink(missing_ok=True)
+                return jsonify({"error": f"Could not upload {file_storage.filename}: {exc}"}), 400
+
+            doc = {
+                "episode_id": ObjectId(episode_id),
+                "url": image_url,
+                "caption": "",
+                "order": existing_count + index + 1,
+                "uploaded_by": getattr(current_user, "name", "") or "",
+                "face_index_status": "queued",
+            }
+            result = mongo.db.photos.insert_one(doc)
+            doc["_id"] = result.inserted_id
+            if index_copy:
+                queue_photo_embedding(
+                    current_app._get_current_object(),
+                    str(result.inserted_id),
+                    request.host_url.rstrip("/") + "/",
+                    local_path=index_copy.name,
+                )
+            inserted.append(Photo.serialize(doc))
+
+        return jsonify(_to_jsonable(inserted)), 201
+
     return jsonify(_to_jsonable(Photo.by_episode(episode_id)))
+
+
+@api_bp.route("/photos/face-match", methods=["POST"])
+def photo_face_match():
+    reference = request.files.get("reference")
+    if not reference:
+        return jsonify({"error": "Please capture or choose a face photo first."}), 400
+
+    try:
+        photo_ids = json.loads(request.form.get("photo_ids") or "[]")
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid photo list."}), 400
+
+    object_ids = []
+    for photo_id in photo_ids[:120]:
+        try:
+            object_ids.append(ObjectId(photo_id))
+        except Exception:
+            continue
+    if not object_ids:
+        return jsonify({"matched_photo_ids": [], "matches": [], "scanned": 0, "skipped": 0})
+
+    photos = list(mongo.db.photos.find({"_id": {"$in": object_ids}}))
+    allowed_photos = [photo for photo in photos if _can_view_photo(photo)]
+    base_url = request.host_url.rstrip("/") + "/"
+    queued = queue_missing_embeddings(current_app._get_current_object(), allowed_photos, base_url)
+    try:
+        result = compare_reference_to_indexed_photos(
+            reference,
+            allowed_photos,
+        )
+    except FaceMatchError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    result["indexing_queued"] = queued
+    return jsonify(_to_jsonable(result))
+
+
+@api_bp.route("/photos/face-index", methods=["POST"])
+def photo_face_index():
+    payload = request.get_json(silent=True) or {}
+    photo_ids = payload.get("photo_ids") or []
+    object_ids = []
+    for photo_id in photo_ids[:120]:
+        try:
+            object_ids.append(ObjectId(photo_id))
+        except Exception:
+            continue
+    if not object_ids:
+        return jsonify({"queued": 0})
+
+    photos = list(mongo.db.photos.find({"_id": {"$in": object_ids}}))
+    allowed_photos = [photo for photo in photos if _can_view_photo(photo)]
+    queued = queue_missing_embeddings(
+        current_app._get_current_object(),
+        allowed_photos,
+        request.host_url.rstrip("/") + "/",
+    )
+    return jsonify({"queued": queued})
+
+
+@api_bp.route("/photos/<photo_id>", methods=["PATCH", "DELETE"])
+def photo_detail(photo_id):
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Login required"}), 401
+
+    try:
+        photo_object_id = ObjectId(photo_id)
+    except Exception:
+        return jsonify({"error": "Photo not found"}), 404
+
+    photo = mongo.db.photos.find_one({"_id": photo_object_id})
+    if not photo:
+        return jsonify({"error": "Photo not found"}), 404
+
+    episode = Episode.get(str(photo.get("episode_id")))
+    if not episode:
+        return jsonify({"error": "Episode not found"}), 404
+
+    if request.method == "DELETE":
+        mongo.db.photos.delete_one({"_id": photo_object_id})
+        return jsonify({"ok": True})
+
+    payload = request.get_json(silent=True) or {}
+    update = {}
+    if "caption" in payload:
+        update["caption"] = (payload.get("caption") or "").strip()[:160]
+    if "order" in payload:
+        try:
+            update["order"] = int(payload.get("order"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "Order must be a number"}), 400
+
+    if update:
+        mongo.db.photos.update_one({"_id": photo_object_id}, {"$set": update})
+
+    updated = mongo.db.photos.find_one({"_id": photo_object_id})
+    return jsonify(_to_jsonable(Photo.serialize(updated)))
 
 
 @api_bp.route("/episodes/<episode_id>/comments", methods=["GET", "POST"])
@@ -176,3 +353,41 @@ def episode_comments(episode_id):
 @login_required
 def like_episode(episode_id):
     return jsonify({"status": "ok", "episode_id": episode_id})
+
+
+@api_bp.route("/media/telegram/<path:file_id>", methods=["GET"])
+def telegram_media(file_id):
+    token = (os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
+    if not token:
+        return jsonify({"error": "Telegram media storage is not configured"}), 503
+
+    response = requests.get(
+        f"https://api.telegram.org/bot{token}/getFile",
+        params={"file_id": file_id},
+        timeout=20,
+    )
+    payload = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+    if not response.ok or not payload.get("ok"):
+        return jsonify({"error": payload.get("description") or "Telegram file lookup failed"}), 502
+
+    file_path = (payload.get("result") or {}).get("file_path")
+    if not file_path:
+        return jsonify({"error": "Telegram file path missing"}), 502
+
+    file_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
+    if request.args.get("download") != "1":
+        return redirect(file_url, code=302)
+
+    file_response = requests.get(file_url, stream=True, timeout=(20, 120))
+    if not file_response.ok:
+        return jsonify({"error": "Telegram file download failed"}), 502
+
+    content_type = file_response.headers.get("content-type") or mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+    return Response(
+        stream_with_context(file_response.iter_content(chunk_size=1024 * 64)),
+        content_type=content_type,
+        headers={
+            "Cache-Control": "private, max-age=300",
+            "Content-Disposition": f'attachment; filename="{os.path.basename(file_path) or "wedflix-photo"}"',
+        },
+    )

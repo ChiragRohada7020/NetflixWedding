@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, flash, redirect, request
+from flask import Flask, flash, jsonify, redirect, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_login import LoginManager
@@ -20,33 +20,53 @@ def create_app(env_name="development"):
         config_map.get(env_name, config_map["development"])
     )
 
-    app.config["SESSION_COOKIE_SAMESITE"] = "None"
-    app.config["SESSION_COOKIE_SECURE"] = True
+    is_production = env_name == "production"
+    app.config["SESSION_COOKIE_SAMESITE"] = "None" if is_production else "Lax"
+    app.config["SESSION_COOKIE_SECURE"] = is_production
 
     mongo.init_app(app)
     login_manager.init_app(app)
     jwt.init_app(app)
 
-    frontend_origin = os.getenv(
-        "FRONTEND_ORIGIN",
-        # "http://localhost:5173",
-        # "https://wedflix.space",
-        "https://www.wedflix.space",
-
-    )
+    frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    cors_origins = {
+        frontend_origin,
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    }
+    if is_production:
+        cors_origins.update(
+            {
+                "https://netflix-wedding-eta.vercel.app",
+                "https://wedflix.space",
+                "https://www.wedflix.space",
+            }
+        )
 
     CORS(
         app,
-        origins=[
-        "https://netflix-wedding-eta.vercel.app",
-        # "http://localhost:5173",
-        # "https://wedflix.space",
-        "https://www.wedflix.space",
-    ],
+        origins=sorted(cors_origins),
         supports_credentials=True,
     )
 
+    @app.after_request
+    def add_local_cors_headers(response):
+        origin = request.headers.get("Origin")
+        if origin in cors_origins:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Wedflix-Fetch"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
+            response.headers.add("Vary", "Origin")
+        return response
+
     login_manager.login_view = "auth.login"
+
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        if request.headers.get("X-Wedflix-Fetch") == "1":
+            return jsonify({"error": "Login required"}), 401
+        return redirect(f"{app.config.get('APPLICATION_ROOT', '')}/auth/login?next={request.path}")
 
     from app.routes.public import public_bp
     from app.routes.auth import auth_bp
@@ -107,13 +127,27 @@ def create_app(env_name="development"):
 
     with app.app_context():
         ensure_default_users()
+        try:
+            from app.utils.face_match import start_face_model_preload
+
+            start_face_model_preload()
+        except Exception as exc:
+            app.logger.warning("Face recognition model preload skipped: %s", exc)
 
     @app.errorhandler(413)
     def request_entity_too_large(_error):
+        if request.headers.get("X-Wedflix-Fetch") == "1":
+            return jsonify({"error": "Upload is too large. Please use a smaller file."}), 413
         flash(
             "Upload is too large. Please use a smaller file.",
             "error",
         )
         return redirect(request.referrer or "/")
+
+    @app.errorhandler(403)
+    def forbidden(_error):
+        if request.headers.get("X-Wedflix-Fetch") == "1":
+            return jsonify({"error": "Admin access required"}), 403
+        return "Forbidden", 403
 
     return app

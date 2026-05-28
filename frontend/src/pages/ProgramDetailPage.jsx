@@ -5,13 +5,17 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Skeleton from "react-loading-skeleton";
-import { apiGet, apiPostForm } from "../api";
+import { apiDelete, apiGet, apiPatch, apiPostForm } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import VideoModal from "../components/VideoModal";
 import { useEditMode } from "../components/EditModeContext";
 import InlineEditableText from "../components/InlineEditableText";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
+import PhotoGalleryModal from "../components/PhotoGalleryModal";
+import { preparePhotoForUpload, preparePhotosForUpload } from "../utils/imageUpload";
+
+const noop = () => {};
 
 function toEmbed(url) {
   if (!url) return "";
@@ -34,15 +38,6 @@ function withPlayerParams(url) {
 }
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
-
-const requestFullscreenFromClick = async () => {
-  if (document.fullscreenElement) return;
-  try {
-    await document.documentElement.requestFullscreen();
-  } catch {
-    // Some browsers block fullscreen if they treat the click as indirect.
-  }
-};
 
 function EpisodeCard({ item, weddingId, programId, editMode, onEdit, onDelete, onPlay }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item._id });
@@ -81,7 +76,7 @@ function EpisodeCard({ item, weddingId, programId, editMode, onEdit, onDelete, o
   );
 }
 
-export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
+export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
   const { weddingId, programId } = useParams();
   const queryClient = useQueryClient();
   const { canEdit, editMode } = useEditMode();
@@ -90,6 +85,11 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
   const [episodeVideoOpen, setEpisodeVideoOpen] = useState(false);
   const [modal, setModal] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [photoFiles, setPhotoFiles] = useState([]);
+  const [photoEpisodeId, setPhotoEpisodeId] = useState("");
+  const [photoUploadError, setPhotoUploadError] = useState("");
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [photoGalleryOpen, setPhotoGalleryOpen] = useState(false);
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const audioRef = useRef(null);
   const pausedForVideoRef = useRef(false);
@@ -101,14 +101,31 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
         apiGet(`/api/weddings/${weddingId}/programs`),
         apiGet(`/api/programs/${programId}/episodes`),
       ]);
-      return { wedding, program: programs.find((p) => p._id === programId) || null, episodes };
+      const photoGroups = await Promise.all(
+        episodes.map(async (episode) => {
+          const photos = await apiGet(`/api/episodes/${episode._id}/photos`);
+          return photos.map((photo) => ({
+            ...photo,
+            episode_title: episode.title || "Event",
+          }));
+        })
+      );
+      return { wedding, program: programs.find((p) => p._id === programId) || null, episodes, photos: photoGroups.flat() };
     },
   });
   const wedding = data?.wedding;
   const program = data?.program;
-  const episodes = data?.episodes || [];
+  const episodes = React.useMemo(() => data?.episodes || [], [data?.episodes]);
+  const programPhotos = data?.photos || [];
+  const visibleProgramPhotos = programPhotos.slice(0, 7);
+  const hiddenProgramPhotoCount = Math.max(0, programPhotos.length - visibleProgramPhotos.length);
   const [ordered, setOrdered] = useState([]);
   React.useEffect(() => setOrdered(episodes), [episodes]);
+  React.useEffect(() => {
+    if (!photoEpisodeId && episodes[0]?._id) {
+      setPhotoEpisodeId(episodes[0]._id);
+    }
+  }, [episodes, photoEpisodeId]);
   const filteredEpisodes = React.useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return ordered;
@@ -117,6 +134,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
         episode.title,
         episode.description,
         episode.youtube_url,
+        episode.video_provider,
         episode.season_number,
         episode.order,
       ]
@@ -180,9 +198,14 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
 
   const saveEpisode = async (values, episodeId) => {
     const fd = new FormData();
-    Object.entries(values).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) fd.append(k, v);
-    });
+    for (const [k, v] of Object.entries(values)) {
+      if (v === undefined || v === null) continue;
+      if (k === "thumbnail_file" && v) {
+        fd.append(k, await preparePhotoForUpload(v));
+      } else {
+        fd.append(k, v);
+      }
+    }
     await apiPostForm(`/admin/episodes/${episodeId}/update`, fd);
     setModal(null);
   };
@@ -205,9 +228,14 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
   const createEpisode = async (values) => {
     const fd = new FormData();
     fd.append("program_id", programId);
-    Object.entries(values).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) fd.append(k, v);
-    });
+    for (const [k, v] of Object.entries(values)) {
+      if (v === undefined || v === null) continue;
+      if (k === "thumbnail_file" && v) {
+        fd.append(k, await preparePhotoForUpload(v));
+      } else {
+        fd.append(k, v);
+      }
+    }
     await apiPostForm("/admin/episodes/create", fd);
     await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
     setModal(null);
@@ -216,6 +244,43 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
   const deleteEpisode = async (item) => {
     if (!window.confirm(`Delete ${item.title}?`)) return;
     await apiPostForm(`/admin/episodes/${item._id}/delete`, new FormData());
+    await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
+  };
+
+  const uploadProgramPhotos = async (ev) => {
+    ev.preventDefault();
+    const formEl = ev.currentTarget;
+    if (!photoEpisodeId || !photoFiles.length) return;
+    const oversized = photoFiles.find((file) => file.size > 50 * 1024 * 1024);
+    if (oversized) {
+      setPhotoUploadError(`${oversized.name} is ${(oversized.size / (1024 * 1024)).toFixed(1)} MB. Please choose photos under 50 MB.`);
+      return;
+    }
+    setPhotoUploadError("");
+    setIsUploadingPhotos(true);
+    try {
+      const preparedPhotos = await preparePhotosForUpload(photoFiles);
+      const fd = new FormData();
+      preparedPhotos.forEach((file) => fd.append("photos", file));
+      await apiPostForm(`/api/episodes/${photoEpisodeId}/photos`, fd);
+      setPhotoFiles([]);
+      formEl?.reset();
+      await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
+    } catch (err) {
+      const message = err?.message || "Photo upload failed. Please try again.";
+      setPhotoUploadError(message);
+    } finally {
+      setIsUploadingPhotos(false);
+    }
+  };
+
+  const updateProgramPhoto = async (photo, values) => {
+    await apiPatch(`/api/photos/${photo._id}`, values);
+    await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
+  };
+
+  const deleteProgramPhoto = async (photo) => {
+    await apiDelete(`/api/photos/${photo._id}`);
     await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
   };
 
@@ -335,7 +400,6 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
                 onDelete={deleteEpisode}
                 onPlay={(item) => {
                   window.dispatchEvent(new Event("wedflix-video-playing"));
-                  requestFullscreenFromClick();
                   setActiveEpisode(item);
                   setEpisodeVideoOpen(true);
                 }}
@@ -353,7 +417,82 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
       {!isLoading && filteredEpisodes.length === 0 && (
         <p className="empty-rail">No events matched your search.</p>
       )}
+
+      <div className="episode-section-shell program-photo-gallery">
+        <div className="cms-row-head">
+          <h2 className="section-title">Photo Gallery</h2>
+        </div>
+        {canEdit && editMode && (
+          <>
+            <form onSubmit={uploadProgramPhotos} className="photo-upload-row">
+              <select value={photoEpisodeId} onChange={(e) => setPhotoEpisodeId(e.target.value)} disabled={!episodes.length}>
+                {episodes.map((episode) => (
+                  <option key={episode._id} value={episode._id}>
+                    {episode.title || "Untitled Event"}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => setPhotoFiles(Array.from(e.target.files || []))}
+              />
+              <button type="submit" disabled={!photoEpisodeId || !photoFiles.length || isUploadingPhotos}>
+                {isUploadingPhotos ? "Uploading..." : `Upload${photoFiles.length ? ` ${photoFiles.length}` : ""} Photos`}
+              </button>
+            </form>
+            {photoUploadError && <p className="error">{photoUploadError}</p>}
+          </>
+        )}
+        {programPhotos.length ? (
+          <div className="program-gallery-diary" aria-label="Program photo gallery preview">
+            <div className="program-gallery-diary__topline">
+              <span>{programPhotos.length} photos</span>
+              <button type="button" onClick={() => setPhotoGalleryOpen(true)}>View All</button>
+            </div>
+            <div className="program-gallery-diary__stage">
+              {visibleProgramPhotos.map((photo, index) => (
+                <div
+                  key={photo._id}
+                  className={`program-gallery-diary__card program-gallery-diary__card--${index}`}
+                  onClick={() => setPhotoGalleryOpen(true)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setPhotoGalleryOpen(true);
+                  }}
+                >
+                  <ProgressiveImage src={photo.url} alt={photo.caption || photo.episode_title || "Event photo"} className="program-gallery-diary__image" />
+                  {index === 3 && (
+                    <span className="program-gallery-diary__label">{photo.episode_title}</span>
+                  )}
+                  {index === visibleProgramPhotos.length - 1 && hiddenProgramPhotoCount > 0 && (
+                    <span className="program-gallery-diary__more">+{hiddenProgramPhotoCount}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="program-gallery-diary__dots" aria-hidden="true">
+              <span />
+              <span />
+            </div>
+          </div>
+        ) : (
+          <p className="empty-rail">No photos uploaded in this program yet.</p>
+        )}
+      </div>
+
       <VideoModal open={openVideo} title={program?.title || "Event Video"} url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url} onClose={() => setOpenVideo(false)} />
+      <PhotoGalleryModal
+        open={photoGalleryOpen}
+        title={program?.title ? `${program.title} Gallery` : "Photo Gallery"}
+        photos={programPhotos}
+        canManage={canEdit && editMode}
+        onUpdatePhoto={updateProgramPhoto}
+        onDeletePhoto={deleteProgramPhoto}
+        onClose={() => setPhotoGalleryOpen(false)}
+      />
       <VideoModal
         open={episodeVideoOpen}
         title={activeEpisode?.title || "Event Video"}
@@ -388,51 +527,67 @@ export default function ProgramDetailPage({ onMusicUrlChange = () => {} }) {
 }
 
 function EpisodeForm({ initial, onSubmit, onCancel }) {
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
-    title: initial.title || "",
-    description: initial.description || "",
-    youtube_url: initial.youtube_url || "",
-    season_number: initial.season_number || 1,
-    order: initial.order || 1,
-    thumbnail: initial.thumbnail || "",
+    title: String(initial.title || ""),
+    description: String(initial.description || ""),
+    youtube_url: String(initial.youtube_url || ""),
+    season_number: String(initial.season_number || 1),
+    order: String(initial.order || 1),
+    thumbnail: String(initial.thumbnail || ""),
+    thumbnail_file: null,
   });
   return (
     <form
       className="cms-form"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        onSubmit(form);
+        setSaveError("");
+        setIsSaving(true);
+        try {
+          await onSubmit(form);
+        } catch (err) {
+          setSaveError(err?.message || "Save failed. Please try again.");
+        } finally {
+          setIsSaving(false);
+        }
       }}
     >
       <div className="cms-form-grid">
         <label className="cms-field">
           <span>Event Title</span>
-          <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Sangeet Entry" />
+          <input value={form.title ?? ""} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Sangeet Entry" />
         </label>
         <label className="cms-field">
           <span>YouTube URL</span>
-          <input value={form.youtube_url} onChange={(e) => setForm((p) => ({ ...p, youtube_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." />
+          <input value={form.youtube_url ?? ""} onChange={(e) => setForm((p) => ({ ...p, youtube_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Thumbnail URL</span>
-          <input value={form.thumbnail} onChange={(e) => setForm((p) => ({ ...p, thumbnail: e.target.value }))} placeholder="https://..." />
+          <input value={form.thumbnail ?? ""} onChange={(e) => setForm((p) => ({ ...p, thumbnail: e.target.value }))} placeholder="https://..." />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Thumbnail Photo</span>
+          <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, thumbnail_file: e.target.files?.[0] || null }))} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Description</span>
-          <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Write event details..." />
+          <textarea value={form.description ?? ""} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Write event details..." />
         </label>
         <label className="cms-field">
           <span>Season</span>
-          <input value={form.season_number} onChange={(e) => setForm((p) => ({ ...p, season_number: e.target.value }))} placeholder="1" />
+          <input value={form.season_number ?? "1"} onChange={(e) => setForm((p) => ({ ...p, season_number: e.target.value }))} placeholder="1" />
         </label>
         <label className="cms-field">
           <span>Display Order</span>
-          <input value={form.order} onChange={(e) => setForm((p) => ({ ...p, order: e.target.value }))} placeholder="1" />
+          <input value={form.order ?? "1"} onChange={(e) => setForm((p) => ({ ...p, order: e.target.value }))} placeholder="1" />
         </label>
       </div>
+      {saveError && <p className="error">{saveError}</p>}
       <div className="cms-form-actions">
-        <button type="button" className="cms-fab" onClick={onCancel}>Cancel</button>
-        <button type="submit" className="cms-fab">Save</button>
+        <button type="button" className="cms-fab" onClick={onCancel} disabled={isSaving}>Cancel</button>
+        <button type="submit" className="cms-fab" disabled={isSaving}>{isSaving ? "Saving..." : "Save"}</button>
       </div>
     </form>
   );

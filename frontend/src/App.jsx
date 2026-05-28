@@ -61,8 +61,8 @@ export default function App() {
   const [musicUrl, setMusicUrl] = useState("");
   const [backendAuthOk, setBackendAuthOk] = useState(() => localStorage.getItem("wedflix_backend_auth_ok") === "1");
   const containerRef = useRef(null);
-  const fullscreenAttemptedRef = useRef(false);
   const introSoundAttemptedRef = useRef(false);
+  const fullscreenAttemptedRef = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowIntro(false), 2200);
@@ -132,51 +132,47 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const tryEnterFullscreen = async () => {
-      if (fullscreenAttemptedRef.current || document.fullscreenElement) return;
+    const requestFullscreen = async () => {
+      if (fullscreenAttemptedRef.current) return;
+      if (document.fullscreenElement || document.webkitFullscreenElement) return;
+
+      const el = document.documentElement;
+      const enterFullscreen = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (!enterFullscreen) return;
+
       fullscreenAttemptedRef.current = true;
       try {
-        const root = document.documentElement;
-        if (root.requestFullscreen) await root.requestFullscreen();
-        else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen();
-        else if (root.mozRequestFullScreen) root.mozRequestFullScreen();
-        else if (root.msRequestFullscreen) root.msRequestFullscreen();
+        await enterFullscreen.call(el);
       } catch {
         fullscreenAttemptedRef.current = false;
       }
     };
 
-    const onFirstGesture = () => {
-      tryEnterFullscreen();
-    };
-
-    if (!showIntro) {
-      tryEnterFullscreen();
-    }
-
-    const mobileAutoTry = window.setTimeout(() => {
-      const isMobile = window.matchMedia("(max-width: 640px)").matches;
-      if (isMobile) tryEnterFullscreen();
-    }, showIntro ? 2400 : 250);
-
-    window.addEventListener("pointerdown", onFirstGesture, { once: true });
-    window.addEventListener("keydown", onFirstGesture, { once: true });
-    window.addEventListener("touchstart", onFirstGesture, { once: true, passive: true });
+    window.addEventListener("pointerdown", requestFullscreen);
+    window.addEventListener("touchstart", requestFullscreen, { passive: true });
+    window.addEventListener("keydown", requestFullscreen);
 
     return () => {
-      window.clearTimeout(mobileAutoTry);
-      window.removeEventListener("pointerdown", onFirstGesture);
-      window.removeEventListener("keydown", onFirstGesture);
-      window.removeEventListener("touchstart", onFirstGesture);
+      window.removeEventListener("pointerdown", requestFullscreen);
+      window.removeEventListener("touchstart", requestFullscreen);
+      window.removeEventListener("keydown", requestFullscreen);
     };
-  }, [showIntro]);
+  }, []);
 
   const { data: session } = useQuery({
     queryKey: ["session"],
     queryFn: () => apiGet("/api/session"),
     retry: false,
   });
-  const canEdit = Boolean((session?.authenticated && session?.is_admin) || backendAuthOk);
+  const canEdit = Boolean(session?.authenticated && session?.is_admin);
+
+  useEffect(() => {
+    if (session && (!session.authenticated || !session.is_admin) && backendAuthOk) {
+      localStorage.setItem("wedflix_backend_auth_ok", "0");
+      setBackendAuthOk(false);
+      window.dispatchEvent(new Event("wedflix-auth-changed"));
+    }
+  }, [backendAuthOk, session]);
 
   useEffect(() => {
     const onAuthChanged = () => setBackendAuthOk(localStorage.getItem("wedflix_backend_auth_ok") === "1");

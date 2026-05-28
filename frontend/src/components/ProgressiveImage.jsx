@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Blurhash } from "react-blurhash";
+import { mediaUrl } from "../api";
 
 const DEFAULT_HASH = "LEHV6nWB2yk8pyo0adR*.7kCMdnj";
 
 export default function ProgressiveImage({ src, alt, className, hash = DEFAULT_HASH }) {
   const [loaded, setLoaded] = useState(false);
+  const resolvedSrc = mediaUrl(src);
 
   return (
     <div className={`progressive ${className || ""}`}>
@@ -14,7 +16,7 @@ export default function ProgressiveImage({ src, alt, className, hash = DEFAULT_H
         </div>
       )}
       <img
-        src={src}
+        src={resolvedSrc}
         alt={alt}
         className={`progressive-img ${loaded ? "is-loaded" : ""}`}
         onLoad={() => setLoaded(true)}

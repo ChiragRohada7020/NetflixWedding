@@ -1,6 +1,7 @@
+import os
 from bson import ObjectId
 import json
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import login_required
 
 from app import mongo
@@ -9,7 +10,7 @@ from app.models.program import Program
 from app.models.wedding import Wedding
 from app.utils.decorators import admin_required
 from app.utils.media import normalize_image_url
-from app.utils.uploads import save_uploaded_image
+from app.utils.telegram_media import TelegramMediaError, upload_photo_to_telegram
 from app.utils.video import youtube_embed_url
 
 admin_bp = Blueprint("admin", __name__)
@@ -28,6 +29,24 @@ def _selected_wedding_id():
 
 def _selected_program_id():
     return (request.args.get("program_id") or "").strip()
+
+
+def _is_fetch_form():
+    return request.headers.get("X-Wedflix-Fetch") == "1"
+
+
+def _form_success(message, **payload):
+    if _is_fetch_form():
+        return jsonify({"status": "ok", "message": message, **payload})
+    flash(message, "success")
+    return None
+
+
+def _form_error(message, status_code=400):
+    if _is_fetch_form():
+        return jsonify({"error": message}), status_code
+    flash(message, "error")
+    return None
 
 
 def _resolve_music_url(form_name="music_url", file_name="music_file"):
@@ -60,15 +79,41 @@ def _parse_custom_sections(raw_value):
 
 
 def _resolve_image_url(form_name, file_name, existing=""):
+    file_storage = request.files.get(file_name)
+    if file_storage and file_storage.filename:
+        uploaded = upload_photo_to_telegram(
+            file_storage,
+            caption=(request.form.get("title") or request.form.get("couple_names") or "Wedflix thumbnail").strip(),
+        )
+        if uploaded:
+            return uploaded
+
     direct = (request.form.get(form_name) or "").strip()
     if direct:
         return normalize_image_url(direct)
-    uploaded = save_uploaded_image(request.files.get(file_name), current_app.config.get("UPLOAD_FOLDER", "app/static/uploads"))
-    if uploaded:
-        return uploaded
     if existing:
         return existing
     return normalize_image_url("")
+
+
+def _resolve_episode_video(existing=None):
+    existing = existing or {}
+    youtube_url = (request.form.get("youtube_url") or "").strip()
+
+    if youtube_url:
+        return {
+            "video_provider": "youtube",
+            "youtube_url": youtube_url,
+            "video_url": "",
+            "embed_url": youtube_embed_url(youtube_url),
+        }
+
+    return {
+        "video_provider": "",
+        "youtube_url": "",
+        "video_url": "",
+        "embed_url": "",
+    }
 
 
 @admin_bp.route("/")
@@ -238,7 +283,9 @@ def update_program(program_id):
         "order": _safe_int(request.form.get("order"), 0),
     }
     mongo.db.programs.update_one({"_id": ObjectId(program_id)}, {"$set": payload})
-    flash("Program updated", "success")
+    success_response = _form_success("Program updated", wedding_id=wedding_id, program_id=program_id)
+    if success_response:
+        return success_response
     return redirect(url_for("admin.home", wedding_id=wedding_id, program_id=program_id))
 
 @admin_bp.route("/programs/<program_id>/delete", methods=["POST"])
@@ -272,13 +319,20 @@ def create_episode():
         "season_number": _safe_int(request.form.get("season_number"), 1),
         "title": request.form.get("title"),
         "description": request.form.get("description"),
-        "youtube_url": request.form.get("youtube_url"),
-        "embed_url": youtube_embed_url(request.form.get("youtube_url")),
         "order": _safe_int(request.form.get("order"), 0),
-        "thumbnail": _resolve_image_url("thumbnail", "thumbnail_file"),
+        **_resolve_episode_video(),
     }
+    try:
+        payload["thumbnail"] = _resolve_image_url("thumbnail", "thumbnail_file")
+    except TelegramMediaError as exc:
+        error_response = _form_error(str(exc), 400)
+        if error_response:
+            return error_response
+        return redirect(url_for("admin.home", wedding_id=wedding_id, program_id=program_id))
     Episode.create(payload)
-    flash("Moment added", "success")
+    success_response = _form_success("Moment added", wedding_id=wedding_id, program_id=program_id)
+    if success_response:
+        return success_response
     return redirect(url_for("admin.home", wedding_id=wedding_id, program_id=program_id))
 
 
@@ -294,18 +348,24 @@ def update_episode(episode_id):
         if program:
             wedding_id = str(program.get("wedding_id"))
 
-    youtube_url = (request.form.get("youtube_url") or "").strip()
     payload = {
         "season_number": _safe_int(request.form.get("season_number"), 1),
         "title": (request.form.get("title") or "").strip(),
         "description": (request.form.get("description") or "").strip(),
-        "youtube_url": youtube_url,
-        "embed_url": youtube_embed_url(youtube_url),
         "order": _safe_int(request.form.get("order"), 0),
-        "thumbnail": _resolve_image_url("thumbnail", "thumbnail_file", (ep or {}).get("thumbnail", "")),
+        **_resolve_episode_video(ep),
     }
+    try:
+        payload["thumbnail"] = _resolve_image_url("thumbnail", "thumbnail_file", (ep or {}).get("thumbnail", ""))
+    except TelegramMediaError as exc:
+        error_response = _form_error(str(exc), 400)
+        if error_response:
+            return error_response
+        return redirect(url_for("admin.home", wedding_id=wedding_id, program_id=program_id))
     mongo.db.episodes.update_one({"_id": ObjectId(episode_id)}, {"$set": payload})
-    flash("Moment updated", "success")
+    success_response = _form_success("Moment updated", wedding_id=wedding_id, program_id=program_id, episode_id=episode_id)
+    if success_response:
+        return success_response
     return redirect(url_for("admin.home", wedding_id=wedding_id, program_id=program_id))
 
 
@@ -323,6 +383,8 @@ def delete_episode(episode_id):
             wedding_id = str(program.get("wedding_id"))
 
     mongo.db.episodes.delete_one({"_id": ObjectId(episode_id)})
-    flash("Episode deleted", "success")
+    success_response = _form_success("Episode deleted", wedding_id=wedding_id, program_id=program_id, episode_id=episode_id)
+    if success_response:
+        return success_response
     return redirect(url_for("admin.home", wedding_id=wedding_id, program_id=program_id))
 
