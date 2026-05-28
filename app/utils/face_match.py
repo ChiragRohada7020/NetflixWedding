@@ -1,4 +1,5 @@
 import os
+import math
 import tempfile
 import threading
 from datetime import datetime
@@ -57,23 +58,80 @@ def _load_deepface():
         return _deepface, _find_threshold, _threshold
 
 
-def _cosine_distance(left, right):
-    try:
-        import numpy as np
-    except Exception as exc:
-        raise FaceMatchError("NumPy is not installed. Install requirements-face.txt on a larger server.") from exc
+def _face_service_url():
+    return (os.getenv("FACE_MATCH_SERVICE_URL") or "").strip().rstrip("/")
 
-    left_vector = np.asarray(left, dtype=np.float32)
-    right_vector = np.asarray(right, dtype=np.float32)
-    dot = float(np.dot(left_vector, right_vector))
-    left_norm = float(np.linalg.norm(left_vector))
-    right_norm = float(np.linalg.norm(right_vector))
+
+def _face_service_token():
+    return (os.getenv("FACE_MATCH_SERVICE_TOKEN") or "").strip()
+
+
+def _face_service_threshold():
+    try:
+        return float(os.getenv("FACE_MATCH_THRESHOLD", str(DEFAULT_THRESHOLD)))
+    except ValueError:
+        return DEFAULT_THRESHOLD
+
+
+def _normalize_remote_faces(payload):
+    faces = payload.get("faces") or payload.get("embeddings") or payload.get("results") or []
+    normalized = []
+    for face in faces:
+        if isinstance(face, dict):
+            embedding = face.get("embedding") or face.get("vector")
+            facial_area = face.get("facial_area") or face.get("box") or {}
+        else:
+            embedding = face
+            facial_area = {}
+        if embedding:
+            normalized.append(
+                {
+                    "embedding": [float(value) for value in embedding],
+                    "facial_area": facial_area,
+                }
+            )
+    return sorted(normalized, key=_face_area, reverse=True)
+
+
+def _extract_face_embeddings_remote(image_path):
+    service_url = _face_service_url()
+    headers = {}
+    token = _face_service_token()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    with open(image_path, "rb") as image_file:
+        response = requests.post(
+            f"{service_url}/embed",
+            files={"image": (Path(image_path).name, image_file)},
+            headers=headers,
+            timeout=(15, 120),
+        )
+
+    payload = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+    if not response.ok:
+        raise FaceMatchError(payload.get("error") or "Face recognition service failed.")
+
+    return _normalize_remote_faces(payload)
+
+
+def _cosine_distance(left, right):
+    left_vector = [float(value) for value in left or []]
+    right_vector = [float(value) for value in right or []]
+    if len(left_vector) != len(right_vector):
+        return 1.0
+
+    dot = sum(left_value * right_value for left_value, right_value in zip(left_vector, right_vector))
+    left_norm = math.sqrt(sum(value * value for value in left_vector))
+    right_norm = math.sqrt(sum(value * value for value in right_vector))
     if not left_norm or not right_norm:
         return 1.0
     return 1 - (dot / (left_norm * right_norm))
 
 
 def preload_face_model():
+    if _face_service_url():
+        return True
     try:
         _load_deepface()
     except FaceMatchError:
@@ -122,6 +180,9 @@ def _face_area(item):
 
 
 def extract_face_embeddings(image_path):
+    if _face_service_url():
+        return _extract_face_embeddings_remote(image_path)
+
     deepface, _, _ = _load_deepface()
     representations = deepface.represent(
         img_path=image_path,
@@ -151,7 +212,9 @@ def create_reference_embedding(reference_file):
 
 
 def compare_reference_to_indexed_photos(reference_file, photos):
-    _, _, threshold = _load_deepface()
+    threshold = _face_service_threshold()
+    if not _face_service_url():
+        _, _, threshold = _load_deepface()
     reference_embedding = create_reference_embedding(reference_file)
 
     matches = []
