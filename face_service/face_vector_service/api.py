@@ -37,11 +37,15 @@ def create_app():
 
     @app.before_request
     def check_auth():
-        if request.path == "/health":
+        if request.path in {"/", "/health"}:
             return None
         if not require_token():
             return jsonify({"error": "Unauthorized"}), 401
         return None
+
+    @app.route("/", methods=["GET"])
+    def root():
+        return jsonify({"status": "ok", "service": "wedflix-face-service"})
 
     @app.route("/health", methods=["GET"])
     def health():

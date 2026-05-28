@@ -59,6 +59,8 @@ FACE_MAX_IMAGE_BYTES=15728640
 FACE_MATCH_THRESHOLD=0.55
 ```
 
+Do not set `PORT` manually on Render. Render injects its own `PORT` value for the web service.
+
 Guest selfie search should call the main backend endpoint:
 
 ```text
