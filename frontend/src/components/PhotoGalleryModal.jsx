@@ -101,6 +101,9 @@ export default function PhotoGalleryModal({ open, title = "Gallery", weddingId =
     try {
       await onDeletePhoto?.(photo);
       setConfirmDeleteId("");
+      if (matchedPhotos) {
+        setMatchedPhotos((current) => (current || []).filter((item) => item._id !== photo._id));
+      }
       if (activePhoto?._id === photo._id) setActivePhoto(null);
     } catch (err) {
       setActionError(err?.message || "Could not delete photo.");

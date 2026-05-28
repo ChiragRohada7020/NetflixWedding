@@ -156,6 +156,10 @@ export default function EpisodeDetailPage() {
   };
 
   const deletePhoto = async (photo) => {
+    queryClient.setQueryData(["episode", weddingId, programId, episodeId], (current) => {
+      if (!current?.photos) return current;
+      return { ...current, photos: current.photos.filter((item) => item._id !== photo._id) };
+    });
     await apiDelete(`/api/photos/${photo._id}`);
     await queryClient.invalidateQueries({ queryKey: ["episode", weddingId, programId, episodeId] });
   };

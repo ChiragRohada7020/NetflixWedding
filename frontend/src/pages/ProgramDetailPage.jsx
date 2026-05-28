@@ -280,6 +280,10 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
   };
 
   const deleteProgramPhoto = async (photo) => {
+    queryClient.setQueryData(["program", weddingId, programId], (current) => {
+      if (!current?.photos) return current;
+      return { ...current, photos: current.photos.filter((item) => item._id !== photo._id) };
+    });
     await apiDelete(`/api/photos/${photo._id}`);
     await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
   };
