@@ -32,7 +32,7 @@ export default function WedflixPlayer({
 
   useEffect(() => {
     if (!isReady) return;
-    const timer = setTimeout(() => setShowCover(false), 900);
+    const timer = setTimeout(() => setShowCover(false), 150);
     return () => clearTimeout(timer);
   }, [isReady]);
 
@@ -65,11 +65,13 @@ export default function WedflixPlayer({
                 fs: 0,
                 disablekb: 1,
                 playsinline: 1,
+                vq: "hd1080",
               },
             },
           }}
           onPlay={() => {
             setPlaying(true);
+            setShowCover(false);
             onPlay?.();
           }}
           onPause={() => {
