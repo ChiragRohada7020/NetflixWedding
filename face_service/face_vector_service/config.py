@@ -10,6 +10,7 @@ class Config:
     FACE_SERVICE_TOKEN = os.getenv("FACE_SERVICE_TOKEN", "")
     FACE_MODEL_NAME = os.getenv("FACE_MODEL_NAME", "buffalo_s")
     FACE_MODEL_PROVIDER = os.getenv("FACE_MODEL_PROVIDER", "insightface")
+    FACE_MODEL_ROOT = os.getenv("FACE_MODEL_ROOT", ".insightface")
     FACE_PRELOAD_MODEL = os.getenv("FACE_PRELOAD_MODEL", "1") == "1"
     FACE_WORKER_POLL_SECONDS = int(os.getenv("FACE_WORKER_POLL_SECONDS", "5"))
     FACE_WORKER_BATCH_SIZE = int(os.getenv("FACE_WORKER_BATCH_SIZE", "1"))

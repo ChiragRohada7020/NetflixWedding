@@ -40,7 +40,7 @@ On Render you can deploy this as one Web Service:
 
 ```text
 Root Directory: face_service
-Build Command: pip install -r requirements.txt
+Build Command: pip install -r requirements.txt && python preload_model.py
 Start Command: gunicorn run:app
 ```
 
@@ -51,6 +51,7 @@ MONGO_URI=<same MongoDB URI as Wedflix>
 FACE_SERVICE_TOKEN=<strong shared secret>
 FACE_MODEL_NAME=buffalo_s
 FACE_MODEL_PROVIDER=insightface
+FACE_MODEL_ROOT=.insightface
 FACE_PRELOAD_MODEL=1
 FACE_WORKER_ENABLED=1
 FACE_WORKER_POLL_SECONDS=5
@@ -61,6 +62,8 @@ FACE_MATCH_THRESHOLD=0.55
 ```
 
 Do not set `PORT` manually on Render. Render injects its own `PORT` value for the web service.
+
+Use the build command above so Render downloads the InsightFace model during build. That avoids repeated runtime downloads on every boot.
 
 Guest selfie search should call the main backend endpoint:
 

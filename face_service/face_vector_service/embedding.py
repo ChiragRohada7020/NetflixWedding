@@ -28,7 +28,11 @@ def _load_insightface_model():
             _model_error = str(exc)
             raise FaceEmbeddingError(f"InsightFace is not installed correctly: {exc}") from exc
         try:
-            app = FaceAnalysis(name=config.FACE_MODEL_NAME, providers=["CPUExecutionProvider"])
+            app = FaceAnalysis(
+                name=config.FACE_MODEL_NAME,
+                root=config.FACE_MODEL_ROOT,
+                providers=["CPUExecutionProvider"],
+            )
             app.prepare(ctx_id=-1, det_size=(640, 640))
             _model = app
             return _model
