@@ -297,6 +297,7 @@ export default function EpisodeDetailPage() {
       <PhotoGalleryModal
         open={photoGalleryOpen}
         title={episode?.title ? `${episode.title} Gallery` : "Photo Gallery"}
+        weddingId={weddingId}
         photos={photos}
         canManage={canEdit && editMode}
         onUpdatePhoto={updatePhoto}

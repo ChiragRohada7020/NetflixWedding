@@ -487,6 +487,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
       <PhotoGalleryModal
         open={photoGalleryOpen}
         title={program?.title ? `${program.title} Gallery` : "Photo Gallery"}
+        weddingId={weddingId}
         photos={programPhotos}
         canManage={canEdit && editMode}
         onUpdatePhoto={updateProgramPhoto}

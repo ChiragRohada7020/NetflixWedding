@@ -2241,6 +2241,24 @@ html, #root {
   font-weight: 900;
   cursor: pointer;
 }
+.photo-gallery-modal__face-btn {
+  min-height: 38px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  padding: 0 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.photo-gallery-modal__face-btn:hover {
+  background: #e50914;
+  border-color: #e50914;
+}
+.photo-gallery-modal__face-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .photo-gallery-modal__grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2353,6 +2371,15 @@ html, #root {
   margin: 0 0 12px;
   color: #b00020;
   font-weight: 800;
+}
+.photo-gallery-modal__status,
+.photo-gallery-modal__empty {
+  margin: 0 0 12px;
+  color: #4b5563;
+  font-weight: 800;
+}
+.photo-gallery-modal__empty {
+  margin-top: 18px;
 }
 .photo-gallery-modal__item::after {
   content: "";
