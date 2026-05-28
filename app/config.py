@@ -12,7 +12,7 @@ class Config:
     MONGO_URI = os.getenv("MONGO_URI", "")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-jwt-secret")
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "app/static/uploads")
-    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(500 * 1024 * 1024)))  # 500 MB request cap
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(64 * 1024 * 1024)))  # 64 MB request cap
     MAX_AUDIO_UPLOAD_BYTES = int(os.getenv("MAX_AUDIO_UPLOAD_BYTES", str(8 * 1024 * 1024)))  # 8 MB audio cap
 
 

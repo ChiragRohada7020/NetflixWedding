@@ -181,20 +181,23 @@ def episode_photos(episode_id):
 
         existing_count = mongo.db.photos.count_documents({"episode_id": ObjectId(episode_id)})
         inserted = []
+        face_match_enabled = _face_match_enabled()
         for index, file_storage in enumerate(files):
             if not file_storage or not file_storage.filename:
                 continue
-            suffix = Path(file_storage.filename).suffix or ".jpg"
-            index_copy = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-            try:
-                file_storage.stream.seek(0)
-                index_copy.write(file_storage.stream.read())
-                index_copy.close()
-                file_storage.stream.seek(0)
-            except Exception:
-                index_copy.close()
-                Path(index_copy.name).unlink(missing_ok=True)
-                index_copy = None
+            index_copy = None
+            if face_match_enabled:
+                suffix = Path(file_storage.filename).suffix or ".jpg"
+                index_copy = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+                try:
+                    file_storage.stream.seek(0)
+                    index_copy.write(file_storage.stream.read())
+                    index_copy.close()
+                    file_storage.stream.seek(0)
+                except Exception:
+                    index_copy.close()
+                    Path(index_copy.name).unlink(missing_ok=True)
+                    index_copy = None
             try:
                 image_url = upload_photo_to_telegram(
                     file_storage,
@@ -211,11 +214,11 @@ def episode_photos(episode_id):
                 "caption": "",
                 "order": existing_count + index + 1,
                 "uploaded_by": getattr(current_user, "name", "") or "",
-                "face_index_status": "queued" if _face_match_enabled() else "disabled",
+                "face_index_status": "queued" if face_match_enabled else "disabled",
             }
             result = mongo.db.photos.insert_one(doc)
             doc["_id"] = result.inserted_id
-            if index_copy and _face_match_enabled():
+            if index_copy and face_match_enabled:
                 queue_photo_embedding(
                     current_app._get_current_object(),
                     str(result.inserted_id),
