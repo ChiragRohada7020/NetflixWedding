@@ -6,7 +6,7 @@ from pymongo import ReturnDocument
 
 from .config import config
 from .db import db
-from .embedding import extract_faces
+from .embedding import extract_faces, model_ready
 from .image_io import download_image, image_bytes_to_bgr
 
 
@@ -81,6 +81,8 @@ def fail_job(job, exc):
 
 
 def run_once():
+    if not model_ready():
+        return 0
     processed = 0
     for _ in range(config.FACE_WORKER_BATCH_SIZE):
         job = claim_job()

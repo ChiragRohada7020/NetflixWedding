@@ -6,7 +6,7 @@ from flask import Flask, jsonify, request
 
 from .config import config
 from .db import db
-from .embedding import extract_faces
+from .embedding import extract_faces, model_status
 from .image_io import image_bytes_to_bgr
 from .worker import run_once
 
@@ -49,13 +49,16 @@ def create_app():
 
     @app.route("/health", methods=["GET"])
     def health():
-        return jsonify({"status": "ok", "provider": config.FACE_MODEL_PROVIDER, "model": config.FACE_MODEL_NAME})
+        return jsonify({"status": "ok", **model_status()})
 
     @app.route("/embed", methods=["POST"])
     def embed():
         file_storage = request.files.get("photo")
         if not file_storage:
             return jsonify({"error": "photo file is required"}), 400
+        status = model_status()
+        if not status["ready"]:
+            return jsonify({"error": "Face model is still loading. Try again in a minute.", **status}), 503
         image_bgr = image_bytes_to_bgr(file_storage.read())
         faces = extract_faces(image_bgr)
         return jsonify({"faces": faces, "face_count": len(faces)})
@@ -71,6 +74,9 @@ def create_app():
         limit = min(int(request.form.get("limit") or 80), 300)
         if not file_storage:
             return jsonify({"error": "photo file is required"}), 400
+        status = model_status()
+        if not status["ready"]:
+            return jsonify({"error": "Face model is still loading. Try again in a minute.", **status}), 503
 
         image_bgr = image_bytes_to_bgr(file_storage.read())
         faces = extract_faces(image_bgr)

@@ -5,6 +5,8 @@ import numpy as np
 from .config import config
 
 _model = None
+_model_loading = False
+_model_error = None
 _model_lock = threading.Lock()
 
 
@@ -13,18 +15,48 @@ class FaceEmbeddingError(RuntimeError):
 
 
 def _load_insightface_model():
-    global _model
+    global _model, _model_error, _model_loading
     with _model_lock:
         if _model is not None:
             return _model
+        _model_loading = True
+        _model_error = None
         try:
             from insightface.app import FaceAnalysis
         except Exception as exc:
+            _model_loading = False
+            _model_error = str(exc)
             raise FaceEmbeddingError(f"InsightFace is not installed correctly: {exc}") from exc
-        app = FaceAnalysis(name=config.FACE_MODEL_NAME, providers=["CPUExecutionProvider"])
-        app.prepare(ctx_id=-1, det_size=(640, 640))
-        _model = app
-        return _model
+        try:
+            app = FaceAnalysis(name=config.FACE_MODEL_NAME, providers=["CPUExecutionProvider"])
+            app.prepare(ctx_id=-1, det_size=(640, 640))
+            _model = app
+            return _model
+        except Exception as exc:
+            _model_error = str(exc)
+            raise
+        finally:
+            _model_loading = False
+
+
+def preload_model():
+    thread = threading.Thread(target=_load_insightface_model, name="face-model-preload", daemon=True)
+    thread.start()
+    return thread
+
+
+def model_status():
+    return {
+        "ready": _model is not None,
+        "loading": _model_loading,
+        "error": _model_error,
+        "model": config.FACE_MODEL_NAME,
+        "provider": config.FACE_MODEL_PROVIDER,
+    }
+
+
+def model_ready():
+    return _model is not None
 
 
 def extract_faces(image_bgr):
