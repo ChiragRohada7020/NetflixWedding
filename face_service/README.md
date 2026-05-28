@@ -49,9 +49,10 @@ Render environment variables for this service:
 ```text
 MONGO_URI=<same MongoDB URI as Wedflix>
 FACE_SERVICE_TOKEN=<strong shared secret>
-FACE_MODEL_NAME=buffalo_s
+FACE_MODEL_NAME=buffalo_sc
 FACE_MODEL_PROVIDER=insightface
 FACE_MODEL_ROOT=.insightface
+FACE_DET_SIZE=320
 FACE_PRELOAD_MODEL=1
 FACE_WORKER_ENABLED=1
 FACE_WORKER_POLL_SECONDS=5
@@ -78,4 +79,4 @@ The main backend forwards the selfie to this service privately, then returns mat
 
 ## Licensing Note
 
-InsightFace code is MIT licensed, but its pretrained model packs such as `buffalo_l`/`buffalo_s` are restricted to non-commercial research use unless you obtain commercial model rights. Use only with licensing that matches your deployment.
+InsightFace code is MIT licensed, but its pretrained model packs such as `buffalo_l`/`buffalo_s`/`buffalo_sc` are restricted to non-commercial research use unless you obtain commercial model rights. Use only with licensing that matches your deployment.

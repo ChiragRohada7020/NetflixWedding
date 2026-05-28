@@ -1,4 +1,10 @@
+import os
 import threading
+
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 
 import numpy as np
 
@@ -33,7 +39,7 @@ def _load_insightface_model():
                 root=config.FACE_MODEL_ROOT,
                 providers=["CPUExecutionProvider"],
             )
-            app.prepare(ctx_id=-1, det_size=(640, 640))
+            app.prepare(ctx_id=-1, det_size=(config.FACE_DET_SIZE, config.FACE_DET_SIZE))
             _model = app
             return _model
         except Exception as exc:
@@ -56,6 +62,7 @@ def model_status():
         "error": _model_error,
         "model": config.FACE_MODEL_NAME,
         "provider": config.FACE_MODEL_PROVIDER,
+        "det_size": config.FACE_DET_SIZE,
     }
 
 
