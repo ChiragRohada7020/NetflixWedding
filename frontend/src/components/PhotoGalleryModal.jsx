@@ -1,18 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
-import { apiPostFormJson, mediaUrl } from "../api";
+import React, { useEffect, useState } from "react";
+import { mediaUrl } from "../api";
 import ProgressiveImage from "./ProgressiveImage";
 
-export default function PhotoGalleryModal({ open, title = "Gallery", weddingId = "", photos = [], canManage = false, onClose, onUpdatePhoto, onDeletePhoto }) {
+export default function PhotoGalleryModal({ open, title = "Gallery", photos = [], canManage = false, onClose, onUpdatePhoto, onDeletePhoto }) {
   const [editingId, setEditingId] = useState("");
   const [captionDraft, setCaptionDraft] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState("");
   const [actionError, setActionError] = useState("");
   const [activePhoto, setActivePhoto] = useState(null);
-  const [matchedPhotos, setMatchedPhotos] = useState(null);
-  const [faceSearchStatus, setFaceSearchStatus] = useState("");
-  const [isFaceSearching, setIsFaceSearching] = useState(false);
-  const faceInputRef = useRef(null);
-  const visiblePhotos = matchedPhotos || photos;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -27,9 +22,6 @@ export default function PhotoGalleryModal({ open, title = "Gallery", weddingId =
       setConfirmDeleteId("");
       setActionError("");
       setActivePhoto(null);
-      setMatchedPhotos(null);
-      setFaceSearchStatus("");
-      setIsFaceSearching(false);
     }
   }, [open]);
 
@@ -40,45 +32,6 @@ export default function PhotoGalleryModal({ open, title = "Gallery", weddingId =
     setConfirmDeleteId("");
     setEditingId(photo._id);
     setCaptionDraft(photo.caption || "");
-  };
-
-  const searchByFacePhoto = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || isFaceSearching) return;
-    if (!weddingId) {
-      setActionError("Face search needs a wedding id.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("wedding_id", weddingId);
-    formData.append("photo", file);
-
-    setActionError("");
-    setFaceSearchStatus("Searching your photos...");
-    setIsFaceSearching(true);
-    try {
-      const result = await apiPostFormJson("/api/photos/face-search", formData);
-      const nextPhotos = result.photos || [];
-      setMatchedPhotos(nextPhotos);
-      setFaceSearchStatus(
-        nextPhotos.length
-          ? `${nextPhotos.length} matching ${nextPhotos.length === 1 ? "photo" : "photos"} found`
-          : "No matching photos found yet. Some photos may still be indexing."
-      );
-    } catch (err) {
-      setActionError(err?.message || "Could not search by face.");
-      setFaceSearchStatus("");
-    } finally {
-      setIsFaceSearching(false);
-    }
-  };
-
-  const resetFaceSearch = () => {
-    setMatchedPhotos(null);
-    setFaceSearchStatus("");
-    setActionError("");
   };
 
   const saveEdit = async (photo) => {
@@ -101,9 +54,6 @@ export default function PhotoGalleryModal({ open, title = "Gallery", weddingId =
     try {
       await onDeletePhoto?.(photo);
       setConfirmDeleteId("");
-      if (matchedPhotos) {
-        setMatchedPhotos((current) => (current || []).filter((item) => item._id !== photo._id));
-      }
       if (activePhoto?._id === photo._id) setActivePhoto(null);
     } catch (err) {
       setActionError(err?.message || "Could not delete photo.");
@@ -141,30 +91,19 @@ export default function PhotoGalleryModal({ open, title = "Gallery", weddingId =
         <header className="photo-gallery-modal__header">
           <div>
             <span className="photo-gallery-modal__kicker">
-              {matchedPhotos ? `${visiblePhotos.length} of ${photos.length} Photos` : `${photos.length} Photos`}
+              {`${photos.length} Photos`}
             </span>
             <h2>{title}</h2>
           </div>
           <div className="photo-gallery-modal__header-actions">
-            {matchedPhotos ? (
-              <button type="button" className="photo-gallery-modal__face-btn" onClick={resetFaceSearch}>
-                Show All
-              </button>
-            ) : (
-              <button type="button" className="photo-gallery-modal__face-btn" onClick={() => faceInputRef.current?.click()} disabled={isFaceSearching || !photos.length}>
-                {isFaceSearching ? "Searching..." : "Find My Photos"}
-              </button>
-            )}
-            <input ref={faceInputRef} type="file" accept="image/*" capture="user" onChange={searchByFacePhoto} hidden />
             <button type="button" className="photo-gallery-modal__close" onClick={onClose} aria-label="Close gallery">
               x
             </button>
           </div>
         </header>
         {actionError && <p className="photo-gallery-modal__error">{actionError}</p>}
-        {faceSearchStatus && <p className="photo-gallery-modal__status">{faceSearchStatus}</p>}
         <div className="photo-gallery-modal__grid">
-          {visiblePhotos.map((photo, index) => (
+          {photos.map((photo, index) => (
             <figure
               key={photo._id || `${photo.url}-${index}`}
               className={`photo-gallery-modal__item photo-gallery-modal__item--${index % 6}`}
@@ -207,9 +146,6 @@ export default function PhotoGalleryModal({ open, title = "Gallery", weddingId =
             </figure>
           ))}
         </div>
-        {matchedPhotos && !visiblePhotos.length && (
-          <p className="photo-gallery-modal__empty">No matching photos found.</p>
-        )}
       </div>
       {activePhoto && (
         <div className="photo-gallery-zoom" role="dialog" aria-modal="true" aria-label="Photo preview" onClick={() => setActivePhoto(null)}>

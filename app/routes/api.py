@@ -1,5 +1,4 @@
 import mimetypes
-import os
 
 import requests
 from flask import Blueprint, Response, jsonify, redirect, request, stream_with_context
@@ -13,8 +12,6 @@ from app.models.photo import Photo
 from app.models.program import Program
 from app.models.wedding import Wedding
 from app.models.user import User
-from app.utils.face_client import FaceServiceError, search_faces
-from app.utils.face_jobs import enqueue_face_index_job
 from app.utils.telegram_media import TelegramMediaError, upload_photo_to_telegram
 
 api_bp = Blueprint("api", __name__)
@@ -34,15 +31,6 @@ def _can_view_wedding(wedding):
     if not wedding:
         return False
     return (wedding.get("access_level") or "private") == "public" or current_user.is_authenticated
-
-
-def _absolute_media_url(media_path):
-    if not media_path:
-        return ""
-    if media_path.startswith("http://") or media_path.startswith("https://"):
-        return media_path
-    base_url = (os.getenv("PUBLIC_BACKEND_URL") or request.host_url).strip().rstrip("/")
-    return f"{base_url}/{media_path.lstrip('/')}"
 
 
 @api_bp.route("/health", methods=["GET"])
@@ -224,56 +212,11 @@ def episode_photos(episode_id):
             }
             result = mongo.db.photos.insert_one(doc)
             doc["_id"] = result.inserted_id
-            enqueue_face_index_job(
-                str(result.inserted_id),
-                _absolute_media_url(image_url),
-                episode_id=episode_id,
-                wedding_id=str(wedding.get("_id")) if wedding else None,
-            )
             inserted.append(Photo.serialize(doc))
 
         return jsonify(_to_jsonable(inserted)), 201
 
     return jsonify(_to_jsonable(Photo.by_episode(episode_id)))
-
-
-@api_bp.route("/photos/face-search", methods=["POST"])
-def photo_face_search():
-    wedding_id = (request.form.get("wedding_id") or "").strip()
-    wedding = Wedding.get(wedding_id) if wedding_id else None
-    if not wedding:
-        return jsonify({"error": "Wedding not found"}), 404
-    if not _can_view_wedding(wedding):
-        return jsonify({"error": "Unauthorized"}), 401
-
-    reference = request.files.get("photo") or request.files.get("reference")
-    if not reference:
-        return jsonify({"error": "Please choose a clear selfie or face photo."}), 400
-
-    try:
-        result = search_faces(reference, wedding_id=wedding_id)
-    except FaceServiceError as exc:
-        return jsonify({"error": str(exc)}), 503
-
-    match_ids = []
-    for match in result.get("matches") or []:
-        try:
-            match_ids.append(ObjectId(match.get("photo_id")))
-        except Exception:
-            continue
-    photos = list(mongo.db.photos.find({"_id": {"$in": match_ids}})) if match_ids else []
-    by_id = {str(photo["_id"]): Photo.serialize(photo) for photo in photos}
-    ordered_photos = [by_id[str(photo_id)] for photo_id in match_ids if str(photo_id) in by_id]
-
-    return jsonify(
-        _to_jsonable(
-            {
-                "matches": result.get("matches") or [],
-                "photos": ordered_photos,
-                "face_count": result.get("face_count", 0),
-            }
-        )
-    )
 
 
 @api_bp.route("/photos/<photo_id>", methods=["PATCH", "DELETE"])
