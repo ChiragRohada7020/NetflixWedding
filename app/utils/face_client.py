@@ -45,5 +45,8 @@ def search_faces(reference_file, wedding_id=None):
     )
     payload = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
     if not response.ok:
-        raise FaceServiceError(payload.get("error") or f"Face search failed with HTTP {response.status_code}.")
+        message = payload.get("error") or f"Face search failed with HTTP {response.status_code}."
+        if response.status_code == 503 and payload.get("loading"):
+            message = "Face search is still warming up. Please try again in a minute."
+        raise FaceServiceError(message)
     return payload
