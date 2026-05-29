@@ -2862,11 +2862,12 @@ body.photo-gallery-open {
   flex-wrap: nowrap;
   align-items: flex-start;
   gap: 10px;
-  padding: 0 18px 24px;
+  padding: 0 clamp(20px, 5vw, 72px) 24px;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
+  scroll-padding-inline: clamp(20px, 5vw, 72px);
 }
 .page-wedding-detail .card,
 .page-program-detail .card {
@@ -3429,13 +3430,14 @@ body.card-size-large {
   .page-wedding-detail .grid,
   .page-program-detail .grid {
     display: flex;
-    gap: 6px;
+    gap: 10px;
     overflow-x: auto;
     overflow-y: hidden;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
-    padding: 0 12px 16px;
+    padding: 0 18px 16px;
+    scroll-padding-inline: 18px;
   }
   .page-wedding-detail .grid > *,
   .page-program-detail .grid > * {
@@ -5062,7 +5064,7 @@ body.login-open .container {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
-  padding: 0 72px;
+  padding: 0 clamp(24px, 5vw, 72px);
 }
 
 .home-poster-wrap {
@@ -5470,7 +5472,7 @@ body.login-open .container {
   }
 
   .home-rail__header {
-    padding: 0 12px 10px;
+    padding: 0 18px 10px;
   }
 
   .home-rail__header h2 {
@@ -5481,9 +5483,10 @@ body.login-open .container {
     display: flex;
     gap: 10px;
     overflow-x: auto;
-    padding: 0 12px 6px;
+    padding: 0 18px 8px;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
+    scroll-padding-inline: 18px;
   }
 
   .home-rail__grid::-webkit-scrollbar {
