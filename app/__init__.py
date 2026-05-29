@@ -1,7 +1,6 @@
 import os
 
 from flask import Flask, flash, jsonify, redirect, request
-from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_login import LoginManager
 from flask_pymongo import PyMongo
@@ -44,22 +43,21 @@ def create_app(env_name="development"):
         if origin.strip() and origin.strip() != "*"
     )
 
-    CORS(
-        app,
-        origins=sorted(cors_origins),
-        supports_credentials=True,
-        vary_header=True,
-    )
-
     @app.after_request
-    def add_local_cors_headers(response):
+    def add_cors_headers(response):
         origin = request.headers.get("Origin")
         if origin in cors_origins:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Wedflix-Fetch"
+            response.headers["Access-Control-Allow-Headers"] = request.headers.get(
+                "Access-Control-Request-Headers",
+                "Content-Type, X-Wedflix-Fetch",
+            )
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
             response.headers.add("Vary", "Origin")
+        elif response.headers.get("Access-Control-Allow-Origin") == "*":
+            response.headers.pop("Access-Control-Allow-Origin", None)
+            response.headers.pop("Access-Control-Allow-Credentials", None)
         return response
 
     login_manager.login_view = "auth.login"
