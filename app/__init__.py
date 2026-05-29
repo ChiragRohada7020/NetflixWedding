@@ -54,6 +54,7 @@ def create_app(env_name="development"):
                 "Content-Type, X-Wedflix-Fetch",
             )
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
+            response.headers["Access-Control-Max-Age"] = "0"
             response.headers.add("Vary", "Origin")
         elif response.headers.get("Access-Control-Allow-Origin") == "*":
             response.headers.pop("Access-Control-Allow-Origin", None)

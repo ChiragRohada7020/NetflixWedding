@@ -513,7 +513,7 @@ def developer_overview():
     )
 
 
-@api_bp.route("/developer/plans/<plan_id>", methods=["PATCH"])
+@api_bp.route("/developer/plans/<plan_id>", methods=["PATCH", "POST"])
 def developer_update_plan(plan_id):
     if not _developer_required():
         return jsonify({"error": "Developer access required"}), 403
@@ -538,7 +538,7 @@ def developer_users():
     return jsonify(users)
 
 
-@api_bp.route("/developer/users/<user_id>", methods=["PATCH"])
+@api_bp.route("/developer/users/<user_id>", methods=["PATCH", "POST"])
 def developer_update_user(user_id):
     if not _developer_required():
         return jsonify({"error": "Developer access required"}), 403
