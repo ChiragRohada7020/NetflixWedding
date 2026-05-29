@@ -8,6 +8,7 @@ from flask_login import current_user
 from app.models.episode import Episode
 from app.models.program import Program
 from app.models.wedding import Wedding
+from app.utils.plans import is_developer, owned_wedding_ids
 from app.utils.video import youtube_embed_url
 
 public_bp = Blueprint("public", __name__)
@@ -87,6 +88,9 @@ def landing():
     weddings = Wedding.all()
     if not current_user.is_authenticated:
         weddings = [w for w in weddings if (w.get("access_level") or "private") == "public"]
+    elif not is_developer():
+        owned_ids = {str(item) for item in owned_wedding_ids()}
+        weddings = [w for w in weddings if str(w.get("_id")) in owned_ids]
 
     featured = weddings[0] if weddings else None
     page_music_url = ""

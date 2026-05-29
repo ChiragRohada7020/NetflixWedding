@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 
 import requests
 
@@ -25,19 +26,18 @@ def _post_telegram_file(endpoint, data, field_name, file_payload):
         raise TelegramMediaError(f"Telegram photo upload failed: {exc}") from exc
 
 
-def upload_photo_to_telegram(file_storage, caption=""):
+def _upload_file_payload_to_telegram(filename, stream, mimetype, content_length=None, caption=""):
     token = (os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
     chat_id = (os.getenv("TELEGRAM_STORAGE_CHAT_ID") or "").strip()
     if not token or not chat_id:
         raise TelegramMediaError("Telegram photo storage is not configured.")
-    if not file_storage or not file_storage.filename:
+    if not filename or not stream:
         return ""
     max_upload_bytes = int(os.getenv("TELEGRAM_MAX_UPLOAD_BYTES", str(50 * 1024 * 1024)))
-    content_length = getattr(file_storage, "content_length", None)
     if content_length and content_length > max_upload_bytes:
         actual_mb = round(content_length / (1024 * 1024), 1)
         max_mb = max_upload_bytes // (1024 * 1024)
-        raise TelegramMediaError(f"{file_storage.filename} is {actual_mb} MB. Telegram uploads must be under {max_mb} MB.")
+        raise TelegramMediaError(f"{filename} is {actual_mb} MB. Telegram uploads must be under {max_mb} MB.")
 
     endpoint = f"https://api.telegram.org/bot{token}/sendPhoto"
     data = {"chat_id": chat_id}
@@ -45,10 +45,10 @@ def upload_photo_to_telegram(file_storage, caption=""):
         data["caption"] = caption[:1024]
 
     try:
-        file_storage.stream.seek(0)
+        stream.seek(0)
     except (AttributeError, OSError):
         pass
-    photo_payload = (file_storage.filename, file_storage.stream, file_storage.mimetype or "application/octet-stream")
+    photo_payload = (filename, stream, mimetype or "application/octet-stream")
     response = _post_telegram_file(endpoint, data, "photo", photo_payload)
 
     payload = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
@@ -71,10 +71,32 @@ def upload_photo_to_telegram(file_storage, caption=""):
     payload = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
     if not response.ok or not payload.get("ok"):
         document_error = payload.get("description") or response.text or "sendDocument failed"
-        raise TelegramMediaError(f"{file_storage.filename}: {photo_error}; {document_error}")
+        raise TelegramMediaError(f"{filename}: {photo_error}; {document_error}")
 
     document = (payload.get("result") or {}).get("document") or {}
     file_id = document.get("file_id")
     if not file_id:
         raise TelegramMediaError("Telegram did not return a media file id.")
     return telegram_file_url(file_id)
+
+
+def upload_photo_to_telegram(file_storage, caption=""):
+    if not file_storage or not file_storage.filename:
+        return ""
+    return _upload_file_payload_to_telegram(
+        file_storage.filename,
+        file_storage.stream,
+        file_storage.mimetype or "application/octet-stream",
+        getattr(file_storage, "content_length", None),
+        caption=caption,
+    )
+
+
+def upload_bytes_to_telegram(filename, content, mimetype="application/octet-stream", caption=""):
+    return _upload_file_payload_to_telegram(
+        filename,
+        BytesIO(content),
+        mimetype,
+        len(content) if content is not None else None,
+        caption=caption,
+    )

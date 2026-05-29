@@ -14,6 +14,9 @@ const WeddingDetailPage = React.lazy(() => import("./pages/WeddingDetailPage"));
 const ProgramDetailPage = React.lazy(() => import("./pages/ProgramDetailPage"));
 const EpisodeDetailPage = React.lazy(() => import("./pages/EpisodeDetailPage"));
 const SitePage = React.lazy(() => import("./pages/SitePage"));
+const DeveloperAdminPage = React.lazy(() => import("./pages/DeveloperAdminPage"));
+const DeveloperLoginPage = React.lazy(() => import("./pages/DeveloperLoginPage"));
+const ShareHomePage = React.lazy(() => import("./pages/ShareHomePage"));
 
 function ScrollToTop({ containerRef }) {
   const { pathname } = useLocation();
@@ -30,6 +33,8 @@ function ScrollToTop({ containerRef }) {
 function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
   const location = useLocation();
   const isSiteRoute = location.pathname === "/site";
+  const isDeveloperRoute = location.pathname.startsWith("/developer");
+  const isShareRoute = location.pathname.startsWith("/share/");
 
   return (
     <>
@@ -39,7 +44,7 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
           <p className="intro-logo">WEDFLIX</p>
         </div>
       )}
-      {!isSiteRoute && <Navbar musicUrl={musicUrl} />}
+      {!isSiteRoute && !isDeveloperRoute && !isShareRoute && <Navbar musicUrl={musicUrl} />}
       <main className={`container ${isSiteRoute ? "container--site" : ""}`} ref={containerRef}>
         <Suspense fallback={<AsyncState mode="loading" />}>
           <Routes>
@@ -48,6 +53,11 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
             <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
+            <Route path="/share/:weddingId" element={<ShareHomePage onMusicUrlChange={setMusicUrl} />} />
+            <Route path="/share/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} publicMode />} />
+            <Route path="/share/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage publicMode />} />
+            <Route path="/developer" element={<DeveloperAdminPage />} />
+            <Route path="/developer-login" element={<DeveloperLoginPage />} />
           </Routes>
         </Suspense>
         {!isSiteRoute && (

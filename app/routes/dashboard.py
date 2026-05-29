@@ -10,6 +10,7 @@ from app.models.episode import Episode
 from app.models.photo import Photo
 from app.models.program import Program
 from app.models.wedding import Wedding
+from app.utils.plans import can_view_wedding
 from app.utils.video import youtube_embed_url, youtube_video_id
 
 
@@ -33,7 +34,7 @@ def wedding_dashboard(wedding_id):
     wedding = Wedding.get(wedding_id)
     if not wedding:
         abort(404)
-    if (wedding.get("access_level") or "private") != "public" and not current_user.is_authenticated:
+    if not can_view_wedding(wedding):
         return redirect(url_for("auth.login"))
 
     wedding["hero_embed_url"] = youtube_embed_url(wedding.get("hero_video_url"))
@@ -93,7 +94,7 @@ def program_detail(wedding_id, program_id):
     program = Program.get(program_id)
     if not wedding or not program:
         abort(404)
-    if (wedding.get("access_level") or "private") != "public" and not current_user.is_authenticated:
+    if not can_view_wedding(wedding):
         return redirect(url_for("auth.login"))
 
     episodes = Episode.by_program(program_id)
@@ -137,7 +138,7 @@ def episode_detail(wedding_id, program_id, episode_id):
     episode = Episode.get(episode_id)
     if not wedding or not program or not episode:
         abort(404)
-    if (wedding.get("access_level") or "private") != "public" and not current_user.is_authenticated:
+    if not can_view_wedding(wedding):
         return redirect(url_for("auth.login"))
     photos = Photo.by_episode(episode_id)
     comments = Comment.by_episode(episode_id)

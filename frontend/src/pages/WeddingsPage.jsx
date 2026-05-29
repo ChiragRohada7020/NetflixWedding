@@ -37,6 +37,14 @@ export default function WeddingsPage() {
     queryKey: ["weddings"],
     queryFn: () => apiGet("/api/weddings"),
   });
+  const { data: session } = useQuery({
+    queryKey: ["session"],
+    queryFn: () => apiGet("/api/session"),
+    retry: false,
+  });
+  const weddingLimit = Number(session?.plan?.limits?.wedding_limit || 0);
+  const weddingUsage = Number(session?.usage?.weddings ?? weddings.length);
+  const canAddWedding = Boolean(session && (session.is_developer || !weddingLimit || weddingUsage < weddingLimit));
 
   const saveWedding = async (payload, weddingId) => {
     const fd = new FormData();
@@ -51,6 +59,7 @@ export default function WeddingsPage() {
     Object.entries(payload).forEach(([k, v]) => fd.append(k, v || ""));
     await apiPostForm("/admin/weddings/create", fd);
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
+    await queryClient.invalidateQueries({ queryKey: ["session"] });
     setModal(null);
   };
 
@@ -58,6 +67,17 @@ export default function WeddingsPage() {
     if (!window.confirm(`Delete ${wedding.couple_names}? This removes programs and events too.`)) return;
     await apiPostForm(`/admin/weddings/${wedding._id}/delete`, new FormData());
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
+    await queryClient.invalidateQueries({ queryKey: ["session"] });
+  };
+
+  const copyShareLink = async (wedding) => {
+    const shareUrl = `${window.location.origin}/share/${wedding._id}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      window.alert("Public share link copied.");
+    } catch {
+      window.prompt("Copy this public share link", shareUrl);
+    }
   };
 
   return (
@@ -74,7 +94,7 @@ export default function WeddingsPage() {
       </div>
       {error && <p className="error">{error.message}</p>}
       <div className="profiles-grid">
-        {canEdit && editMode && (
+        {canEdit && canAddWedding && (editMode || (!isLoading && weddings.length === 0)) && (
           <button className="add-card-tile" onClick={() => setModal({ type: "create", item: {} })}>
             <span className="add-card-plus">+</span>
             <span>Add Wedding</span>
@@ -94,6 +114,7 @@ export default function WeddingsPage() {
               {canEdit && editMode && (
                 <div className="cms-overlay-actions" onClick={(e) => e.stopPropagation()}>
                   <button type="button" className="cms-fab" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModal({ type: "edit", item: w }); }}>Edit</button>
+                  <button type="button" className="cms-fab" onClick={(e) => { e.preventDefault(); e.stopPropagation(); copyShareLink(w); }}>Copy Link</button>
                   <button type="button" className="cms-fab danger" onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteWedding(w); }}>Delete</button>
                 </div>
               )}
@@ -117,6 +138,8 @@ export default function WeddingsPage() {
 }
 
 function WeddingForm({ initial, onSubmit, onCancel }) {
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     couple_names: initial.couple_names || "",
     wedding_date: initial.wedding_date || "",
@@ -131,55 +154,64 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
   return (
     <form
       className="cms-form"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        onSubmit(form);
+        setSaveError("");
+        setIsSaving(true);
+        try {
+          await onSubmit(form);
+        } catch (err) {
+          setSaveError(err?.message || "Save failed. Please try again.");
+        } finally {
+          setIsSaving(false);
+        }
       }}
     >
       <div className="cms-form-grid">
         <label className="cms-field">
           <span>Couple Names</span>
-          <input value={form.couple_names} onChange={(e) => setForm((p) => ({ ...p, couple_names: e.target.value }))} placeholder="Aarav & Kavya" />
+          <input value={form.couple_names} onChange={(e) => setForm((p) => ({ ...p, couple_names: e.target.value }))} placeholder="Aarav & Kavya" disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Wedding Date</span>
-          <input value={form.wedding_date} onChange={(e) => setForm((p) => ({ ...p, wedding_date: e.target.value }))} placeholder="2026-12-01" />
+          <input value={form.wedding_date} onChange={(e) => setForm((p) => ({ ...p, wedding_date: e.target.value }))} placeholder="2026-12-01" disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Profile Image URL</span>
-          <input value={form.profile_image} onChange={(e) => setForm((p) => ({ ...p, profile_image: e.target.value }))} placeholder="https://..." />
+          <input value={form.profile_image} onChange={(e) => setForm((p) => ({ ...p, profile_image: e.target.value }))} placeholder="https://..." disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Hero Video URL</span>
-          <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." />
+          <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Venue Name</span>
-          <input value={form.venue_name} onChange={(e) => setForm((p) => ({ ...p, venue_name: e.target.value }))} placeholder="Royal Banquet" />
+          <input value={form.venue_name} onChange={(e) => setForm((p) => ({ ...p, venue_name: e.target.value }))} placeholder="Royal Banquet" disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Access Level</span>
-          <select value={form.access_level} onChange={(e) => setForm((p) => ({ ...p, access_level: e.target.value }))}>
+          <select value={form.access_level} onChange={(e) => setForm((p) => ({ ...p, access_level: e.target.value }))} disabled={isSaving}>
             <option value="private">Private</option>
             <option value="public">Public</option>
           </select>
         </label>
         <label className="cms-field cms-field-wide">
           <span>Event Address</span>
-          <input value={form.event_address} onChange={(e) => setForm((p) => ({ ...p, event_address: e.target.value }))} placeholder="Full address..." />
+          <input value={form.event_address} onChange={(e) => setForm((p) => ({ ...p, event_address: e.target.value }))} placeholder="Full address..." disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Music URL</span>
-          <input value={form.music_url} onChange={(e) => setForm((p) => ({ ...p, music_url: e.target.value }))} placeholder="https://cdn.example.com/song.mp3" />
+          <input value={form.music_url} onChange={(e) => setForm((p) => ({ ...p, music_url: e.target.value }))} placeholder="https://cdn.example.com/song.mp3" disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Description</span>
-          <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Wedding story..." />
+          <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Wedding story..." disabled={isSaving} />
         </label>
       </div>
+      {saveError && <p className="error">{saveError}</p>}
       <div className="cms-form-actions">
-        <button type="button" className="cms-fab" onClick={onCancel}>Cancel</button>
-        <button type="submit" className="cms-fab">Save</button>
+        <button type="button" className="cms-fab" onClick={onCancel} disabled={isSaving}>Cancel</button>
+        <button type="submit" className="cms-fab" disabled={isSaving}>{isSaving ? "Saving..." : "Save"}</button>
       </div>
     </form>
   );

@@ -5,7 +5,7 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Skeleton from "react-loading-skeleton";
-import { apiDelete, apiGet, apiPatch, apiPostForm } from "../api";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import { useEditMode } from "../components/EditModeContext";
 import InlineEditableText from "../components/InlineEditableText";
@@ -40,12 +40,13 @@ function withPlayerParams(url) {
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
-function EpisodeCard({ item, weddingId, programId, editMode, onEdit, onDelete, onPlay }) {
+function EpisodeCard({ item, weddingId, programId, editMode, publicMode, onEdit, onDelete, onPlay }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item._id });
+  const weddingBasePath = publicMode ? `/share/${weddingId}` : `/weddings/${weddingId}`;
   return (
     <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className="cms-card-wrap">
       <Link
-        to={`/weddings/${weddingId}/programs/${programId}/episodes/${item._id}`}
+        to={`${weddingBasePath}/programs/${programId}/episodes/${item._id}`}
         className="home-poster program-card"
         onClick={(e) => {
           if (editMode) {
@@ -77,10 +78,13 @@ function EpisodeCard({ item, weddingId, programId, editMode, onEdit, onDelete, o
   );
 }
 
-export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
+export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode = false }) {
   const { weddingId, programId } = useParams();
   const queryClient = useQueryClient();
   const { canEdit, editMode } = useEditMode();
+  const canManage = canEdit && !publicMode;
+  const isEditing = canManage && editMode;
+  const weddingBasePath = publicMode ? `/share/${weddingId}` : `/weddings/${weddingId}`;
   const [openVideo, setOpenVideo] = useState(false);
   const [activeEpisode, setActiveEpisode] = useState(null);
   const [episodeVideoOpen, setEpisodeVideoOpen] = useState(false);
@@ -88,28 +92,41 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [photoFiles, setPhotoFiles] = useState([]);
   const [photoEpisodeId, setPhotoEpisodeId] = useState("");
+  const [driveLink, setDriveLink] = useState("");
   const [photoUploadError, setPhotoUploadError] = useState("");
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [isImportingDrivePhotos, setIsImportingDrivePhotos] = useState(false);
   const [photoGalleryOpen, setPhotoGalleryOpen] = useState(false);
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const audioRef = useRef(null);
   const pausedForVideoRef = useRef(false);
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["program", weddingId, programId],
+    queryKey: ["program", weddingId, programId, publicMode ? "public" : "admin"],
     queryFn: async () => {
       const [wedding, programs, episodes] = await Promise.all([
         apiGet(`/api/weddings/${weddingId}`),
         apiGet(`/api/weddings/${weddingId}/programs`),
         apiGet(`/api/programs/${programId}/episodes`),
       ]);
-      const photos = await apiGet(`/api/programs/${programId}/photos`);
-      return { wedding, program: programs.find((p) => p._id === programId) || null, episodes, photos };
+      return { wedding, program: programs.find((p) => p._id === programId) || null, episodes };
     },
+  });
+  const { data: session } = useQuery({
+    queryKey: ["session"],
+    queryFn: () => apiGet("/api/session"),
+    retry: false,
+    enabled: canManage,
+  });
+  const { data: programPhotos = [], isLoading: isLoadingProgramPhotos } = useQuery({
+    queryKey: ["program-photos", programId],
+    queryFn: () => apiGet(`/api/programs/${programId}/photos`),
+    enabled: !!programId && !!data,
   });
   const wedding = data?.wedding;
   const program = data?.program;
   const episodes = React.useMemo(() => data?.episodes || [], [data?.episodes]);
-  const programPhotos = data?.photos || [];
+  const episodeLimit = Number(session?.plan?.limits?.episode_limit || 0);
+  const canAddEpisode = Boolean(isEditing && session && (session.is_developer || !episodeLimit || episodes.length < episodeLimit));
   const visibleProgramPhotos = programPhotos.slice(0, 7);
   const hiddenProgramPhotoCount = Math.max(0, programPhotos.length - visibleProgramPhotos.length);
   const [ordered, setOrdered] = useState([]);
@@ -231,6 +248,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
     }
     await apiPostForm("/admin/episodes/create", fd);
     await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
+    await queryClient.invalidateQueries({ queryKey: ["session"] });
     setModal(null);
   };
 
@@ -238,6 +256,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
     if (!window.confirm(`Delete ${item.title}?`)) return;
     await apiPostForm(`/admin/episodes/${item._id}/delete`, new FormData());
     await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
+    await queryClient.invalidateQueries({ queryKey: ["session"] });
   };
 
   const uploadProgramPhotos = async (ev) => {
@@ -258,7 +277,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
       await apiPostForm(`/api/episodes/${photoEpisodeId}/photos`, fd);
       setPhotoFiles([]);
       formEl?.reset();
-      await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
+      await queryClient.invalidateQueries({ queryKey: ["program-photos", programId] });
     } catch (err) {
       const message = err?.message || "Photo upload failed. Please try again.";
       setPhotoUploadError(message);
@@ -267,22 +286,39 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
     }
   };
 
+  const importProgramDrivePhotos = async (ev) => {
+    ev.preventDefault();
+    if (!photoEpisodeId || !driveLink.trim()) return;
+    setPhotoUploadError("");
+    setIsImportingDrivePhotos(true);
+    try {
+      const result = await apiPost(`/api/episodes/${photoEpisodeId}/photos/import-drive`, { drive_url: driveLink.trim() });
+      setDriveLink("");
+      await queryClient.invalidateQueries({ queryKey: ["program-photos", programId] });
+      if (!result?.imported) {
+        setPhotoUploadError("No photos were imported from that Drive link.");
+      }
+    } catch (err) {
+      const message = err?.message || "Drive import failed. Please check the link and try again.";
+      setPhotoUploadError(message);
+    } finally {
+      setIsImportingDrivePhotos(false);
+    }
+  };
+
   const updateProgramPhoto = async (photo, values) => {
     await apiPatch(`/api/photos/${photo._id}`, values);
-    await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
+    await queryClient.invalidateQueries({ queryKey: ["program-photos", programId] });
   };
 
   const deleteProgramPhoto = async (photo) => {
-    queryClient.setQueryData(["program", weddingId, programId], (current) => {
-      if (!current?.photos) return current;
-      return { ...current, photos: current.photos.filter((item) => item._id !== photo._id) };
-    });
+    queryClient.setQueryData(["program-photos", programId], (current) => (current || []).filter((item) => item._id !== photo._id));
     await apiDelete(`/api/photos/${photo._id}`);
-    await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
+    await queryClient.invalidateQueries({ queryKey: ["program-photos", programId] });
   };
 
   const onDragEnd = async ({ active, over }) => {
-    if (!editMode || !over || active.id === over.id) return;
+    if (!isEditing || !over || active.id === over.id) return;
     const oldIndex = ordered.findIndex((x) => x._id === active.id);
     const newIndex = ordered.findIndex((x) => x._id === over.id);
     const next = arrayMove(ordered, oldIndex, newIndex).map((x, i) => ({ ...x, order: i + 1 }));
@@ -303,7 +339,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
       <SeoHead
         title={program ? `${program.title} | ${wedding?.couple_names || "Wedflix"} | Wedflix` : "Wedflix | Wedding Program"}
         description={program?.event_date || program?.venue_name || "Watch wedding program highlights and events on Wedflix."}
-        canonicalPath={program ? `/weddings/${weddingId}/programs/${programId}` : `/weddings/${weddingId}`}
+        canonicalPath={program ? `${weddingBasePath}/programs/${programId}` : weddingBasePath}
         image={program?.thumbnail || wedding?.profile_image || `${window.location.origin}/favicon.svg`}
         type="article"
       />
@@ -332,7 +368,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
           <InlineEditableText
             as="h1"
             className="home-hero__names page-program-hero__title"
-            enabled={canEdit && editMode}
+            enabled={isEditing}
             value={program?.title || "Program"}
             placeholder="Program"
             onSave={(v) => saveProgramField("title", v)}
@@ -354,7 +390,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
               Play
             </button>
             )}
-            <Link to={`/weddings/${weddingId}`} className="home-btn home-btn--secondary">
+            <Link to={weddingBasePath} className="home-btn home-btn--secondary">
               <span aria-hidden="true">ⓘ</span>
               More Info
             </Link>
@@ -394,7 +430,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
                 item={e}
                 weddingId={weddingId}
                 programId={programId}
-                editMode={canEdit && editMode}
+                editMode={isEditing}
+                publicMode={publicMode}
                 onEdit={(item) => setModal({ type: "edit", item })}
                 onDelete={deleteEpisode}
                 onPlay={(item) => {
@@ -404,7 +441,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
                 }}
               />
             ))}
-            {canEdit && editMode && (
+            {canAddEpisode && (
               <button type="button" className="add-card-tile" onClick={() => setModal({ type: "create", item: {} })}>
                 <span className="add-card-plus">+</span>
                 <span>Add Event</span>
@@ -421,7 +458,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
         <div className="cms-row-head">
           <h2 className="section-title">Photo Gallery</h2>
         </div>
-        {canEdit && editMode && (
+        {isEditing && (
           <>
             <form onSubmit={uploadProgramPhotos} className="photo-upload-row">
               <select value={photoEpisodeId} onChange={(e) => setPhotoEpisodeId(e.target.value)} disabled={!episodes.length}>
@@ -441,10 +478,24 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
                 {isUploadingPhotos ? "Uploading..." : `Upload${photoFiles.length ? ` ${photoFiles.length}` : ""} Photos`}
               </button>
             </form>
+            <form onSubmit={importProgramDrivePhotos} className="photo-upload-row photo-drive-row">
+              <input
+                type="url"
+                value={driveLink}
+                onChange={(e) => setDriveLink(e.target.value)}
+                placeholder="Paste Google Drive file or folder link"
+                aria-label="Google Drive photo link"
+              />
+              <button type="submit" disabled={!photoEpisodeId || !driveLink.trim() || isImportingDrivePhotos}>
+                {isImportingDrivePhotos ? "Importing..." : "Import From Drive"}
+              </button>
+            </form>
             {photoUploadError && <p className="error">{photoUploadError}</p>}
           </>
         )}
-        {programPhotos.length ? (
+        {isLoadingProgramPhotos ? (
+          <Skeleton count={2} height={34} />
+        ) : programPhotos.length ? (
           <div className="program-gallery-diary" aria-label="Program photo gallery preview">
             <div className="program-gallery-diary__topline">
               <span>{programPhotos.length} photos</span>
@@ -490,7 +541,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop }) {
         title={program?.title ? `${program.title} Gallery` : "Photo Gallery"}
         weddingId={weddingId}
         photos={programPhotos}
-        canManage={canEdit && editMode}
+        canManage={isEditing}
         onUpdatePhoto={updateProgramPhoto}
         onDeletePhoto={deleteProgramPhoto}
         onClose={() => setPhotoGalleryOpen(false)}

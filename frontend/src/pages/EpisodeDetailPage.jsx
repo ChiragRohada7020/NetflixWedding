@@ -15,10 +15,11 @@ const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_
 const WedflixPlayer = React.lazy(() => import("../components/WedflixPlayer"));
 const VideoModal = React.lazy(() => import("../components/VideoModal"));
 
-function NextEventCard({ item, weddingId, programId, onPlay }) {
+function NextEventCard({ item, weddingId, programId, publicMode, onPlay }) {
+  const weddingBasePath = publicMode ? `/share/${weddingId}` : `/weddings/${weddingId}`;
   return (
     <Link
-      to={`/weddings/${weddingId}/programs/${programId}/episodes/${item._id}`}
+      to={`${weddingBasePath}/programs/${programId}/episodes/${item._id}`}
       className="home-poster next-event-card"
       onClick={(e) => {
         e.preventDefault();
@@ -39,22 +40,27 @@ function NextEventCard({ item, weddingId, programId, onPlay }) {
   );
 }
 
-export default function EpisodeDetailPage() {
+export default function EpisodeDetailPage({ publicMode = false }) {
   const { weddingId, programId, episodeId } = useParams();
+  const weddingBasePath = publicMode ? `/share/${weddingId}` : `/weddings/${weddingId}`;
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [activeEpisode, setActiveEpisode] = useState(null);
   const [episodeVideoOpen, setEpisodeVideoOpen] = useState(false);
   const [photoFiles, setPhotoFiles] = useState([]);
+  const [driveLink, setDriveLink] = useState("");
   const [photoUploadError, setPhotoUploadError] = useState("");
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  const [isImportingDrivePhotos, setIsImportingDrivePhotos] = useState(false);
   const [photoGalleryOpen, setPhotoGalleryOpen] = useState(false);
   const { canEdit, editMode } = useEditMode();
+  const canManage = canEdit && !publicMode;
+  const isEditing = canManage && editMode;
   const queryClient = useQueryClient();
   const watchedKey = `wedflix_watched_episodes_${programId}`;
 
   const { data, isLoading, isError, error: loadError, refetch } = useQuery({
-    queryKey: ["episode", weddingId, programId, episodeId],
+    queryKey: ["episode", weddingId, programId, episodeId, publicMode ? "public" : "admin"],
     queryFn: async () => {
       const [episode, comments, programEpisodes, photos] = await Promise.all([
         apiGet(`/api/episodes/${episodeId}`),
@@ -150,6 +156,26 @@ export default function EpisodeDetailPage() {
     }
   };
 
+  const importDrivePhotos = async (ev) => {
+    ev.preventDefault();
+    if (!driveLink.trim()) return;
+    setPhotoUploadError("");
+    setIsImportingDrivePhotos(true);
+    try {
+      const result = await apiPost(`/api/episodes/${episodeId}/photos/import-drive`, { drive_url: driveLink.trim() });
+      setDriveLink("");
+      await queryClient.invalidateQueries({ queryKey: ["episode", weddingId, programId, episodeId] });
+      if (!result?.imported) {
+        setPhotoUploadError("No photos were imported from that Drive link.");
+      }
+    } catch (err) {
+      const message = err?.message || "Drive import failed. Please check the link and try again.";
+      setPhotoUploadError(message);
+    } finally {
+      setIsImportingDrivePhotos(false);
+    }
+  };
+
   const updatePhoto = async (photo, values) => {
     await apiPatch(`/api/photos/${photo._id}`, values);
     await queryClient.invalidateQueries({ queryKey: ["episode", weddingId, programId, episodeId] });
@@ -172,7 +198,7 @@ export default function EpisodeDetailPage() {
       <SeoHead
         title={episode ? `${episode.title} | Wedflix` : "Wedflix | Episode"}
         description={episode?.description || "Watch wedding episodes, comments, and behind-the-scenes memories on Wedflix."}
-        canonicalPath={episode ? `/weddings/${weddingId}/programs/${programId}/episodes/${episodeId}` : `/weddings/${weddingId}`}
+        canonicalPath={episode ? `${weddingBasePath}/programs/${programId}/episodes/${episodeId}` : weddingBasePath}
         image={episode?.thumbnail || `${window.location.origin}/favicon.svg`}
         type="video.other"
       />
@@ -214,6 +240,7 @@ export default function EpisodeDetailPage() {
                 item={item}
                 weddingId={weddingId}
                 programId={programId}
+                publicMode={publicMode}
                 onPlay={(nextItem) => {
                   window.dispatchEvent(new Event("wedflix-video-playing"));
                   setActiveEpisode(nextItem);
@@ -231,7 +258,7 @@ export default function EpisodeDetailPage() {
         <div className="cms-row-head">
           <h2 className="section-title">Photo Gallery</h2>
         </div>
-        {canEdit && editMode && (
+        {isEditing && (
           <>
             <form onSubmit={uploadPhotos} className="photo-upload-row">
               <input
@@ -242,6 +269,18 @@ export default function EpisodeDetailPage() {
               />
               <button type="submit" disabled={!photoFiles.length || isUploadingPhotos}>
                 {isUploadingPhotos ? "Uploading..." : `Upload${photoFiles.length ? ` ${photoFiles.length}` : ""} Photos`}
+              </button>
+            </form>
+            <form onSubmit={importDrivePhotos} className="photo-upload-row photo-drive-row">
+              <input
+                type="url"
+                value={driveLink}
+                onChange={(e) => setDriveLink(e.target.value)}
+                placeholder="Paste Google Drive file or folder link"
+                aria-label="Google Drive photo link"
+              />
+              <button type="submit" disabled={!driveLink.trim() || isImportingDrivePhotos}>
+                {isImportingDrivePhotos ? "Importing..." : "Import From Drive"}
               </button>
             </form>
             {photoUploadError && <p className="error">{photoUploadError}</p>}
@@ -287,10 +326,12 @@ export default function EpisodeDetailPage() {
 
       <div className="episode-section-shell">
         <h2 className="section-title">Comments</h2>
-        <form onSubmit={submitComment} className="comment-row">
-          <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Write a memory..." />
-          <button>Post</button>
-        </form>
+        {!publicMode && (
+          <form onSubmit={submitComment} className="comment-row">
+            <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Write a memory..." />
+            <button>Post</button>
+          </form>
+        )}
         <div>
           {comments.map((c) => (
             <div key={c._id} className="comment">
@@ -305,7 +346,7 @@ export default function EpisodeDetailPage() {
         title={episode?.title ? `${episode.title} Gallery` : "Photo Gallery"}
         weddingId={weddingId}
         photos={photos}
-        canManage={canEdit && editMode}
+        canManage={isEditing}
         onUpdatePhoto={updatePhoto}
         onDeletePhoto={deletePhoto}
         onClose={() => setPhotoGalleryOpen(false)}

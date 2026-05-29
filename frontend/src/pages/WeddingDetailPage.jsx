@@ -113,16 +113,19 @@ function StaticRailPoster({ item, href, title, subtitle, editMode, onEdit, onDel
   return <RailPoster item={item} href={href} title={title} subtitle={subtitle} editMode={editMode} onEdit={onEdit} onDelete={onDelete} />;
 }
 
-export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
+export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicMode = false }) {
   const { weddingId } = useParams();
   const queryClient = useQueryClient();
   const { canEdit, editMode } = useEditMode();
+  const canManage = canEdit && !publicMode;
+  const isEditing = canManage && editMode;
+  const weddingBasePath = publicMode ? `/share/${weddingId}` : `/weddings/${weddingId}`;
   const [modal, setModal] = useState(null);
   const [ordered, setOrdered] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["wedding", weddingId],
+    queryKey: ["wedding", weddingId, publicMode ? "public" : "admin"],
     queryFn: async () => {
       const [wedding, programs] = await Promise.all([
         apiGet(`/api/weddings/${weddingId}`),
@@ -131,9 +134,18 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
       return { wedding, programs };
     },
   });
+  const { data: session } = useQuery({
+    queryKey: ["session"],
+    queryFn: () => apiGet("/api/session"),
+    retry: false,
+    enabled: canManage,
+  });
 
   const wedding = data?.wedding;
   const programs = data?.programs || [];
+  const programLimit = Number(session?.plan?.limits?.program_limit || 0);
+  const programUsage = Number(session?.usage?.programs ?? programs.length);
+  const canAddProgram = Boolean(isEditing && session && (session.is_developer || !programLimit || programUsage < programLimit));
 
   const mainPrograms = useMemo(
     () => programs.filter((program) => (program.section_key || "main") === "main"),
@@ -211,6 +223,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
     Object.entries(payload).forEach(([k, v]) => fd.append(k, v || ""));
     await apiPostForm("/admin/programs/create", fd);
     await queryClient.invalidateQueries({ queryKey: ["wedding", weddingId] });
+    await queryClient.invalidateQueries({ queryKey: ["session"] });
     setModal(null);
   };
 
@@ -218,6 +231,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
     if (!window.confirm(`Delete ${program.title}?`)) return;
     await apiPostForm(`/admin/programs/${program._id}/delete`, new FormData());
     await queryClient.invalidateQueries({ queryKey: ["wedding", weddingId] });
+    await queryClient.invalidateQueries({ queryKey: ["session"] });
   };
 
   const deleteCustomSection = async (sectionKey, sectionLabel) => {
@@ -241,7 +255,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
   const featuredVideoUrl = useMemo(() => withPlayerParams(toEmbed(wedding?.hero_video_url || featuredProgram?.hero_video_url)), [wedding?.hero_video_url, featuredProgram?.hero_video_url]);
   const heroImage = wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names);
   const pageMusicUrl = wedding?.music_url || "";
-  const firstProgramHref = featuredProgram ? `/weddings/${weddingId}/programs/${featuredProgram._id}` : "#programs";
+  const firstProgramHref = featuredProgram ? `${weddingBasePath}/programs/${featuredProgram._id}` : "#programs";
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const matchesSearch = (program) => {
     if (!normalizedSearch) return true;
@@ -253,7 +267,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
   const mainRailSource = ordered.length ? ordered : (mainPrograms.length ? mainPrograms : programs);
   const mainRailCardsVisible = mainRailSource.slice(0, 3).map((program, index) => ({
     item: program,
-    href: `/weddings/${weddingId}/programs/${program._id}`,
+    href: `${weddingBasePath}/programs/${program._id}`,
     title: program.title || `Season ${index + 1}`,
     subtitle: program.event_date || program.venue_name || `Season ${index + 1}`,
   })).filter((card) => matchesSearch(card.item));
@@ -319,7 +333,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
       <SeoHead
         title={wedding ? `${wedding.couple_names} | Wedflix` : "Wedflix | Wedding Story"}
         description={wedding?.description || "Watch wedding programs, stories, and cinematic memories on Wedflix."}
-        canonicalPath={wedding ? `/weddings/${weddingId}` : "/weddings"}
+        canonicalPath={wedding ? weddingBasePath : "/"}
         image={wedding?.profile_image || heroImage}
         type="article"
       />
@@ -354,7 +368,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
             <InlineEditableText
               as="h1"
               className="home-hero__names"
-              enabled={canEdit && editMode}
+              enabled={isEditing}
               value={wedding.couple_names}
               placeholder="Wedding Couple"
               onSave={(v) => saveWeddingField("couple_names", v)}
@@ -367,7 +381,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
               <InlineEditableText
                 as="h2"
                 className=""
-                enabled={canEdit && editMode}
+                enabled={isEditing}
                 value={wedding.invitation_title || "#1 Love In Every Frame"}
                 placeholder="#1 Love In Every Frame"
                 onSave={(v) => saveWeddingField("invitation_title", v)}
@@ -421,7 +435,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
             <InlineEditableText
               as="h2"
               className="home-rail__heading-editable"
-              enabled={canEdit && editMode}
+              enabled={isEditing}
               value={wedding?.programs_section_title || "The Celebration Series"}
               placeholder="The Celebration Series"
               onSave={(v) => saveWeddingField("programs_section_title", v)}
@@ -438,12 +452,12 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
                   href={card.href}
                   title={card.title}
                   subtitle={card.subtitle}
-                  editMode={canEdit && editMode}
+                  editMode={isEditing}
                   onEdit={(item) => setModal({ type: "edit", item, sectionKey: item.section_key || "main" })}
                   onDelete={deleteProgram}
                 />
               ))}
-              {canEdit && editMode && (
+              {canAddProgram && (
                 <button type="button" className="add-card-tile" onClick={() => setModal({ type: "create", item: {}, sectionKey: "main" })}>
                   <span className="add-card-plus">+</span>
                   <span>Add Program</span>
@@ -464,7 +478,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
                 <InlineEditableText
                   as="h2"
                   className="home-rail__heading-editable"
-                  enabled={canEdit && editMode}
+                  enabled={isEditing}
                   value={section.label || `Custom Box ${index + 1}`}
                   placeholder={`Custom Box ${index + 1}`}
                   onSave={(v) => {
@@ -472,7 +486,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
                     return saveWeddingField("custom_sections", next);
                   }}
                 />
-                {canEdit && editMode && (
+                {isEditing && (
                   <button
                     type="button"
                     className="cms-fab danger home-rail__delete-box"
@@ -487,15 +501,15 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
                   <StaticRailPoster
                     key={card._id}
                     item={card}
-                    href={`/weddings/${weddingId}/programs/${card._id}`}
+                    href={`${weddingBasePath}/programs/${card._id}`}
                     title={card.title || "Program"}
                     subtitle={card.event_date || card.venue_name || "Custom Box"}
-                    editMode={canEdit && editMode}
+                    editMode={isEditing}
                     onEdit={(item) => setModal({ type: "edit", item, sectionKey: item.section_key || section.key })}
                     onDelete={deleteProgram}
                   />
                 ))}
-                {canEdit && editMode && (
+                {canAddProgram && (
                   <button className="add-card-tile" onClick={() => setModal({ type: "create", item: {}, sectionKey: section.key })}>
                     <span className="add-card-plus">+</span>
                     <span>Add Program</span>
@@ -506,11 +520,13 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
           );
         })}
 
-        {canEdit && editMode && (
+        {isEditing && (
           <div className="home-admin-fab-row">
-            <button type="button" className="cms-fab" onClick={() => setModal({ type: "create", item: {}, sectionKey: "main" })}>
-              Add Program
-            </button>
+            {canAddProgram && (
+              <button type="button" className="cms-fab" onClick={() => setModal({ type: "create", item: {}, sectionKey: "main" })}>
+                Add Program
+              </button>
+            )}
             <button
               type="button"
               className="add-card-tile add-card-tile--compact"
@@ -553,6 +569,8 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {} }) {
 }
 
 function ProgramForm({ initial, onSubmit, onCancel }) {
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     title: initial.title || "",
     thumbnail: initial.thumbnail || "",
@@ -568,55 +586,64 @@ function ProgramForm({ initial, onSubmit, onCancel }) {
   return (
     <form
       className="cms-form"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        onSubmit(form);
+        setSaveError("");
+        setIsSaving(true);
+        try {
+          await onSubmit(form);
+        } catch (err) {
+          setSaveError(err?.message || "Save failed. Please try again.");
+        } finally {
+          setIsSaving(false);
+        }
       }}
     >
       <div className="cms-form-grid">
         <label className="cms-field">
           <span>Program Title</span>
-          <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Haldi Ceremony" />
+          <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Haldi Ceremony" disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Thumbnail URL</span>
-          <input value={form.thumbnail} onChange={(e) => setForm((p) => ({ ...p, thumbnail: e.target.value }))} placeholder="https://..." />
+          <input value={form.thumbnail} onChange={(e) => setForm((p) => ({ ...p, thumbnail: e.target.value }))} placeholder="https://..." disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Hero Video URL</span>
-          <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." />
+          <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Event Date</span>
-          <input value={form.event_date} onChange={(e) => setForm((p) => ({ ...p, event_date: e.target.value }))} placeholder="2026-12-04" />
+          <input value={form.event_date} onChange={(e) => setForm((p) => ({ ...p, event_date: e.target.value }))} placeholder="2026-12-04" disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Event Time</span>
-          <input value={form.event_time} onChange={(e) => setForm((p) => ({ ...p, event_time: e.target.value }))} placeholder="07:30 PM" />
+          <input value={form.event_time} onChange={(e) => setForm((p) => ({ ...p, event_time: e.target.value }))} placeholder="07:30 PM" disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Venue Name</span>
-          <input value={form.venue_name} onChange={(e) => setForm((p) => ({ ...p, venue_name: e.target.value }))} placeholder="Grand Palace" />
+          <input value={form.venue_name} onChange={(e) => setForm((p) => ({ ...p, venue_name: e.target.value }))} placeholder="Grand Palace" disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Event Address</span>
-          <input value={form.event_address} onChange={(e) => setForm((p) => ({ ...p, event_address: e.target.value }))} placeholder="Full venue address..." />
+          <input value={form.event_address} onChange={(e) => setForm((p) => ({ ...p, event_address: e.target.value }))} placeholder="Full venue address..." disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Music URL</span>
-          <input value={form.music_url} onChange={(e) => setForm((p) => ({ ...p, music_url: e.target.value }))} placeholder="https://cdn.example.com/song.mp3" />
+          <input value={form.music_url} onChange={(e) => setForm((p) => ({ ...p, music_url: e.target.value }))} placeholder="https://cdn.example.com/song.mp3" disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Display Order</span>
-          <input value={form.order} onChange={(e) => setForm((p) => ({ ...p, order: e.target.value }))} placeholder="0" />
+          <input value={form.order} onChange={(e) => setForm((p) => ({ ...p, order: e.target.value }))} placeholder="0" disabled={isSaving} />
         </label>
       </div>
+      {saveError && <p className="error">{saveError}</p>}
       <div className="cms-form-actions">
-        <button type="button" className="cms-fab" onClick={onCancel}>
+        <button type="button" className="cms-fab" onClick={onCancel} disabled={isSaving}>
           Cancel
         </button>
-        <button type="submit" className="cms-fab">
-          Save
+        <button type="submit" className="cms-fab" disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save"}
         </button>
       </div>
     </form>

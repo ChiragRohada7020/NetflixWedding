@@ -14,7 +14,8 @@ export default function Navbar({ musicUrl }) {
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const [showLogin, setShowLogin] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [authForm, setAuthForm] = useState({ email: "", password: "" });
+  const [authMode, setAuthMode] = useState("login");
+  const [authForm, setAuthForm] = useState({ name: "", phone: "", business_name: "", city: "", purpose: "", email: "", password: "" });
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
@@ -153,9 +154,12 @@ export default function Navbar({ musicUrl }) {
       setBackendAuthOk(false);
       window.dispatchEvent(new Event("wedflix-auth-changed"));
       await queryClient.invalidateQueries({ queryKey: ["session"] });
+      await queryClient.invalidateQueries({ queryKey: ["weddings"] });
+      await queryClient.invalidateQueries({ queryKey: ["wedding-programs"] });
       return;
     }
     setAuthError("");
+    setAuthMode("login");
     setShowLogin(true);
   };
 
@@ -173,7 +177,16 @@ export default function Navbar({ musicUrl }) {
     setAuthLoading(true);
     setAuthError("");
     try {
-      const loginRes = await apiPost("/api/session/login", { email: authForm.email.trim(), password: authForm.password });
+      const endpoint = authMode === "signup" ? "/api/session/signup" : "/api/session/login";
+      const loginRes = await apiPost(endpoint, {
+        name: authForm.name.trim(),
+        phone: authForm.phone.trim(),
+        business_name: authForm.business_name.trim(),
+        city: authForm.city.trim(),
+        purpose: authForm.purpose.trim(),
+        email: authForm.email.trim(),
+        password: authForm.password,
+      });
       if (!loginRes?.authenticated || !loginRes?.is_admin) {
         setAuthError("Login failed. Check credentials.");
         return;
@@ -182,8 +195,10 @@ export default function Navbar({ musicUrl }) {
       setBackendAuthOk(true);
       window.dispatchEvent(new Event("wedflix-auth-changed"));
       await queryClient.invalidateQueries({ queryKey: ["session"] });
+      await queryClient.invalidateQueries({ queryKey: ["weddings"] });
+      await queryClient.invalidateQueries({ queryKey: ["wedding-programs"] });
       setShowLogin(false);
-      setAuthForm({ email: "", password: "" });
+      setAuthForm({ name: "", phone: "", business_name: "", city: "", purpose: "", email: "", password: "" });
     } catch (err) {
       setAuthError(err.message || "Login failed");
     } finally {
@@ -258,15 +273,33 @@ export default function Navbar({ musicUrl }) {
         <div className="cms-modal-backdrop auth-backdrop" onClick={() => setShowLogin(false)}>
           <div className="cms-modal auth-modal netflix-login" onClick={(e) => e.stopPropagation()}>
             <p className="netflix-login-brand">WEDFLIX</p>
-            <h3>Sign In</h3>
+            <h3>{authMode === "signup" ? "Create Admin" : "Sign In"}</h3>
             <form className="cms-form" onSubmit={submitLogin}>
+              {authMode === "signup" && (
+                <>
+                  <input type="text" value={authForm.name} onChange={(e) => setAuthForm((p) => ({ ...p, name: e.target.value }))} placeholder="Name" />
+                  <input type="tel" value={authForm.phone} onChange={(e) => setAuthForm((p) => ({ ...p, phone: e.target.value }))} placeholder="Phone number" />
+                  <input type="text" value={authForm.business_name} onChange={(e) => setAuthForm((p) => ({ ...p, business_name: e.target.value }))} placeholder="Business / studio name" />
+                  <input type="text" value={authForm.city} onChange={(e) => setAuthForm((p) => ({ ...p, city: e.target.value }))} placeholder="City" />
+                  <input type="text" value={authForm.purpose} onChange={(e) => setAuthForm((p) => ({ ...p, purpose: e.target.value }))} placeholder="Wedding / business use" />
+                </>
+              )}
               <input type="email" value={authForm.email} onChange={(e) => setAuthForm((p) => ({ ...p, email: e.target.value }))} placeholder="Email or phone number" />
               <input type="password" value={authForm.password} onChange={(e) => setAuthForm((p) => ({ ...p, password: e.target.value }))} placeholder="Password" />
               {!!authError && <p className="auth-error">{authError}</p>}
-              <button type="submit" className="netflix-login-btn" disabled={authLoading}>{authLoading ? "Signing In..." : "Sign In"}</button>
+              <button type="submit" className="netflix-login-btn" disabled={authLoading}>{authLoading ? "Please wait..." : authMode === "signup" ? "Create Free Admin" : "Sign In"}</button>
               <div className="netflix-login-meta">
                 <label><input type="checkbox" defaultChecked /> Remember me</label>
-                <button type="button" className="netflix-help-btn">Need help?</button>
+                <button
+                  type="button"
+                  className="netflix-help-btn"
+                  onClick={() => {
+                    setAuthError("");
+                    setAuthMode((mode) => (mode === "signup" ? "login" : "signup"));
+                  }}
+                >
+                  {authMode === "signup" ? "Already have login?" : "Create free admin"}
+                </button>
               </div>
             </form>
           </div>

@@ -89,6 +89,19 @@ def create_app(env_name="development"):
         return User.get_by_id(user_id)
 
     def ensure_default_users():
+        from app.utils.plans import ensure_default_plan
+        ensure_default_plan()
+
+        developer_email = os.getenv(
+            "DEFAULT_DEVELOPER_EMAIL",
+            "developer@wedflix.com"
+        )
+
+        developer_password = os.getenv(
+            "DEFAULT_DEVELOPER_PASSWORD",
+            "developer123"
+        )
+
         admin_email = os.getenv(
             "DEFAULT_ADMIN_EMAIL",
             "admin@weddingflix.com"
@@ -109,13 +122,36 @@ def create_app(env_name="development"):
             "guest123"
         )
 
-        if not User.get_by_email(admin_email):
+        existing_developer = User.get_by_email(developer_email)
+        if not existing_developer:
             User.create(
-                name="Admin",
+                name="Developer Admin",
+                email=developer_email,
+                password=developer_password,
+                role="developer",
+                wedding_ids=[],
+            )
+        elif (existing_developer.get("role") or "") != "developer":
+            mongo.db.users.update_one(
+                {"_id": existing_developer["_id"]},
+                {"$set": {"role": "developer", "status": "active", "plan_id": "free"}},
+            )
+
+        existing_admin = User.get_by_email(admin_email)
+        if not existing_admin:
+            User.create(
+                name="Demo Admin",
                 email=admin_email,
                 password=admin_password,
                 role="admin",
                 wedding_ids=[],
+                status="active",
+                plan_id="free",
+            )
+        elif admin_email != developer_email:
+            mongo.db.users.update_one(
+                {"_id": existing_admin["_id"]},
+                {"$set": {"role": "admin", "status": "active", "plan_id": existing_admin.get("plan_id") or "free"}},
             )
 
         if not User.get_by_email(guest_email):

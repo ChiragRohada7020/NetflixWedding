@@ -2,7 +2,7 @@ import os
 from bson import ObjectId
 import json
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 
 from app import mongo
 from app.models.episode import Episode
@@ -10,6 +10,7 @@ from app.models.program import Program
 from app.models.wedding import Wedding
 from app.utils.decorators import admin_required
 from app.utils.media import normalize_image_url
+from app.utils.plans import can_manage_wedding, is_developer, limit_error, public_access_allowed
 from app.utils.telegram_media import TelegramMediaError, upload_photo_to_telegram
 from app.utils.video import youtube_embed_url
 
@@ -121,6 +122,8 @@ def _resolve_episode_video(existing=None):
 @admin_required
 def home():
     weddings = Wedding.all()
+    if not is_developer():
+        weddings = [w for w in weddings if can_manage_wedding(w)]
     selected_wedding_id = _selected_wedding_id()
     selected_program_id = _selected_program_id()
 
@@ -160,8 +163,16 @@ def home():
 @login_required
 @admin_required
 def create_wedding():
+    plan_error = limit_error("wedding")
+    if plan_error:
+        error_response = _form_error(plan_error, 403)
+        if error_response:
+            return error_response
+        return redirect(url_for("admin.home"))
     access_level = (request.form.get("access_level") or "private").strip().lower()
     if access_level not in {"public", "private"}:
+        access_level = "private"
+    if access_level == "public" and not public_access_allowed():
         access_level = "private"
     payload = {
         "couple_names": request.form.get("couple_names"),
@@ -177,6 +188,7 @@ def create_wedding():
         "programs_section_title": (request.form.get("programs_section_title") or "Wedding Programs").strip(),
         "custom_sections": _parse_custom_sections(request.form.get("custom_sections_json")),
         "custom_section_label": (request.form.get("custom_section_label") or "My Custom Box").strip(),
+        "owner_user_id": str(current_user.id),
     }
     Wedding.create(payload)
     flash("Wedding created", "success")
@@ -188,8 +200,12 @@ def create_wedding():
 @admin_required
 def update_wedding(wedding_id):
     current = Wedding.get(wedding_id) or {}
+    if not can_manage_wedding(current):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     access_level = (request.form.get("access_level") or current.get("access_level") or "private").strip().lower()
     if access_level not in {"public", "private"}:
+        access_level = "private"
+    if access_level == "public" and not public_access_allowed():
         access_level = "private"
     payload = {
         "couple_names": (request.form.get("couple_names") or "").strip(),
@@ -215,6 +231,8 @@ def update_wedding(wedding_id):
 @login_required
 @admin_required
 def delete_wedding(wedding_id):
+    if not can_manage_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     wid = ObjectId(wedding_id)
     program_ids = [p["_id"] for p in mongo.db.programs.find({"wedding_id": wid}, {"_id": 1})]
     episode_ids = []
@@ -238,6 +256,11 @@ def delete_wedding(wedding_id):
 @admin_required
 def create_program():
     wedding_id = request.form.get("wedding_id")
+    if not can_manage_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
+    plan_error = limit_error("program")
+    if plan_error:
+        return _form_error(plan_error, 403) or redirect(url_for("admin.home", wedding_id=wedding_id))
     section_key = (request.form.get("section_key") or "main").strip().lower()
     if section_key not in {"main", "custom"}:
         section_key = "main"
@@ -266,6 +289,8 @@ def create_program():
 def update_program(program_id):
     program = Program.get(program_id)
     wedding_id = str(program.get("wedding_id")) if program else ""
+    if not can_manage_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     section_key = (request.form.get("section_key") or (program or {}).get("section_key") or "main").strip().lower()
     if section_key not in {"main", "custom"}:
         section_key = "main"
@@ -294,6 +319,8 @@ def update_program(program_id):
 def delete_program(program_id):
     program = Program.get(program_id)
     wedding_id = str(program.get("wedding_id")) if program else ""
+    if not can_manage_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     pid = ObjectId(program_id)
     episode_ids = [e["_id"] for e in mongo.db.episodes.find({"program_id": pid}, {"_id": 1})]
     if episode_ids:
@@ -313,6 +340,11 @@ def create_episode():
 
     program = Program.get(program_id)
     wedding_id = str(program.get("wedding_id")) if program else ""
+    if not can_manage_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
+    plan_error = limit_error("episode", program_id=program_id)
+    if plan_error:
+        return _form_error(plan_error, 403) or redirect(url_for("admin.home", wedding_id=wedding_id, program_id=program_id))
 
     payload = {
         "program_id": ObjectId(program_id),
@@ -347,6 +379,8 @@ def update_episode(episode_id):
         program = Program.get(program_id)
         if program:
             wedding_id = str(program.get("wedding_id"))
+    if not can_manage_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
 
     payload = {
         "season_number": _safe_int(request.form.get("season_number"), 1),
@@ -381,6 +415,8 @@ def delete_episode(episode_id):
         program = Program.get(program_id)
         if program:
             wedding_id = str(program.get("wedding_id"))
+    if not can_manage_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
 
     mongo.db.episodes.delete_one({"_id": ObjectId(episode_id)})
     success_response = _form_success("Episode deleted", wedding_id=wedding_id, program_id=program_id, episode_id=episode_id)
