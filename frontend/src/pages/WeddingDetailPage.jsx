@@ -206,8 +206,18 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     const fd = new FormData();
     fd.append("couple_names", field === "couple_names" ? val : wedding.couple_names || "");
     fd.append("wedding_date", field === "wedding_date" ? val : wedding.wedding_date || "");
+    fd.append("wedding_time", venueDetailsValue.wedding_time ?? wedding.wedding_time ?? "");
     fd.append("hero_video_url", wedding.hero_video_url || "");
     fd.append("description", wedding.description || "");
+    fd.append("venue_eyebrow", venueDetailsValue.venue_eyebrow ?? wedding.venue_eyebrow ?? "You're Invited To");
+    fd.append("venue_script", venueDetailsValue.venue_script ?? wedding.venue_script ?? "the wedding of");
+    fd.append("venue_section_label", venueDetailsValue.venue_section_label ?? wedding.venue_section_label ?? "Our Venue");
+    if (venueDetailsValue.couple_names !== undefined) {
+      fd.set("couple_names", venueDetailsValue.couple_names);
+    }
+    if (venueDetailsValue.wedding_date !== undefined) {
+      fd.set("wedding_date", venueDetailsValue.wedding_date);
+    }
     fd.append("venue_name", venueDetailsValue.venue_name ?? wedding.venue_name ?? "");
     fd.append("event_address", venueDetailsValue.event_address ?? wedding.event_address ?? "");
     fd.append("venue_map_location", venueDetailsValue.venue_map_location ?? wedding.venue_map_location ?? wedding.event_address ?? "");

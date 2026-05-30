@@ -76,6 +76,9 @@ export default function PremiumWeddingExperience({
   const venueImage = wedding?.venue_image || heroImage;
   const venueName = wedding?.venue_name || featuredProgram?.venue_name || "Wedding Venue";
   const venueAddress = wedding?.event_address || featuredProgram?.event_address || "Venue address";
+  const venueEyebrow = wedding?.venue_eyebrow || "You're Invited To";
+  const venueScript = wedding?.venue_script || "the wedding of";
+  const venueSectionLabel = wedding?.venue_section_label || "Our Venue";
   const mapLocation = wedding?.venue_map_location || venueAddress;
   const weddingTime = wedding?.wedding_time || featuredProgram?.event_time || "11:00 AM";
   const musicUrl = wedding?.music_url || "";
@@ -168,6 +171,12 @@ export default function PremiumWeddingExperience({
     setIsSavingVenue(true);
     try {
       await onSaveWeddingField("venue_details", {
+        couple_names: String(form.get("couple_names") || "").trim(),
+        wedding_date: String(form.get("wedding_date") || "").trim(),
+        wedding_time: String(form.get("wedding_time") || "").trim(),
+        venue_eyebrow: String(form.get("venue_eyebrow") || "").trim(),
+        venue_script: String(form.get("venue_script") || "").trim(),
+        venue_section_label: String(form.get("venue_section_label") || "").trim(),
         venue_name: String(form.get("venue_name") || "").trim(),
         event_address: String(form.get("event_address") || "").trim(),
         venue_map_location: String(form.get("venue_map_location") || "").trim(),
@@ -298,10 +307,8 @@ export default function PremiumWeddingExperience({
       <div className="premium-wedding__nav-links">
         {[
           ["Home", "home"],
-          ["TV Shows", "home"],
-          ["Movies", "home"],
           ["Live Events", "venue"],
-          ["My List", "invitation"],
+          ["Invitation", "invitation"],
         ].map(([label, target]) => (
           <button
             type="button"
@@ -312,12 +319,6 @@ export default function PremiumWeddingExperience({
             {label}
           </button>
         ))}
-      </div>
-      <div className="premium-wedding__nav-tools" aria-hidden="true">
-        <span className="premium-wedding__search" />
-        <span className="premium-wedding__bell">3</span>
-        <span className="premium-wedding__avatar">{(wedding?.couple_names || "W").charAt(0)}</span>
-        <span className="premium-wedding__chevron" />
       </div>
     </nav>
   );
@@ -469,8 +470,8 @@ export default function PremiumWeddingExperience({
           <section className="premium-venue__hero premium-venue__hero--live">
             <img src={venueImage} alt={venueName} />
             <div className="premium-venue__hero-copy">
-              <p className="premium-venue__eyebrow">You're Invited To</p>
-              <p className="premium-venue__script">the wedding of</p>
+              <p className="premium-venue__eyebrow">{venueEyebrow}</p>
+              <p className="premium-venue__script">{venueScript}</p>
               <h1>
                 <span>{firstName}</span>
                 {secondName && <em>&amp;</em>}
@@ -484,21 +485,17 @@ export default function PremiumWeddingExperience({
               <p className="premium-venue__lead">
                 {wedding.venue_description || wedding.description || "Join us as we begin our forever. Watch our special day live, from anywhere in the world."}
               </p>
-              <div className="premium-venue__hero-actions">
-                <button type="button" onClick={addToCalendar}><span aria-hidden="true">Bell</span> Remind Me</button>
-                <button type="button" aria-label="Share venue" onClick={shareLocation}><span aria-hidden="true">Share</span></button>
-                {canEdit && (
-                  <button type="button" onClick={() => setVenueSettingsOpen((value) => !value)}>
-                    Edit Venue
-                  </button>
-                )}
-              </div>
+              {canEdit && (
+                <button type="button" className="premium-venue__edit" onClick={() => setVenueSettingsOpen((value) => !value)}>
+                  Edit Venue
+                </button>
+              )}
             </div>
           </section>
           <section className="premium-venue__spotlight">
             <img src={venueImage} alt="" />
             <div>
-              <p>Our Venue</p>
+              <p>{venueSectionLabel}</p>
               <h2>{venueName}</h2>
               <span>{wedding.venue_description || "A royal setting for our special day, chosen for beauty, warmth, and unforgettable memories."}</span>
             </div>
@@ -506,6 +503,30 @@ export default function PremiumWeddingExperience({
           </section>
         {canEdit && venueSettingsOpen && (
           <form className="premium-venue__editor premium-venue__settings" onSubmit={saveVenueSettings}>
+            <label>
+              <span>Top Heading</span>
+              <input name="venue_eyebrow" defaultValue={venueEyebrow} placeholder="You're Invited To" disabled={isSavingVenue} />
+            </label>
+            <label>
+              <span>Script Heading</span>
+              <input name="venue_script" defaultValue={venueScript} placeholder="the wedding of" disabled={isSavingVenue} />
+            </label>
+            <label>
+              <span>Couple Names</span>
+              <input name="couple_names" defaultValue={wedding?.couple_names || ""} placeholder="Aarav & Diya" disabled={isSavingVenue} />
+            </label>
+            <label>
+              <span>Wedding Date</span>
+              <input name="wedding_date" defaultValue={wedding?.wedding_date || ""} placeholder="24 May 2025" disabled={isSavingVenue} />
+            </label>
+            <label>
+              <span>Wedding Time</span>
+              <input name="wedding_time" defaultValue={weddingTime} placeholder="7:00 PM IST" disabled={isSavingVenue} />
+            </label>
+            <label>
+              <span>Venue Label</span>
+              <input name="venue_section_label" defaultValue={venueSectionLabel} placeholder="Our Venue" disabled={isSavingVenue} />
+            </label>
             <label>
               <span>Venue Name</span>
               <input name="venue_name" defaultValue={venueName} placeholder="Royal Banquet" disabled={isSavingVenue} />
@@ -540,7 +561,7 @@ export default function PremiumWeddingExperience({
         <section className="premium-venue__schedule">
           {scheduleCards.map((card, index) => (
             <article className="premium-venue__event" key={card.key}>
-              <span aria-hidden="true">{["✣", "♪", "♕", "♢"][index % 4]}</span>
+              <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
               <div>
                 <strong>{card.title}</strong>
                 <small>{card.date}</small>
@@ -583,14 +604,6 @@ export default function PremiumWeddingExperience({
             </div>
           </form>
         )}
-        <div className="premium-actionbar">
-          <a href={mapsUrl(mapQuery)} target="_blank" rel="noreferrer">Open in Google Maps</a>
-          <button type="button" onClick={shareLocation}>Share Location</button>
-          <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery)}`} target="_blank" rel="noreferrer">Start Navigation</a>
-          <button type="button" onClick={findDistance}>Distance From Me</button>
-          <button type="button" className="premium-actionbar__primary" onClick={continueToHome}>Continue</button>
-        </div>
-        {distance && <p className="premium-distance">{distance}</p>}
         </main>
       </>,
     );
