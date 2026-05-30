@@ -7512,9 +7512,9 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .premium-wedding--venue .premium-venue__hero img {
-  left: 31%;
-  width: 69%;
-  filter: brightness(0.86) saturate(1.08);
+  left: 0;
+  width: 100%;
+  filter: brightness(0.82) saturate(1.08);
   object-position: center;
 }
 
@@ -7524,7 +7524,7 @@ body.premium-flow-open .wedflix-footer {
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.94) 22%, rgba(0, 0, 0, 0.52) 48%, rgba(0, 0, 0, 0.08) 76%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.94) 0%, rgba(0, 0, 0, 0.82) 30%, rgba(0, 0, 0, 0.4) 58%, rgba(0, 0, 0, 0.12) 100%),
     linear-gradient(0deg, #000 0%, rgba(0, 0, 0, 0.18) 22%, rgba(0, 0, 0, 0) 70%);
 }
 
@@ -7745,6 +7745,10 @@ body.premium-flow-open .wedflix-footer {
   background: rgba(0, 0, 0, 0.58);
 }
 
+.premium-venue__event-body {
+  min-width: 0;
+}
+
 .premium-venue__event > span {
   color: #b885ff;
   font-size: 3rem;
@@ -7765,6 +7769,26 @@ body.premium-flow-open .wedflix-footer {
   margin-top: 6px;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.96rem;
+}
+
+.premium-venue__event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.premium-venue__event-actions button {
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .premium-wedding--venue .premium-actionbar {
@@ -7854,14 +7878,15 @@ body.premium-flow-open .wedflix-footer {
   }
 
   .premium-wedding--venue .premium-venue {
-    padding: 0 18px 34px;
+    padding: 0 0 34px;
   }
 
   .premium-wedding--venue .premium-venue__hero {
     min-height: 650px;
-    margin: 0 -18px;
+    margin: 0;
     padding: 48px 20px 30px;
     align-items: end;
+    border-radius: 0;
   }
 
   .premium-wedding--venue .premium-venue__hero img {
@@ -8234,18 +8259,23 @@ body.premium-flow-open .wedflix-footer {
   }
 
   .premium-wedding--venue .premium-venue__hero {
-    min-height: 620px;
-    padding: 42px 18px 26px;
+    min-height: 560px;
+    padding: 34px 16px 24px;
+    align-items: center;
+  }
+
+  .premium-venue__hero-copy {
+    transform: translateY(-44px);
   }
 
   .premium-venue__eyebrow {
-    letter-spacing: 0.26em;
-    font-size: 0.88rem;
+    letter-spacing: 0.18em;
+    font-size: 0.74rem;
   }
 
   .premium-venue__script {
     margin-left: 0;
-    font-size: 1.75rem;
+    font-size: 1.42rem;
   }
 
   .premium-venue__script::after {
@@ -8254,14 +8284,14 @@ body.premium-flow-open .wedflix-footer {
   }
 
   .premium-wedding--venue .premium-venue__hero h1 {
-    gap: 12px;
-    font-size: clamp(3.2rem, 15vw, 5rem);
+    gap: 9px;
+    font-size: clamp(2.45rem, 11.5vw, 3.8rem);
   }
 
   .premium-venue__meta {
     display: grid;
-    gap: 8px;
-    font-size: 0.94rem;
+    gap: 6px;
+    font-size: 0.82rem;
   }
 
   .premium-venue__meta span {
@@ -8284,13 +8314,49 @@ body.premium-flow-open .wedflix-footer {
     grid-template-columns: 1fr;
   }
 
+  .premium-venue__spotlight {
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .premium-venue__spotlight h2 {
+    font-size: 1.08rem;
+  }
+
+  .premium-venue__spotlight span {
+    font-size: 0.86rem;
+  }
+
   .premium-venue__spotlight img {
     width: 100%;
     height: 170px;
   }
 
   .premium-venue__event {
-    grid-template-columns: 66px 1fr;
+    grid-template-columns: 48px 1fr;
+    min-height: 96px;
+    padding: 16px;
+  }
+
+  .premium-venue__event > span {
+    font-size: 2.1rem;
+  }
+
+  .premium-venue__event strong {
+    font-size: 0.9rem;
+  }
+
+  .premium-venue__event small {
+    font-size: 0.8rem;
+  }
+
+  .premium-venue__schedule-title {
+    font-size: 1.08rem;
+  }
+
+  .premium-venue__lead {
+    font-size: 0.88rem;
+    line-height: 1.5;
   }
 
   .premium-venue__details,

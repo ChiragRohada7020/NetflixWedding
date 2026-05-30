@@ -87,17 +87,12 @@ export default function PremiumWeddingExperience({
   const mapQuery = mapLocation || [venueName, venueAddress].filter(Boolean).join(", ");
   const venueBlocks = useMemo(() => {
     const saved = Array.isArray(wedding?.venue_blocks) ? wedding.venue_blocks : [];
-    if (Array.isArray(wedding?.venue_blocks)) return saved;
-    const programBlocks = programs
-      .filter((program) => program.title || program.event_date || program.event_time || program.venue_name || program.event_address)
-      .map((program, index) => ({
-        key: program._id || `program_${index}`,
-        title: program.title || `Function ${index + 1}`,
-        meta: [program.event_date, program.event_time].filter(Boolean).join(" | "),
-        body: program.venue_name || "",
-        address: program.event_address || "",
+    if (Array.isArray(wedding?.venue_blocks)) {
+      return saved.map((block, index) => ({
+        ...block,
+        key: block.key || `venue_${index}`,
       }));
-    if (programBlocks.length) return programBlocks;
+    }
     return [
       {
         key: "main_venue",
@@ -107,25 +102,18 @@ export default function PremiumWeddingExperience({
         address: venueAddress,
       },
     ];
-  }, [programs, venueAddress, venueName, wedding?.venue_blocks, wedding?.wedding_date, weddingTime]);
+  }, [venueAddress, venueName, wedding?.venue_blocks, wedding?.wedding_date, weddingTime]);
 
   const scheduleCards = useMemo(() => {
-    const programCards = programs
-      .filter((program) => program.title || program.event_date || program.event_time)
-      .map((program, index) => ({
-        key: program._id || `program_${index}`,
-        title: program.title || `Event ${index + 1}`,
-        date: program.event_date || wedding?.wedding_date || "Wedding Date",
-        time: program.event_time || weddingTime,
-      }));
-    if (programCards.length) return programCards.slice(0, 4);
-    return venueBlocks.slice(0, 4).map((block, index) => ({
+    return venueBlocks.map((block, index) => ({
       key: block.key || `venue_${index}`,
       title: block.title || `Event ${index + 1}`,
       date: block.meta || wedding?.wedding_date || "Wedding Date",
-      time: weddingTime,
+      time: block.body || "",
+      address: block.address || "",
+      source: block,
     }));
-  }, [programs, venueBlocks, wedding?.wedding_date, weddingTime]);
+  }, [venueBlocks, wedding?.wedding_date]);
 
   const saveVenueBlock = async (event) => {
     event.preventDefault();
@@ -142,7 +130,7 @@ export default function PremiumWeddingExperience({
       setVenueEditor(null);
       return;
     }
-    const existing = Array.isArray(wedding?.venue_blocks) ? wedding.venue_blocks : venueBlocks;
+    const existing = venueBlocks;
     const next = venueEditor.isNew
       ? [...existing, block]
       : existing.map((item) => (item.key === venueEditor.key ? block : item));
@@ -156,7 +144,8 @@ export default function PremiumWeddingExperience({
   };
 
   const deleteVenueBlock = async (key) => {
-    const existing = Array.isArray(wedding?.venue_blocks) ? wedding.venue_blocks : venueBlocks;
+    if (!window.confirm("Delete this venue schedule item?")) return;
+    const existing = venueBlocks;
     setIsSavingVenue(true);
     try {
       await onSaveWeddingField("venue_blocks", existing.filter((item) => item.key !== key));
@@ -562,10 +551,25 @@ export default function PremiumWeddingExperience({
           {scheduleCards.map((card, index) => (
             <article className="premium-venue__event" key={card.key}>
               <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-              <div>
+              <div className="premium-venue__event-body">
                 <strong>{card.title}</strong>
                 <small>{card.date}</small>
-                <small>{card.time}</small>
+                {card.time && <small>{card.time}</small>}
+                {card.address && <small>{card.address}</small>}
+                {canEdit && (
+                  <div className="premium-venue__event-actions">
+                    <button
+                      type="button"
+                      disabled={isSavingVenue}
+                      onClick={() => setVenueEditor({ ...card.source, key: card.key })}
+                    >
+                      Edit
+                    </button>
+                    <button type="button" disabled={isSavingVenue} onClick={() => deleteVenueBlock(card.key)}>
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             </article>
           ))}
@@ -576,7 +580,7 @@ export default function PremiumWeddingExperience({
               disabled={isSavingVenue}
               onClick={() => setVenueEditor({ key: `venue_${Date.now()}`, title: "", meta: "", body: "", address: "", isNew: true })}
             >
-              Add Venue Detail
+              Add Schedule
             </button>
           )}
         </section>
