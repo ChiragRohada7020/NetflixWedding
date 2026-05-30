@@ -8026,7 +8026,7 @@ body.premium-flow-open .wedflix-footer {
   }
 
   .premium-wedding--invitation {
-    background: #050506;
+    background: #08040f;
   }
 
   .premium-invitation {
@@ -8035,9 +8035,11 @@ body.premium-flow-open .wedflix-footer {
     gap: 8px;
     padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
     background:
-      linear-gradient(90deg, rgba(193, 142, 76, 0.72), transparent 1px, transparent calc(100% - 1px), rgba(193, 142, 76, 0.72)),
-      linear-gradient(180deg, rgba(193, 142, 76, 0.72), transparent 1px, transparent calc(100% - 1px), rgba(193, 142, 76, 0.72)),
-      #030304;
+      radial-gradient(circle at 22% 0%, rgba(170, 93, 255, 0.24), transparent 28%),
+      radial-gradient(circle at 88% 92%, rgba(235, 99, 212, 0.2), transparent 32%),
+      linear-gradient(90deg, rgba(181, 122, 255, 0.78), transparent 1px, transparent calc(100% - 1px), rgba(181, 122, 255, 0.78)),
+      linear-gradient(180deg, rgba(181, 122, 255, 0.78), transparent 1px, transparent calc(100% - 1px), rgba(181, 122, 255, 0.78)),
+      #07020d;
     border-radius: 20px;
   }
 
@@ -8046,9 +8048,10 @@ body.premium-flow-open .wedflix-footer {
   }
 
   .premium-invitation__top span {
-    color: #e50914;
+    color: #e879f9;
     font-size: 1.02rem;
     letter-spacing: 0.08em;
+    text-shadow: 0 0 18px rgba(168, 85, 247, 0.38);
   }
 
   .premium-invitation__top button {
@@ -8056,11 +8059,11 @@ body.premium-flow-open .wedflix-footer {
     height: 32px;
     min-height: 32px;
     background:
-      linear-gradient(#d8b16d, #d8b16d) center 10px / 14px 2px no-repeat,
-      linear-gradient(#d8b16d, #d8b16d) center 16px / 14px 2px no-repeat,
-      linear-gradient(#d8b16d, #d8b16d) center 22px / 14px 2px no-repeat,
+      linear-gradient(#e9d5ff, #e9d5ff) center 10px / 14px 2px no-repeat,
+      linear-gradient(#e9d5ff, #e9d5ff) center 16px / 14px 2px no-repeat,
+      linear-gradient(#e9d5ff, #e9d5ff) center 22px / 14px 2px no-repeat,
       transparent;
-    border-color: rgba(216, 177, 109, 0.32);
+    border-color: rgba(216, 180, 254, 0.36);
   }
 
   .premium-invitation__card {
@@ -8071,26 +8074,28 @@ body.premium-flow-open .wedflix-footer {
     gap: min(0.9vh, 8px);
     padding: min(5.8vh, 42px) 24px min(5.2vh, 38px);
     border-radius: 18px;
-    color: #24131a;
-    border-color: rgba(255, 255, 255, 0.58);
+    color: #241033;
+    border-color: rgba(233, 213, 255, 0.78);
     background:
-      radial-gradient(circle at 12% 10%, rgba(255, 105, 180, 0.2), transparent 24%),
-      radial-gradient(circle at 88% 86%, rgba(255, 199, 87, 0.2), transparent 28%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(255, 239, 244, 0.9) 48%, rgba(255, 250, 231, 0.92)),
-      #fff7f2;
+      radial-gradient(circle at 10% 8%, rgba(196, 181, 253, 0.42), transparent 25%),
+      radial-gradient(circle at 86% 16%, rgba(232, 121, 249, 0.2), transparent 26%),
+      radial-gradient(circle at 88% 88%, rgba(147, 51, 234, 0.24), transparent 32%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(247, 240, 255, 0.94) 46%, rgba(233, 213, 255, 0.92)),
+      #fbf7ff;
     box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.72),
-      0 16px 38px rgba(0, 0, 0, 0.22);
+      inset 0 0 0 1px rgba(255, 255, 255, 0.8),
+      inset 0 0 38px rgba(168, 85, 247, 0.1),
+      0 18px 44px rgba(23, 8, 45, 0.46);
   }
 
   .premium-invitation__card::before {
     inset: 14px;
     border-width: 1px;
-    border-color: rgba(176, 113, 43, 0.58);
+    border-color: rgba(147, 51, 234, 0.5);
     border-radius: 14px;
     box-shadow:
-      inset 0 0 0 4px rgba(255, 253, 247, 0.72),
-      inset 0 0 0 5px rgba(196, 142, 68, 0.13);
+      inset 0 0 0 4px rgba(255, 255, 255, 0.66),
+      inset 0 0 0 5px rgba(168, 85, 247, 0.14);
   }
 
   .premium-invitation__card::after {
@@ -8098,15 +8103,15 @@ body.premium-flow-open .wedflix-footer {
     border: 0;
     border-radius: inherit;
     background:
-      linear-gradient(90deg, transparent 0 38%, rgba(176, 113, 43, 0.28) 38% 62%, transparent 62%) center 0 / 84px 1px no-repeat,
-      linear-gradient(90deg, transparent 0 38%, rgba(176, 113, 43, 0.28) 38% 62%, transparent 62%) center 100% / 84px 1px no-repeat;
+      linear-gradient(90deg, transparent 0 36%, rgba(147, 51, 234, 0.28) 36% 64%, transparent 64%) center 0 / 90px 1px no-repeat,
+      linear-gradient(90deg, transparent 0 36%, rgba(147, 51, 234, 0.28) 36% 64%, transparent 64%) center 100% / 90px 1px no-repeat;
     opacity: 0.9;
   }
 
   .premium-invitation__card p,
   .premium-invitation__card small {
     max-width: 30ch;
-    color: rgba(36, 19, 26, 0.72);
+    color: rgba(54, 28, 82, 0.72);
     font-family: "Manrope", "Segoe UI", sans-serif;
     font-size: clamp(0.58rem, 2.35vw, 0.74rem);
     font-weight: 900;
@@ -8115,7 +8120,7 @@ body.premium-flow-open .wedflix-footer {
   }
 
   .premium-invitation__card h2 {
-    color: #24131a;
+    color: #1f1033;
     font-family: "Manrope", "Segoe UI", sans-serif;
     font-size: clamp(2.9rem, 14vw, 4.7rem);
     font-weight: 900;
@@ -8124,10 +8129,11 @@ body.premium-flow-open .wedflix-footer {
     overflow-wrap: anywhere;
     letter-spacing: 0;
     text-transform: uppercase;
+    text-shadow: 0 10px 24px rgba(126, 34, 206, 0.12);
   }
 
   .premium-invitation__card em {
-    color: #c44978;
+    color: #a855f7;
     font-family: "Manrope", "Segoe UI", sans-serif;
     font-size: 0.84rem;
     font-weight: 900;
@@ -8142,6 +8148,7 @@ body.premium-flow-open .wedflix-footer {
     border-bottom: 0;
     font-size: clamp(0.9rem, 4vw, 1.12rem);
     letter-spacing: 0.08em;
+    color: #2d1646;
   }
 
   .premium-invitation__date > span,
@@ -8151,8 +8158,8 @@ body.premium-flow-open .wedflix-footer {
 
   .premium-invitation__date > strong {
     padding: 0 10px;
-    border-left: 1px solid rgba(196, 73, 117, 0.28);
-    border-right: 1px solid rgba(196, 73, 117, 0.28);
+    border-left: 1px solid rgba(147, 51, 234, 0.32);
+    border-right: 1px solid rgba(147, 51, 234, 0.32);
   }
 
   .premium-invitation__date > strong small {
@@ -8161,7 +8168,7 @@ body.premium-flow-open .wedflix-footer {
 
   .premium-invitation__card > strong {
     max-width: 25ch;
-    color: #c44978;
+    color: #9333ea;
     font-family: "Manrope", "Segoe UI", sans-serif;
     font-size: clamp(0.68rem, 2.5vw, 0.84rem);
     font-weight: 900;
@@ -8172,7 +8179,7 @@ body.premium-flow-open .wedflix-footer {
     display: -webkit-box;
     max-width: 28ch;
     overflow: hidden;
-    color: rgba(36, 19, 26, 0.72);
+    color: rgba(54, 28, 82, 0.72);
     font-family: "Manrope", "Segoe UI", sans-serif;
     font-size: clamp(0.54rem, 2.1vw, 0.66rem);
     letter-spacing: 0.05em;
@@ -8185,19 +8192,20 @@ body.premium-flow-open .wedflix-footer {
     width: 54px;
     height: 54px;
     margin-bottom: min(1vh, 8px);
-    color: #c44978;
+    color: #9333ea;
     font-family: "Manrope", "Segoe UI", sans-serif;
     font-weight: 900;
     font-size: 0.92rem;
-    background: rgba(255, 255, 255, 0.68);
-    border-color: rgba(196, 73, 117, 0.22);
-    box-shadow: 0 12px 26px rgba(196, 73, 117, 0.12);
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(147, 51, 234, 0.26);
+    box-shadow: 0 12px 26px rgba(126, 34, 206, 0.14);
   }
 
   .premium-invitation__flower {
     width: 112px;
     height: 100px;
-    opacity: 0.32;
+    opacity: 0.38;
+    filter: drop-shadow(0 12px 18px rgba(76, 29, 149, 0.12)) hue-rotate(42deg) saturate(1.1);
   }
 
   .premium-invitation__flower--top {
@@ -8392,24 +8400,45 @@ body.premium-flow-open .wedflix-footer {
     height: 76px;
     box-sizing: border-box;
     border-radius: 13px;
-    border-color: rgba(214, 170, 106, 0.28);
-    background: rgba(24, 18, 18, 0.96);
+    border-color: rgba(216, 180, 254, 0.34);
+    background:
+      radial-gradient(circle at 20% 0%, rgba(168, 85, 247, 0.18), transparent 36%),
+      rgba(16, 8, 26, 0.96);
   }
 
   .premium-invitation .premium-actionbar button {
     flex: initial;
     min-height: 62px;
-    padding: 7px 3px 6px;
+    padding: 7px 4px 6px;
     border-radius: 8px;
-    font-size: 0.54rem;
+    border-color: rgba(216, 180, 254, 0.26);
+    background: linear-gradient(180deg, rgba(168, 85, 247, 0.16), rgba(255, 255, 255, 0.035));
+    font-size: 0.66rem;
+    line-height: 1.08;
+    text-align: center;
   }
 
   .premium-invitation .premium-actionbar button > span,
   .premium-invitation .premium-actionbar button > span::before {
     width: 22px;
     height: 22px;
-    font-size: 1.22rem;
+    font-size: 1.26rem;
     line-height: 22px;
+  }
+
+  .premium-invitation .premium-actionbar button small {
+    display: grid;
+    min-height: 20px;
+    place-items: center;
+    color: #f5e8ff;
+    font-size: 0.66rem;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .premium-invitation .premium-actionbar__primary {
+    background: linear-gradient(135deg, #a855f7, #7e22ce) !important;
+    box-shadow: 0 14px 28px rgba(126, 34, 206, 0.34);
   }
 }
 
