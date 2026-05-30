@@ -6970,6 +6970,20 @@ body.premium-flow-open .wedflix-footer {
   box-shadow: 0 12px 26px rgba(196, 73, 117, 0.12);
 }
 
+.premium-invitation__portrait {
+  position: relative;
+  z-index: 2;
+  width: clamp(92px, 11vw, 132px);
+  height: clamp(92px, 11vw, 132px);
+  margin-bottom: min(1.1vh, 10px);
+  border: 3px solid rgba(255, 255, 255, 0.86);
+  border-radius: 999px;
+  object-fit: cover;
+  box-shadow:
+    0 18px 38px rgba(75, 24, 117, 0.2),
+    0 0 0 1px rgba(147, 51, 234, 0.18);
+}
+
 .premium-invitation__quote {
   position: absolute;
   z-index: 2;
@@ -8189,9 +8203,9 @@ body.premium-flow-open .wedflix-footer {
   }
 
   .premium-invitation__monogram {
-    width: 54px;
-    height: 54px;
-    margin-bottom: min(1vh, 8px);
+    width: 40px;
+    height: 40px;
+    margin-bottom: min(0.7vh, 5px);
     color: #9333ea;
     font-family: "Manrope", "Segoe UI", sans-serif;
     font-weight: 900;
@@ -8199,6 +8213,13 @@ body.premium-flow-open .wedflix-footer {
     background: rgba(255, 255, 255, 0.78);
     border-color: rgba(147, 51, 234, 0.26);
     box-shadow: 0 12px 26px rgba(126, 34, 206, 0.14);
+  }
+
+  .premium-invitation__portrait {
+    width: clamp(74px, 23vw, 94px);
+    height: clamp(74px, 23vw, 94px);
+    margin-bottom: min(0.8vh, 6px);
+    border-width: 2px;
   }
 
   .premium-invitation__flower {

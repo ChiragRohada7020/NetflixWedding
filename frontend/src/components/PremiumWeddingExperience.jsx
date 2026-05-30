@@ -386,6 +386,7 @@ export default function PremiumWeddingExperience({
                 <span aria-hidden="true">{isMusicOn ? "Music" : "Mute"}</span>
               </button>
               <span className="premium-invitation__ribbon" aria-hidden="true">You are cordially invited</span>
+              <img className="premium-invitation__portrait" src={heroImage} alt={wedding.couple_names || "Couple"} />
               <span className="premium-invitation__monogram" aria-hidden="true">
                 {(invitation.first || "K").charAt(0)}
                 {(invitation.second || "N").charAt(0)}
