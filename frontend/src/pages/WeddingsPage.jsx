@@ -48,7 +48,10 @@ export default function WeddingsPage() {
 
   const saveWedding = async (payload, weddingId) => {
     const fd = new FormData();
-    Object.entries(payload).forEach(([k, v]) => fd.append(k, v || ""));
+    Object.entries(payload).forEach(([k, v]) => {
+      if (v instanceof File) fd.append(k, v);
+      else fd.append(k, v || "");
+    });
     await apiPostForm(`/admin/weddings/${weddingId}/update`, fd);
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     setModal(null);
@@ -56,7 +59,10 @@ export default function WeddingsPage() {
 
   const createWedding = async (payload) => {
     const fd = new FormData();
-    Object.entries(payload).forEach(([k, v]) => fd.append(k, v || ""));
+    Object.entries(payload).forEach(([k, v]) => {
+      if (v instanceof File) fd.append(k, v);
+      else fd.append(k, v || "");
+    });
     await apiPostForm("/admin/weddings/create", fd);
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     await queryClient.invalidateQueries({ queryKey: ["session"] });
@@ -147,6 +153,10 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
     description: initial.description || "",
     venue_name: initial.venue_name || "",
     event_address: initial.event_address || "",
+    venue_map_location: initial.venue_map_location || initial.event_address || "",
+    venue_description: initial.venue_description || "",
+    venue_image: initial.venue_image || "",
+    venue_image_file: null,
     profile_image: initial.profile_image || "",
     music_url: initial.music_url || "",
     access_level: initial.access_level || "private",
@@ -208,6 +218,22 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
         <label className="cms-field cms-field-wide">
           <span>Event Address</span>
           <input value={form.event_address} onChange={(e) => setForm((p) => ({ ...p, event_address: e.target.value }))} placeholder="Full address..." disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Google Maps Location</span>
+          <input value={form.venue_map_location} onChange={(e) => setForm((p) => ({ ...p, venue_map_location: e.target.value }))} placeholder="Google Maps link, plus code, or exact venue location" disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Venue Image URL</span>
+          <input value={form.venue_image} onChange={(e) => setForm((p) => ({ ...p, venue_image: e.target.value }))} placeholder="https://..." disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Upload Venue Image</span>
+          <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, venue_image_file: e.target.files?.[0] || null }))} disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Venue Description</span>
+          <textarea value={form.venue_description} onChange={(e) => setForm((p) => ({ ...p, venue_description: e.target.value }))} placeholder="Venue note..." disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Music URL</span>

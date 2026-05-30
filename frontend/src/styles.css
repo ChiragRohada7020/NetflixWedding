@@ -6391,6 +6391,11 @@ body.premium-flow-open .wedflix-footer {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.premium-wedding__nav-links button.is-active {
+  color: #fff;
+  background: rgba(229, 9, 20, 0.42);
+}
+
 .premium-intro {
   position: relative;
   min-height: 100svh;
@@ -7167,6 +7172,20 @@ body.premium-flow-open .wedflix-footer {
   font-size: clamp(2.4rem, 6vw, 5.4rem);
 }
 
+.premium-venue__edit {
+  margin-top: 18px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid rgba(232, 196, 123, 0.28);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .premium-venue__details {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -7261,6 +7280,10 @@ body.premium-flow-open .wedflix-footer {
   border: 1px solid rgba(232, 196, 123, 0.22);
   border-radius: 10px;
   background: rgba(8, 6, 6, 0.74);
+}
+
+.premium-venue__settings {
+  margin-bottom: 18px;
 }
 
 .premium-venue__editor label {

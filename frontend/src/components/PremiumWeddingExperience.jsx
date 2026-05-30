@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import LazyHeroVideo from "./LazyHeroVideo";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -81,21 +80,22 @@ export default function PremiumWeddingExperience({
   const [zoom, setZoom] = useState(1);
   const [distance, setDistance] = useState("");
   const [venueEditor, setVenueEditor] = useState(null);
+  const [venueSettingsOpen, setVenueSettingsOpen] = useState(false);
   const [isSavingVenue, setIsSavingVenue] = useState(false);
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const audioRef = useRef(null);
   const invitationRef = useRef(null);
   const featuredProgram = programs[0] || null;
   const heroImage = wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || placeholder(wedding?.couple_names);
-  const heroVideo = withHeroParams(toEmbed(wedding?.hero_video_url || ""));
   const venueImage = wedding?.venue_image || heroImage;
   const venueName = wedding?.venue_name || featuredProgram?.venue_name || "Wedding Venue";
   const venueAddress = wedding?.event_address || featuredProgram?.event_address || "Venue address";
+  const mapLocation = wedding?.venue_map_location || venueAddress;
   const weddingTime = wedding?.wedding_time || featuredProgram?.event_time || "11:00 AM";
   const musicUrl = wedding?.music_url || "";
   const invitation = getInvitationText(wedding);
   const invitationDate = getInvitationDate(wedding?.wedding_date);
-  const mapQuery = [venueName, venueAddress].filter(Boolean).join(", ");
+  const mapQuery = mapLocation || [venueName, venueAddress].filter(Boolean).join(", ");
   const venueBlocks = useMemo(() => {
     const saved = Array.isArray(wedding?.venue_blocks) ? wedding.venue_blocks : [];
     if (Array.isArray(wedding?.venue_blocks)) return saved;
@@ -153,6 +153,25 @@ export default function PremiumWeddingExperience({
     setIsSavingVenue(true);
     try {
       await onSaveWeddingField("venue_blocks", existing.filter((item) => item.key !== key));
+    } finally {
+      setIsSavingVenue(false);
+    }
+  };
+
+  const saveVenueSettings = async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setIsSavingVenue(true);
+    try {
+      await onSaveWeddingField("venue_details", {
+        venue_name: String(form.get("venue_name") || "").trim(),
+        event_address: String(form.get("event_address") || "").trim(),
+        venue_map_location: String(form.get("venue_map_location") || "").trim(),
+        venue_image: String(form.get("venue_image") || "").trim(),
+        venue_image_file: form.get("venue_image_file"),
+        venue_description: String(form.get("venue_description") || "").trim(),
+      });
+      setVenueSettingsOpen(false);
     } finally {
       setIsSavingVenue(false);
     }
@@ -272,6 +291,32 @@ export default function PremiumWeddingExperience({
     ["Venue", "venue"],
   ];
 
+  const goNav = (target) => {
+    if (target === "invitation" || target === "venue") {
+      setScreen(target);
+      return;
+    }
+    continueToHome();
+  };
+
+  const premiumNav = (active) => (
+    <nav className="premium-wedding__nav" aria-label="Premium wedding navigation">
+      <button type="button" className="premium-wedding__brand" onClick={continueToHome}>WEDFLIX</button>
+      <div className="premium-wedding__nav-links">
+        {navItems.map(([label, target]) => (
+          <button
+            type="button"
+            key={label}
+            className={active === target || (active === "home" && label === "Home") ? "is-active" : ""}
+            onClick={() => goNav(target)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+
   const eventCards = useMemo(() => {
     const cards = programs.map((program, index) => ({
       id: program._id,
@@ -296,8 +341,8 @@ export default function PremiumWeddingExperience({
   if (screen === "intro") {
     return shell(
       <header className="premium-intro">
-        <div className={`premium-intro__media ${heroVideo ? "has-video" : ""}`}>
-          {heroVideo ? <LazyHeroVideo src={heroVideo} poster={heroImage} title="Wedding Introduction" alt={wedding.couple_names} /> : <img src={heroImage} alt={wedding.couple_names} />}
+        <div className="premium-intro__media">
+          <img src={heroImage} alt={wedding.couple_names} />
           <div className="premium-intro__shade" />
         </div>
         <button className="premium-sound" type="button" onClick={toggleMusic} disabled={!musicUrl} title={musicUrl ? "Toggle music" : "No music"}>
@@ -426,15 +471,54 @@ export default function PremiumWeddingExperience({
 
   if (screen === "venue") {
     return shell(
-      <main className="premium-venue">
+      <>
+      {premiumNav("venue")}
+        <main className="premium-venue">
         <section className="premium-venue__hero">
           <img src={venueImage} alt={venueName} />
           <div>
             <p className="premium-kicker">Venue</p>
             <h1>{venueName}</h1>
             <p>{venueAddress}</p>
+            {canEdit && (
+              <button type="button" className="premium-venue__edit" onClick={() => setVenueSettingsOpen((value) => !value)}>
+                Edit Venue
+              </button>
+            )}
           </div>
         </section>
+        {canEdit && venueSettingsOpen && (
+          <form className="premium-venue__editor premium-venue__settings" onSubmit={saveVenueSettings}>
+            <label>
+              <span>Venue Name</span>
+              <input name="venue_name" defaultValue={venueName} placeholder="Royal Banquet" disabled={isSavingVenue} />
+            </label>
+            <label>
+              <span>Display Address</span>
+              <input name="event_address" defaultValue={venueAddress} placeholder="Address shown to guests" disabled={isSavingVenue} />
+            </label>
+            <label className="premium-venue__editor-wide">
+              <span>Google Maps Location</span>
+              <input name="venue_map_location" defaultValue={mapLocation} placeholder="Paste Google Maps link, plus code, or exact location" disabled={isSavingVenue} />
+            </label>
+            <label className="premium-venue__editor-wide">
+              <span>Venue Image URL</span>
+              <input name="venue_image" defaultValue={wedding?.venue_image || ""} placeholder="https://..." disabled={isSavingVenue} />
+            </label>
+            <label className="premium-venue__editor-wide">
+              <span>Upload Venue Image</span>
+              <input name="venue_image_file" type="file" accept="image/*" disabled={isSavingVenue} />
+            </label>
+            <label className="premium-venue__editor-wide">
+              <span>Venue Description</span>
+              <textarea name="venue_description" defaultValue={wedding?.venue_description || ""} placeholder="Venue note shown below the details" disabled={isSavingVenue} />
+            </label>
+            <div className="premium-venue__editor-actions">
+              <button type="button" onClick={() => setVenueSettingsOpen(false)} disabled={isSavingVenue}>Cancel</button>
+              <button type="submit" disabled={isSavingVenue}>{isSavingVenue ? "Saving..." : "Save Venue"}</button>
+            </div>
+          </form>
+        )}
         <section className="premium-venue__details premium-venue__details--blocks">
           {venueBlocks.map((block) => (
             <article className="premium-venue__block" key={block.key}>
@@ -499,7 +583,8 @@ export default function PremiumWeddingExperience({
           <button type="button" className="premium-actionbar__primary" onClick={continueToHome}>Continue</button>
         </div>
         {distance && <p className="premium-distance">{distance}</p>}
-      </main>,
+        </main>
+      </>,
     );
   }
 

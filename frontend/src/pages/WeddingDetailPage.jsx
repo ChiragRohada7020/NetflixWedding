@@ -201,14 +201,21 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     const customSectionsValue = field === "custom_sections" ? (Array.isArray(val) ? val : []) : customSections;
     const customSectionLabel = customSectionsValue[0]?.label || wedding.custom_section_label || "My Custom Box";
     const venueBlocksValue = field === "venue_blocks" ? (Array.isArray(val) ? val : []) : (Array.isArray(wedding.venue_blocks) ? wedding.venue_blocks : []);
+    const venueDetailsValue = field === "venue_details" && val && typeof val === "object" ? val : {};
 
     const fd = new FormData();
     fd.append("couple_names", field === "couple_names" ? val : wedding.couple_names || "");
     fd.append("wedding_date", field === "wedding_date" ? val : wedding.wedding_date || "");
     fd.append("hero_video_url", wedding.hero_video_url || "");
     fd.append("description", wedding.description || "");
-    fd.append("venue_name", wedding.venue_name || "");
-    fd.append("event_address", wedding.event_address || "");
+    fd.append("venue_name", venueDetailsValue.venue_name ?? wedding.venue_name ?? "");
+    fd.append("event_address", venueDetailsValue.event_address ?? wedding.event_address ?? "");
+    fd.append("venue_map_location", venueDetailsValue.venue_map_location ?? wedding.venue_map_location ?? wedding.event_address ?? "");
+    fd.append("venue_description", venueDetailsValue.venue_description ?? wedding.venue_description ?? "");
+    fd.append("venue_image", venueDetailsValue.venue_image ?? wedding.venue_image ?? "");
+    if (venueDetailsValue.venue_image_file) {
+      fd.append("venue_image_file", venueDetailsValue.venue_image_file);
+    }
     fd.append("profile_image", wedding.profile_image || "");
     fd.append("music_url", wedding.music_url || "");
     fd.append("access_level", wedding.access_level || "private");
