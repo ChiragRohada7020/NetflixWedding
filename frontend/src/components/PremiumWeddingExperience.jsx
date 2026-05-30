@@ -1,25 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-
-function toEmbed(url) {
-  if (!url) return "";
-  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
-}
-
-function getVideoId(url) {
-  if (!url) return "";
-  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return match ? match[1] : "";
-}
-
-function withHeroParams(url) {
-  if (!url) return "";
-  const joiner = url.includes("?") ? "&" : "?";
-  const videoId = getVideoId(url);
-  const loopParams = videoId ? `&playlist=${videoId}` : "";
-  return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1${loopParams}&playsinline=1&start=0&rel=0&modestbranding=1`;
-}
 
 function placeholder(label) {
   const text = encodeURIComponent((label || "Wedflix Wedding").trim().slice(0, 28));
@@ -27,6 +6,7 @@ function placeholder(label) {
 }
 
 function mapsUrl(address) {
+  if (/^https?:\/\//i.test(address || "")) return address;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || "")}`;
 }
 
@@ -63,6 +43,12 @@ function getInvitationDate(value) {
     year: String(date.getFullYear()),
     weekday: date.toLocaleString("en", { weekday: "long" }),
   };
+}
+
+function splitCoupleNames(value) {
+  const names = value || "Aarav & Diya";
+  const parts = names.split("&").map((part) => part.trim()).filter(Boolean);
+  return parts.length >= 2 ? parts.slice(0, 2) : [names, ""];
 }
 
 export default function PremiumWeddingExperience({
@@ -119,6 +105,24 @@ export default function PremiumWeddingExperience({
       },
     ];
   }, [programs, venueAddress, venueName, wedding?.venue_blocks, wedding?.wedding_date, weddingTime]);
+
+  const scheduleCards = useMemo(() => {
+    const programCards = programs
+      .filter((program) => program.title || program.event_date || program.event_time)
+      .map((program, index) => ({
+        key: program._id || `program_${index}`,
+        title: program.title || `Event ${index + 1}`,
+        date: program.event_date || wedding?.wedding_date || "Wedding Date",
+        time: program.event_time || weddingTime,
+      }));
+    if (programCards.length) return programCards.slice(0, 4);
+    return venueBlocks.slice(0, 4).map((block, index) => ({
+      key: block.key || `venue_${index}`,
+      title: block.title || `Event ${index + 1}`,
+      date: block.meta || wedding?.wedding_date || "Wedding Date",
+      time: weddingTime,
+    }));
+  }, [programs, venueBlocks, wedding?.wedding_date, weddingTime]);
 
   const saveVenueBlock = async (event) => {
     event.preventDefault();
@@ -280,17 +284,6 @@ export default function PremiumWeddingExperience({
     onComplete();
   };
 
-  const navItems = [
-    ["Home", "home"],
-    ["Invitation", "invitation"],
-    ["Events", "home"],
-    ["Gallery", "home"],
-    ["Videos", "home"],
-    ["Family", "home"],
-    ["Wishes", "home"],
-    ["Venue", "venue"],
-  ];
-
   const goNav = (target) => {
     if (target === "invitation" || target === "venue") {
       setScreen(target);
@@ -303,33 +296,31 @@ export default function PremiumWeddingExperience({
     <nav className="premium-wedding__nav" aria-label="Premium wedding navigation">
       <button type="button" className="premium-wedding__brand" onClick={continueToHome}>WEDFLIX</button>
       <div className="premium-wedding__nav-links">
-        {navItems.map(([label, target]) => (
+        {[
+          ["Home", "home"],
+          ["TV Shows", "home"],
+          ["Movies", "home"],
+          ["Live Events", "venue"],
+          ["My List", "invitation"],
+        ].map(([label, target]) => (
           <button
             type="button"
             key={label}
-            className={active === target || (active === "home" && label === "Home") ? "is-active" : ""}
+            className={active === target && label === "Live Events" ? "is-active" : ""}
             onClick={() => goNav(target)}
           >
             {label}
           </button>
         ))}
       </div>
+      <div className="premium-wedding__nav-tools" aria-hidden="true">
+        <span className="premium-wedding__search" />
+        <span className="premium-wedding__bell">3</span>
+        <span className="premium-wedding__avatar">{(wedding?.couple_names || "W").charAt(0)}</span>
+        <span className="premium-wedding__chevron" />
+      </div>
     </nav>
   );
-
-  const eventCards = useMemo(() => {
-    const cards = programs.map((program, index) => ({
-      id: program._id,
-      title: program.title || `Event ${index + 1}`,
-      subtitle: program.event_date || program.venue_name || "Wedding Event",
-      image: program.thumbnail || heroImage,
-      href: `${basePath}/programs/${program._id}`,
-    }));
-    return cards.length ? cards : [
-      { id: "invitation", title: "Invitation", subtitle: "Date, time, venue", image: heroImage, action: () => setScreen("invitation") },
-      { id: "venue", title: "Venue", subtitle: venueName, image: venueImage, action: () => setScreen("venue") },
-    ];
-  }, [basePath, heroImage, programs, venueImage, venueName]);
 
   const shell = (children) => (
     <section className={`premium-wedding premium-wedding--${screen}`}>
@@ -470,23 +461,49 @@ export default function PremiumWeddingExperience({
   }
 
   if (screen === "venue") {
+    const [firstName, secondName] = splitCoupleNames(wedding?.couple_names);
     return shell(
       <>
-      {premiumNav("venue")}
+        {premiumNav("venue")}
         <main className="premium-venue">
-        <section className="premium-venue__hero">
-          <img src={venueImage} alt={venueName} />
-          <div>
-            <p className="premium-kicker">Venue</p>
-            <h1>{venueName}</h1>
-            <p>{venueAddress}</p>
-            {canEdit && (
-              <button type="button" className="premium-venue__edit" onClick={() => setVenueSettingsOpen((value) => !value)}>
-                Edit Venue
-              </button>
-            )}
-          </div>
-        </section>
+          <section className="premium-venue__hero premium-venue__hero--live">
+            <img src={venueImage} alt={venueName} />
+            <div className="premium-venue__hero-copy">
+              <p className="premium-venue__eyebrow">You're Invited To</p>
+              <p className="premium-venue__script">the wedding of</p>
+              <h1>
+                <span>{firstName}</span>
+                {secondName && <em>&amp;</em>}
+                {secondName && <span>{secondName}</span>}
+              </h1>
+              <div className="premium-venue__meta">
+                <span>{wedding?.wedding_date || "Wedding Date"}</span>
+                <span>{weddingTime}</span>
+                <span>{venueName}</span>
+              </div>
+              <p className="premium-venue__lead">
+                {wedding.venue_description || wedding.description || "Join us as we begin our forever. Watch our special day live, from anywhere in the world."}
+              </p>
+              <div className="premium-venue__hero-actions">
+                <button type="button" onClick={addToCalendar}><span aria-hidden="true">Bell</span> Remind Me</button>
+                <button type="button" aria-label="Share venue" onClick={shareLocation}><span aria-hidden="true">Share</span></button>
+                {canEdit && (
+                  <button type="button" onClick={() => setVenueSettingsOpen((value) => !value)}>
+                    Edit Venue
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+          <section className="premium-venue__spotlight">
+            <img src={venueImage} alt="" />
+            <div>
+              <p>Our Venue</p>
+              <h2>{venueName}</h2>
+              <span>{wedding.venue_description || "A royal setting for our special day, chosen for beauty, warmth, and unforgettable memories."}</span>
+            </div>
+            <a href={mapsUrl(mapQuery)} target="_blank" rel="noreferrer">Explore Venue</a>
+          </section>
         {canEdit && venueSettingsOpen && (
           <form className="premium-venue__editor premium-venue__settings" onSubmit={saveVenueSettings}>
             <label>
@@ -519,21 +536,16 @@ export default function PremiumWeddingExperience({
             </div>
           </form>
         )}
-        <section className="premium-venue__details premium-venue__details--blocks">
-          {venueBlocks.map((block) => (
-            <article className="premium-venue__block" key={block.key}>
+        <h2 className="premium-venue__schedule-title">Event Schedule</h2>
+        <section className="premium-venue__schedule">
+          {scheduleCards.map((card, index) => (
+            <article className="premium-venue__event" key={card.key}>
+              <span aria-hidden="true">{["✣", "♪", "♕", "♢"][index % 4]}</span>
               <div>
-                {block.meta && <span>{block.meta}</span>}
-                <strong>{block.title}</strong>
-                {block.body && <p>{block.body}</p>}
-                {block.address && <small>{block.address}</small>}
+                <strong>{card.title}</strong>
+                <small>{card.date}</small>
+                <small>{card.time}</small>
               </div>
-              {canEdit && (
-                <div className="premium-venue__block-actions">
-                  <button type="button" onClick={() => setVenueEditor(block)} disabled={isSavingVenue}>Edit</button>
-                  <button type="button" onClick={() => deleteVenueBlock(block.key)} disabled={isSavingVenue}>Delete</button>
-                </div>
-              )}
             </article>
           ))}
           {canEdit && (
@@ -571,10 +583,6 @@ export default function PremiumWeddingExperience({
             </div>
           </form>
         )}
-        <p className="premium-venue__copy">{wedding.venue_description || wedding.description || "A premium celebration venue prepared for family, friends, and unforgettable memories."}</p>
-        <div className="premium-map">
-          <iframe title="Wedding venue map" loading="lazy" src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`} />
-        </div>
         <div className="premium-actionbar">
           <a href={mapsUrl(mapQuery)} target="_blank" rel="noreferrer">Open in Google Maps</a>
           <button type="button" onClick={shareLocation}>Share Location</button>

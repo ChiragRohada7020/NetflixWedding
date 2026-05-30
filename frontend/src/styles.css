@@ -7361,6 +7361,417 @@ body.premium-flow-open .wedflix-footer {
   border: 0;
 }
 
+.premium-wedding--venue {
+  background: #000;
+}
+
+.premium-wedding--venue .premium-wedding__nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  min-height: 88px;
+  padding: 0 30px;
+  gap: 52px;
+  background: #030303;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: none;
+}
+
+.premium-wedding--venue .premium-wedding__brand {
+  color: #e50914;
+  font-size: clamp(2rem, 3vw, 3.25rem);
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.premium-wedding--venue .premium-wedding__nav-links {
+  flex: 1 1 auto;
+  gap: 34px;
+  overflow: visible;
+}
+
+.premium-wedding--venue .premium-wedding__nav-links button {
+  position: relative;
+  padding: 33px 0 29px;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.premium-wedding--venue .premium-wedding__nav-links button:hover,
+.premium-wedding--venue .premium-wedding__nav-links button.is-active {
+  color: #ff4d6a;
+  background: transparent;
+}
+
+.premium-wedding--venue .premium-wedding__nav-links button.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 3px;
+  height: 2px;
+  background: #ff304d;
+}
+
+.premium-wedding__nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-left: auto;
+}
+
+.premium-wedding__search {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  position: relative;
+}
+
+.premium-wedding__search::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  bottom: -7px;
+  width: 11px;
+  height: 2px;
+  background: #fff;
+  transform: rotate(45deg);
+  transform-origin: center;
+}
+
+.premium-wedding__bell {
+  position: relative;
+  display: grid;
+  place-items: start end;
+  width: 23px;
+  height: 26px;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.premium-wedding__bell::before {
+  content: "";
+  position: absolute;
+  inset: 5px 3px 2px;
+  border: 2px solid #fff;
+  border-bottom-color: transparent;
+  border-radius: 12px 12px 8px 8px;
+}
+
+.premium-wedding__bell::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #e50914;
+  z-index: -1;
+}
+
+.premium-wedding__avatar {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  color: #161616;
+  background: linear-gradient(135deg, #f4d6b7, #a77b56);
+  border: 2px solid rgba(235, 204, 142, 0.74);
+  font-weight: 900;
+}
+
+.premium-wedding__chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(45deg);
+}
+
+.premium-wedding--venue .premium-venue {
+  width: 100%;
+  margin: 0;
+  padding: 0 48px 42px;
+  box-sizing: border-box;
+}
+
+.premium-wedding--venue .premium-venue__hero {
+  min-height: 548px;
+  margin: 0 -48px;
+  padding: 64px 48px 36px;
+  border: 0;
+  border-radius: 0;
+  align-items: center;
+  background: #000;
+}
+
+.premium-wedding--venue .premium-venue__hero img {
+  left: 31%;
+  width: 69%;
+  filter: brightness(0.86) saturate(1.08);
+  object-position: center;
+}
+
+.premium-wedding--venue .premium-venue__hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.94) 22%, rgba(0, 0, 0, 0.52) 48%, rgba(0, 0, 0, 0.08) 76%),
+    linear-gradient(0deg, #000 0%, rgba(0, 0, 0, 0.18) 22%, rgba(0, 0, 0, 0) 70%);
+}
+
+.premium-wedding--venue .premium-venue__hero::after {
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 56%, #000 100%);
+}
+
+.premium-venue__hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 760px;
+}
+
+.premium-venue__eyebrow {
+  margin: 0 0 20px;
+  color: #b885ff;
+  font-size: clamp(1rem, 1.8vw, 1.42rem);
+  font-weight: 500;
+  letter-spacing: 0.46em;
+  text-transform: uppercase;
+}
+
+.premium-venue__script {
+  position: relative;
+  display: inline-block;
+  margin: 0 0 24px 45px;
+  color: #fff;
+  font-family: "Brush Script MT", "Segoe Script", cursive;
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  line-height: 1;
+}
+
+.premium-venue__script::after {
+  content: "";
+  position: absolute;
+  left: -45px;
+  right: -140px;
+  bottom: -28px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(179, 122, 255, 0.15), #a86cff 38%, #a86cff 42%, rgba(179, 122, 255, 0.15));
+}
+
+.premium-wedding--venue .premium-venue__hero h1 {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin: 22px 0 22px;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(4rem, 8vw, 6.8rem);
+  line-height: 0.92;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.48);
+}
+
+.premium-wedding--venue .premium-venue__hero h1 em {
+  color: #a86cff;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.premium-venue__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 16px;
+  color: #fff;
+  font-size: 1.06rem;
+}
+
+.premium-venue__meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.premium-venue__meta span:first-child {
+  padding-left: 0;
+}
+
+.premium-venue__meta span:last-child {
+  border-right: 0;
+}
+
+.premium-venue__lead {
+  max-width: 620px;
+  margin: 22px 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 1.08rem;
+  line-height: 1.62;
+}
+
+.premium-venue__hero-actions {
+  display: flex;
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.premium-venue__hero-actions button {
+  min-height: 64px;
+  padding: 0 30px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 6px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.42);
+  font: inherit;
+  font-size: 1.04rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.premium-venue__hero-actions button span {
+  margin-right: 14px;
+  color: transparent;
+  position: relative;
+}
+
+.premium-venue__hero-actions button span::before {
+  content: "\25CE";
+  color: #fff;
+}
+
+.premium-venue__hero-actions button:nth-child(2) {
+  width: 72px;
+  padding: 0;
+}
+
+.premium-venue__hero-actions button:nth-child(2) span {
+  margin: 0;
+}
+
+.premium-venue__hero-actions button:nth-child(2) span::before {
+  content: "\2934";
+}
+
+.premium-venue__spotlight {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 225px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+  margin: -6px 0 26px;
+  padding: 20px 22px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, rgba(21, 25, 34, 0.94), rgba(10, 12, 18, 0.94));
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.42);
+}
+
+.premium-venue__spotlight img {
+  width: 225px;
+  height: 136px;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.premium-venue__spotlight p {
+  margin: 0 0 10px;
+  color: #b885ff;
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.premium-venue__spotlight h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.35rem;
+}
+
+.premium-venue__spotlight span {
+  display: block;
+  max-width: 640px;
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.premium-venue__spotlight a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 0 28px;
+  border: 1px solid #a86cff;
+  border-radius: 6px;
+  color: #c9a2ff;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.premium-venue__schedule-title {
+  margin: 0 0 14px;
+  font-size: 1.38rem;
+}
+
+.premium-venue__schedule {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.premium-venue__event {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  align-items: center;
+  min-height: 112px;
+  padding: 0 22px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.premium-venue__event > span {
+  color: #b885ff;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.premium-venue__event strong,
+.premium-venue__event small {
+  display: block;
+}
+
+.premium-venue__event strong {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.premium-venue__event small {
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.96rem;
+}
+
+.premium-wedding--venue .premium-actionbar {
+  justify-content: flex-start;
+  margin-top: 22px;
+}
+
 .premium-home__grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -7422,6 +7833,58 @@ body.premium-flow-open .wedflix-footer {
 
   .premium-wedding__nav {
     padding: 0 14px;
+  }
+
+  .premium-wedding--venue .premium-wedding__nav {
+    min-height: 72px;
+    gap: 22px;
+    padding: 0 16px;
+  }
+
+  .premium-wedding--venue .premium-wedding__brand {
+    font-size: 2rem;
+  }
+
+  .premium-wedding--venue .premium-wedding__nav-links {
+    gap: 18px;
+  }
+
+  .premium-wedding__nav-tools {
+    display: none;
+  }
+
+  .premium-wedding--venue .premium-venue {
+    padding: 0 18px 34px;
+  }
+
+  .premium-wedding--venue .premium-venue__hero {
+    min-height: 650px;
+    margin: 0 -18px;
+    padding: 48px 20px 30px;
+    align-items: end;
+  }
+
+  .premium-wedding--venue .premium-venue__hero img {
+    left: 0;
+    width: 100%;
+    opacity: 0.72;
+  }
+
+  .premium-venue__spotlight {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+
+  .premium-venue__spotlight img {
+    width: 120px;
+    height: 96px;
+  }
+
+  .premium-venue__spotlight a {
+    grid-column: 1 / -1;
+  }
+
+  .premium-venue__schedule {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .premium-invitation {
@@ -7754,6 +8217,80 @@ body.premium-flow-open .wedflix-footer {
   .premium-home__hero {
     min-height: 320px;
     padding: 22px;
+  }
+
+  .premium-wedding--venue .premium-wedding__nav {
+    min-height: 66px;
+  }
+
+  .premium-wedding--venue .premium-wedding__nav-links {
+    gap: 16px;
+    overflow-x: auto;
+  }
+
+  .premium-wedding--venue .premium-wedding__nav-links button {
+    padding: 24px 0 21px;
+    font-size: 0.88rem;
+  }
+
+  .premium-wedding--venue .premium-venue__hero {
+    min-height: 620px;
+    padding: 42px 18px 26px;
+  }
+
+  .premium-venue__eyebrow {
+    letter-spacing: 0.26em;
+    font-size: 0.88rem;
+  }
+
+  .premium-venue__script {
+    margin-left: 0;
+    font-size: 1.75rem;
+  }
+
+  .premium-venue__script::after {
+    left: 0;
+    right: -90px;
+  }
+
+  .premium-wedding--venue .premium-venue__hero h1 {
+    gap: 12px;
+    font-size: clamp(3.2rem, 15vw, 5rem);
+  }
+
+  .premium-venue__meta {
+    display: grid;
+    gap: 8px;
+    font-size: 0.94rem;
+  }
+
+  .premium-venue__meta span {
+    min-height: auto;
+    padding: 0;
+    border-right: 0;
+  }
+
+  .premium-venue__hero-actions {
+    flex-wrap: wrap;
+  }
+
+  .premium-venue__hero-actions button {
+    min-height: 52px;
+    padding: 0 18px;
+  }
+
+  .premium-venue__spotlight,
+  .premium-venue__schedule {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-venue__spotlight img {
+    width: 100%;
+    height: 170px;
+  }
+
+  .premium-venue__event {
+    grid-template-columns: 66px 1fr;
   }
 
   .premium-venue__details,
