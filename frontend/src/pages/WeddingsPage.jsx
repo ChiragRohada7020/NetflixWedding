@@ -150,6 +150,7 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
     profile_image: initial.profile_image || "",
     music_url: initial.music_url || "",
     access_level: initial.access_level || "private",
+    premium_experience_enabled: initial.premium_experience_enabled ? "1" : "",
   });
   return (
     <form
@@ -194,6 +195,15 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
             <option value="private">Private</option>
             <option value="public">Public</option>
           </select>
+        </label>
+        <label className="cms-field cms-check-field">
+          <input
+            type="checkbox"
+            checked={form.premium_experience_enabled === "1"}
+            onChange={(e) => setForm((p) => ({ ...p, premium_experience_enabled: e.target.checked ? "1" : "" }))}
+            disabled={isSaving}
+          />
+          <span>Show Premium Wedding Experience First</span>
         </label>
         <label className="cms-field cms-field-wide">
           <span>Event Address</span>

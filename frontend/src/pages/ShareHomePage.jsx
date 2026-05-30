@@ -7,6 +7,7 @@ import { apiGet } from "../api";
 import AsyncState from "../components/AsyncState";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import SeoHead from "../components/SeoHead";
+import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -69,6 +70,8 @@ function SharePoster({ item, href, title, subtitle }) {
 export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   const { weddingId } = useParams();
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
+  const [premiumSeen, setPremiumSeen] = useState(() => localStorage.getItem(`wedflix_premium_seen_${weddingId}`) === "1");
+  const [premiumPanel, setPremiumPanel] = useState("");
   const audioRef = useRef(null);
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -142,6 +145,31 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
 
+  if (wedding?.premium_experience_enabled && !premiumSeen) {
+    return (
+      <PremiumWeddingExperience
+        wedding={wedding}
+        programs={programs}
+        basePath={`/share/${weddingId}`}
+        onMusicUrlChange={onMusicUrlChange}
+        onComplete={() => setPremiumSeen(true)}
+      />
+    );
+  }
+
+  if (wedding?.premium_experience_enabled && premiumPanel) {
+    return (
+      <PremiumWeddingExperience
+        wedding={wedding}
+        programs={programs}
+        basePath={`/share/${weddingId}`}
+        initialScreen={premiumPanel}
+        onMusicUrlChange={onMusicUrlChange}
+        onComplete={() => setPremiumPanel("")}
+      />
+    );
+  }
+
   return (
     <section className="home-page share-home-page">
       <SeoHead
@@ -156,6 +184,12 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
       <nav className="share-home-nav" aria-label="Wedding home">
         <Link to={`/share/${weddingId}`} className="share-home-nav__brand">WEDFLIX</Link>
         <a href="#celebration-series" className="share-home-nav__link">Home</a>
+        {wedding?.premium_experience_enabled && (
+          <>
+            <button type="button" className="share-home-nav__link share-home-nav__button" onClick={() => setPremiumPanel("invitation")}>Invitation</button>
+            <button type="button" className="share-home-nav__link share-home-nav__button" onClick={() => setPremiumPanel("venue")}>Venue</button>
+          </>
+        )}
       </nav>
 
       {wedding && (

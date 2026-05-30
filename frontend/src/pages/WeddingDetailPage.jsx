@@ -9,6 +9,7 @@ import InlineEditableText from "../components/InlineEditableText";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import LazyHeroVideo from "../components/LazyHeroVideo";
+import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -123,6 +124,8 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
   const [modal, setModal] = useState(null);
   const [ordered, setOrdered] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [premiumSeen, setPremiumSeen] = useState(() => localStorage.getItem(`wedflix_premium_seen_${weddingId}`) === "1");
+  const [premiumPanel, setPremiumPanel] = useState("");
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["wedding", weddingId, publicMode ? "public" : "admin"],
@@ -197,6 +200,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     const programsSectionTitle = field === "programs_section_title" ? val : wedding.programs_section_title || "Wedding Programs";
     const customSectionsValue = field === "custom_sections" ? (Array.isArray(val) ? val : []) : customSections;
     const customSectionLabel = customSectionsValue[0]?.label || wedding.custom_section_label || "My Custom Box";
+    const venueBlocksValue = field === "venue_blocks" ? (Array.isArray(val) ? val : []) : (Array.isArray(wedding.venue_blocks) ? wedding.venue_blocks : []);
 
     const fd = new FormData();
     fd.append("couple_names", field === "couple_names" ? val : wedding.couple_names || "");
@@ -208,9 +212,11 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     fd.append("profile_image", wedding.profile_image || "");
     fd.append("music_url", wedding.music_url || "");
     fd.append("access_level", wedding.access_level || "private");
+    fd.append("premium_experience_enabled", wedding.premium_experience_enabled ? "1" : "");
     fd.append("invitation_title", invitationTitle);
     fd.append("programs_section_title", programsSectionTitle);
     fd.append("custom_sections_json", JSON.stringify(customSectionsValue));
+    fd.append("venue_blocks_json", JSON.stringify(venueBlocksValue));
     fd.append("custom_section_label", customSectionLabel);
     await apiPostForm(`/admin/weddings/${weddingId}/update`, fd);
     await queryClient.invalidateQueries({ queryKey: ["wedding", weddingId] });
@@ -328,6 +334,35 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
 
+  if (wedding?.premium_experience_enabled && !premiumSeen) {
+    return (
+      <PremiumWeddingExperience
+        wedding={wedding}
+        programs={programs}
+        basePath={weddingBasePath}
+        canEdit={isEditing}
+        onSaveWeddingField={saveWeddingField}
+        onMusicUrlChange={onMusicUrlChange}
+        onComplete={() => setPremiumSeen(true)}
+      />
+    );
+  }
+
+  if (wedding?.premium_experience_enabled && premiumPanel) {
+    return (
+      <PremiumWeddingExperience
+        wedding={wedding}
+        programs={programs}
+        basePath={weddingBasePath}
+        initialScreen={premiumPanel}
+        canEdit={isEditing}
+        onSaveWeddingField={saveWeddingField}
+        onMusicUrlChange={onMusicUrlChange}
+        onComplete={() => setPremiumPanel("")}
+      />
+    );
+  }
+
   return (
     <section className="home-page home-page--detail">
       <SeoHead
@@ -341,6 +376,13 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
 
       {isLoading && !wedding && <AsyncState mode="loading" />}
       {error && !wedding && <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />}
+
+      {wedding?.premium_experience_enabled && (
+        <div className="wedding-top-actions" aria-label="Wedding quick links">
+          <button type="button" onClick={() => setPremiumPanel("invitation")}>Invitation</button>
+          <button type="button" onClick={() => setPremiumPanel("venue")}>Venue</button>
+        </div>
+      )}
 
       {!isLoading && wedding && (
         <header className="home-hero">

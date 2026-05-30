@@ -3508,6 +3508,11 @@ body.login-open .container {
   overflow: hidden !important;
 }
 
+body.premium-flow-open .nav-home,
+body.premium-flow-open .wedflix-footer {
+  display: none;
+}
+
 .cms-modal-backdrop.auth-backdrop {
   position: fixed;
   inset: 0;
@@ -4511,6 +4516,39 @@ body.login-open .container {
   font-size: 0.95rem;
   font-weight: 700;
   text-decoration: none;
+}
+
+.share-home-nav__button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.wedding-top-actions {
+  position: fixed;
+  top: 34px;
+  left: 380px;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+}
+
+.wedding-top-actions button {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 10px 0;
+}
+
+.wedding-top-actions button:hover {
+  color: #fff;
 }
 
 .share-home-hero {
@@ -6271,6 +6309,1482 @@ body.login-open .container {
 .site-page .site-review-card__meta span {
   color: rgba(255, 255, 255, 0.55);
   font-size: 0.9rem;
+}
+
+.cms-check-field {
+  align-content: center;
+  grid-template-columns: auto 1fr;
+  display: grid;
+  gap: 10px;
+  min-height: 46px;
+}
+
+.cms-check-field input {
+  width: 18px;
+  height: 18px;
+  accent-color: #e50914;
+}
+
+.premium-wedding {
+  min-height: 100svh;
+  color: #fff;
+  background:
+    radial-gradient(circle at 12% 4%, rgba(184, 42, 70, 0.22), transparent 24%),
+    radial-gradient(circle at 88% 14%, rgba(205, 161, 86, 0.14), transparent 22%),
+    linear-gradient(180deg, #060607 0%, #10090b 44%, #050505 100%);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+}
+
+.premium-wedding--invitation {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.premium-wedding__nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-height: 68px;
+  padding: 0 28px;
+  background: rgba(5, 5, 5, 0.82);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.premium-wedding__brand,
+.premium-wedding__nav button {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.premium-wedding__brand {
+  color: #e50914;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.premium-wedding__nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.premium-wedding__nav-links button {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  color: rgba(255, 255, 255, 0.72);
+  border-radius: 6px;
+}
+
+.premium-wedding__nav-links button:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.premium-intro {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  display: grid;
+  align-items: end;
+}
+
+.premium-intro__media,
+.premium-intro__media img,
+.premium-intro__media iframe,
+.premium-intro__media > div:first-child {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.premium-intro__media img {
+  object-fit: cover;
+}
+
+.premium-intro__media iframe {
+  width: 140% !important;
+  height: 140% !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.premium-intro__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.86) 0%, rgba(0, 0, 0, 0.42) 48%, rgba(0, 0, 0, 0.18) 100%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.04) 72%);
+}
+
+.premium-intro__content {
+  position: relative;
+  z-index: 2;
+  width: min(760px, calc(100% - 42px));
+  padding: 0 0 8vh 7vw;
+}
+
+.premium-kicker {
+  margin: 0;
+  color: #e8c47b;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.premium-intro h1,
+.premium-screen-head h1,
+.premium-venue__hero h1,
+.premium-home__hero h1 {
+  margin: 14px 0 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(3rem, 8vw, 7.2rem);
+  line-height: 0.92;
+  font-weight: 700;
+}
+
+.premium-intro__tagline {
+  margin: 16px 0 0;
+  max-width: 46rem;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: clamp(1rem, 2vw, 1.28rem);
+  line-height: 1.55;
+}
+
+.premium-intro__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.premium-intro__meta span {
+  border-left: 2px solid #e8c47b;
+  padding-left: 12px;
+}
+
+.premium-primary,
+.premium-actionbar button,
+.premium-actionbar a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 6px;
+  border: 1px solid rgba(232, 196, 123, 0.32);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.premium-primary,
+.premium-actionbar__primary {
+  margin-top: 28px;
+  border-color: rgba(229, 9, 20, 0.7) !important;
+  background: linear-gradient(135deg, #e50914, #9d0710) !important;
+  box-shadow: 0 18px 42px rgba(229, 9, 20, 0.28);
+}
+
+.premium-sound {
+  position: absolute;
+  z-index: 4;
+  top: 24px;
+  right: 24px;
+  min-width: 112px;
+  min-height: 44px;
+  border: 1px solid rgba(232, 196, 123, 0.45);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(14px);
+}
+
+.premium-invitation,
+.premium-venue,
+.premium-home {
+  width: min(1180px, calc(100% - 28px));
+  margin: 0 auto;
+}
+
+.premium-venue,
+.premium-home {
+  padding: 36px 0 70px;
+}
+
+.premium-invitation {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100svh;
+  min-height: 100svh;
+  max-height: 100svh;
+  display: grid;
+  grid-template-rows: 64px minmax(0, 1fr) auto;
+  grid-template-columns: 176px minmax(0, 1fr);
+  grid-template-areas:
+    "side top"
+    "side layout"
+    "side actions";
+  column-gap: 38px;
+  row-gap: 12px;
+  padding: 0 34px 18px 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.premium-invitation__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-size: cover;
+  background-position: center;
+  filter: blur(18px) saturate(0.9) brightness(0.34);
+  transform: scale(1.04);
+}
+
+.premium-invitation::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 72% 18%, rgba(229, 9, 20, 0.16), transparent 26%),
+    radial-gradient(circle at 14% 22%, rgba(232, 196, 123, 0.14), transparent 24%),
+    linear-gradient(90deg, rgba(11, 5, 6, 0.97), rgba(39, 17, 15, 0.76) 42%, rgba(14, 7, 7, 0.96));
+}
+
+.premium-invitation__sidebar {
+  grid-area: side;
+  min-height: 100svh;
+  padding: 22px 12px;
+  box-sizing: border-box;
+  border-right: 1px solid rgba(232, 196, 123, 0.1);
+  background: rgba(4, 3, 3, 0.78);
+  backdrop-filter: blur(18px);
+}
+
+.premium-invitation__sidebar > strong {
+  display: block;
+  color: #e50914;
+  font-size: 1.35rem;
+  font-weight: 950;
+  letter-spacing: 0.05em;
+}
+
+.premium-invitation__couple {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  column-gap: 10px;
+  align-items: stretch;
+  margin-top: 22px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.premium-invitation__couple img {
+  grid-row: span 2;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.premium-invitation__couple span {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.premium-invitation__couple small {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.7rem;
+}
+
+.premium-invitation__sidebar nav {
+  display: grid;
+  gap: 7px;
+  margin-top: 28px;
+}
+
+.premium-invitation__sidebar nav button {
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 13px;
+  color: rgba(255, 255, 255, 0.74);
+  background: transparent;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.premium-invitation__sidebar nav button:hover,
+.premium-invitation__sidebar nav button.is-active {
+  color: #fff;
+  background: linear-gradient(90deg, rgba(180, 17, 32, 0.8), rgba(120, 10, 22, 0.54));
+}
+
+.premium-invitation__top {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 0;
+}
+
+.premium-invitation__top span {
+  display: none;
+  color: #e50914;
+  font-size: clamp(1.8rem, 3.4vw, 3.8rem);
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+.premium-invitation__top button {
+  min-height: 38px;
+  padding: 0 16px;
+  color: #f5dec0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(242, 210, 154, 0.22);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.premium-invitation__top button::before {
+  content: "\2190";
+  margin-right: 8px;
+}
+
+.premium-invitation__layout {
+  grid-area: layout;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  gap: 0;
+  min-height: 0;
+}
+
+.premium-invitation__stage {
+  min-height: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.premium-invitation__card {
+  position: relative;
+  overflow: hidden;
+  width: min(1120px, 100%, calc((100svh - 176px) * 1.5));
+  min-height: auto;
+  aspect-ratio: 1.5 / 1;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: min(1vh, 10px);
+  padding: min(6.2vh, 64px) min(8vw, 92px);
+  color: #24131a;
+  text-align: center;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  background:
+    radial-gradient(circle at 14% 12%, rgba(255, 105, 180, 0.2), transparent 24%),
+    radial-gradient(circle at 84% 82%, rgba(255, 199, 87, 0.22), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(255, 239, 244, 0.9) 48%, rgba(255, 250, 231, 0.92)),
+    #fff7f2;
+  box-shadow:
+    0 42px 110px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 0 10px rgba(255, 255, 255, 0.04);
+  transform-origin: center;
+  backdrop-filter: blur(18px);
+}
+
+.premium-invitation__card::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(198, 73, 117, 0.2);
+  border-radius: 22px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 5px rgba(255, 255, 255, 0.42),
+    inset 0 0 40px rgba(255, 255, 255, 0.34);
+}
+
+.premium-invitation__card::after {
+  content: "";
+  position: absolute;
+  inset: 32px;
+  border: 1px solid rgba(118, 37, 74, 0.08);
+  border-radius: 14px;
+  pointer-events: none;
+}
+
+.premium-invitation__couple-watermark {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.12;
+  filter: saturate(0.9) contrast(1.04);
+  transform: scale(1.03);
+  pointer-events: none;
+}
+
+.premium-invitation__card p,
+.premium-invitation__card small {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  max-width: 42ch;
+  color: rgba(36, 19, 26, 0.72);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: clamp(0.66rem, 1vw, 0.88rem);
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.premium-invitation__card h2 {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: #24131a;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: clamp(3.55rem, 5.8vw, 6.2rem);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8),
+    0 18px 34px rgba(198, 73, 117, 0.16);
+}
+
+.premium-invitation__card em {
+  position: relative;
+  z-index: 2;
+  color: #c44978;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  font-style: normal;
+  line-height: 1;
+}
+
+.premium-invitation__date {
+  position: relative;
+  z-index: 2;
+  margin-top: min(1.7vh, 18px);
+  padding: 10px 24px;
+  border-top: 1px solid rgba(196, 73, 117, 0.22);
+  border-bottom: 1px solid rgba(196, 73, 117, 0.22);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: clamp(1.12rem, 2vw, 1.56rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.premium-invitation__date {
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.premium-invitation__date > span {
+  max-width: none;
+  color: #251714;
+  font: inherit;
+}
+
+.premium-invitation__date > strong {
+  display: grid;
+  gap: 2px;
+  max-width: none;
+  color: #251714;
+  font: inherit;
+}
+
+.premium-invitation__date > strong small {
+  font-size: 0.52em;
+  letter-spacing: 0.12em;
+}
+
+.premium-invitation__music {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  z-index: 5;
+  display: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgba(255, 235, 221, 0.72);
+  border-radius: 999px;
+  color: #fffaf5;
+  background: linear-gradient(135deg, #d95d75, #c64666);
+  box-shadow: 0 14px 28px rgba(148, 39, 65, 0.28);
+  cursor: pointer;
+}
+
+.premium-invitation__music:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.premium-invitation__card strong,
+.premium-invitation__card span {
+  position: relative;
+  z-index: 2;
+  display: block;
+  max-width: 34ch;
+}
+
+.premium-invitation__card > strong {
+  color: #c44978;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: clamp(0.78rem, 1.15vw, 0.98rem);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.premium-invitation__card > span:not(.premium-invitation__flower):not(.premium-invitation__ribbon):not(.premium-invitation__monogram) {
+  color: rgba(36, 19, 26, 0.72);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: clamp(0.68rem, 0.95vw, 0.82rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.premium-invitation__flower {
+  position: absolute !important;
+  z-index: 1 !important;
+  width: min(24vw, 270px);
+  height: min(20vw, 210px);
+  opacity: 0.38;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 24% 36%, #e69a95 0 8%, transparent 9%),
+    radial-gradient(circle at 39% 24%, #f7cbc4 0 10%, transparent 11%),
+    radial-gradient(circle at 52% 46%, #bf625d 0 8%, transparent 9%),
+    radial-gradient(circle at 66% 34%, #f3c4ba 0 9%, transparent 10%),
+    radial-gradient(circle at 42% 62%, #e6a096 0 7%, transparent 8%),
+    radial-gradient(ellipse at 76% 58%, rgba(104, 119, 67, 0.74) 0 10%, transparent 11%),
+    radial-gradient(ellipse at 18% 58%, rgba(104, 119, 67, 0.7) 0 11%, transparent 12%),
+    radial-gradient(ellipse at 56% 12%, rgba(169, 140, 86, 0.78) 0 6%, transparent 7%);
+  filter: drop-shadow(0 12px 18px rgba(90, 38, 22, 0.1)) saturate(0.86);
+}
+
+.premium-invitation__flower--top {
+  top: -52px;
+  left: -42px;
+  transform: rotate(-8deg);
+}
+
+.premium-invitation__flower--bottom {
+  right: -48px;
+  bottom: -44px;
+  transform: rotate(168deg) scale(1.08);
+}
+
+.premium-invitation__ribbon {
+  position: absolute !important;
+  top: 20px;
+  right: min(8vw, 82px);
+  z-index: 3 !important;
+  display: grid !important;
+  place-items: center;
+  width: min(12vw, 132px);
+  min-width: 104px;
+  height: min(15vw, 154px);
+  min-height: 124px;
+  padding: 18px 16px 34px;
+  box-sizing: border-box;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  color: #f7d59a;
+  background: linear-gradient(180deg, #7d1221, #4a0b14);
+  font-family: Georgia, serif;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+  box-shadow: 0 12px 24px rgba(68, 12, 19, 0.34);
+}
+
+.premium-invitation__monogram {
+  position: relative !important;
+  z-index: 2 !important;
+  display: grid !important;
+  place-items: center;
+  width: clamp(54px, 6.5vw, 76px);
+  height: clamp(54px, 6.5vw, 76px);
+  margin-bottom: min(0.8vh, 6px);
+  border-radius: 999px;
+  border: 1px solid rgba(177, 117, 48, 0.46);
+  color: #c44978;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  background: rgba(255, 255, 255, 0.68);
+  border-color: rgba(196, 73, 117, 0.22);
+  box-shadow: 0 12px 26px rgba(196, 73, 117, 0.12);
+}
+
+.premium-invitation__quote {
+  position: absolute;
+  z-index: 2;
+  top: 49%;
+  width: 180px;
+  color: rgba(78, 44, 29, 0.72);
+  font-family: Georgia, serif;
+  font-size: 0.78rem;
+  font-style: italic;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.premium-invitation__quote--left {
+  left: 82px;
+}
+
+.premium-invitation__quote--right {
+  right: 82px;
+}
+
+.premium-invitation__details {
+  display: none;
+  align-content: center;
+  gap: 18px;
+  min-height: 520px;
+  padding: 34px;
+  border-radius: 26px;
+  border: 1px solid rgba(232, 196, 123, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.04)),
+    rgba(8, 6, 6, 0.48);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(20px);
+}
+
+.premium-invitation__details h1 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.4rem, 4vw, 4.7rem);
+  line-height: 0.95;
+}
+
+.premium-invitation__details div {
+  display: grid;
+  gap: 6px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(232, 196, 123, 0.18);
+}
+
+.premium-invitation__details span,
+.premium-invitation__details small {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.premium-invitation__details strong {
+  font-size: 1.08rem;
+}
+
+.premium-invitation__details p:last-child {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.72;
+}
+
+.premium-actionbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 0;
+}
+
+.premium-invitation .premium-actionbar {
+  grid-area: actions;
+  align-self: start;
+  justify-self: center;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  width: min(860px, 100%);
+  gap: 10px;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(232, 196, 123, 0.14);
+  background: rgba(23, 17, 15, 0.72);
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+}
+
+.premium-invitation .premium-actionbar button {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  justify-items: center;
+  align-items: end;
+  min-width: 0;
+  min-height: 56px;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr;
+  align-items: center;
+  justify-items: start;
+  gap: 10px;
+  text-align: left;
+  padding: 9px 8px;
+  border-radius: 12px;
+  border-color: rgba(232, 196, 123, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-size: 0.7rem;
+  line-height: 1.15;
+}
+
+.premium-invitation .premium-actionbar button > span {
+  display: block;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  color: transparent;
+  text-indent: -999px;
+}
+
+.premium-invitation .premium-actionbar button > span::before {
+  content: "";
+  display: block;
+  width: 32px;
+  height: 32px;
+  color: #f2c783;
+  text-indent: 0;
+  font-size: 1.75rem;
+  line-height: 32px;
+  text-align: center;
+}
+
+.premium-invitation .premium-actionbar button:nth-child(1) > span::before {
+  content: "\2193";
+}
+
+.premium-invitation .premium-actionbar button:nth-child(2) > span::before {
+  content: "\2934";
+}
+
+.premium-invitation .premium-actionbar button:nth-child(3) > span::before {
+  content: "\25CE";
+}
+
+.premium-invitation .premium-actionbar button:nth-child(4) > span::before {
+  content: "\2192";
+}
+
+.premium-invitation .premium-actionbar button small {
+  color: rgba(255, 255, 255, 0.88);
+  font: inherit;
+}
+
+.premium-invitation .premium-actionbar__primary {
+  margin-top: 0;
+}
+
+.premium-venue__hero,
+.premium-home__hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 420px;
+  border-radius: 8px;
+  display: grid;
+  align-items: end;
+  padding: 34px;
+  box-sizing: border-box;
+  border: 1px solid rgba(232, 196, 123, 0.22);
+}
+
+.premium-venue__hero img,
+.premium-home__hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.68);
+}
+
+.premium-venue__hero::after,
+.premium-home__hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.8), transparent 72%);
+}
+
+.premium-venue__hero > div,
+.premium-home__hero > div {
+  position: relative;
+  z-index: 2;
+}
+
+.premium-venue__hero h1,
+.premium-home__hero h1 {
+  font-size: clamp(2.4rem, 6vw, 5.4rem);
+}
+
+.premium-venue__details {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.premium-venue__details--blocks {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.premium-venue__details div,
+.premium-tile,
+.premium-wishes {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.premium-venue__details div {
+  padding: 18px;
+}
+
+.premium-venue__block {
+  display: grid;
+  gap: 12px;
+  min-height: 170px;
+  padding: 0;
+  border: 1px solid rgba(232, 196, 123, 0.18);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+    rgba(12, 9, 9, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.premium-venue__block > div:first-child {
+  border: 0;
+  background: transparent;
+}
+
+.premium-venue__block p {
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.55;
+}
+
+.premium-venue__block small {
+  display: block;
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.45;
+}
+
+.premium-venue__block-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 18px 16px;
+  border: 0;
+  background: transparent;
+}
+
+.premium-venue__block-actions button,
+.premium-venue__add,
+.premium-venue__editor-actions button {
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid rgba(232, 196, 123, 0.24);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.premium-venue__add {
+  min-height: 170px;
+  border-style: dashed;
+  color: #f0d49d;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.premium-venue__editor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(232, 196, 123, 0.22);
+  border-radius: 10px;
+  background: rgba(8, 6, 6, 0.74);
+}
+
+.premium-venue__editor label {
+  display: grid;
+  gap: 7px;
+}
+
+.premium-venue__editor span {
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.premium-venue__editor input,
+.premium-venue__editor textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(232, 196, 123, 0.18);
+  border-radius: 8px;
+  padding: 12px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  font: inherit;
+  outline: none;
+}
+
+.premium-venue__editor textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.premium-venue__editor-wide,
+.premium-venue__editor-actions {
+  grid-column: 1 / -1;
+}
+
+.premium-venue__editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.premium-venue__details span,
+.premium-tile small,
+.premium-wishes small {
+  display: block;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.84rem;
+}
+
+.premium-venue__details strong {
+  display: block;
+  margin-top: 8px;
+}
+
+.premium-venue__copy,
+.premium-distance {
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.7;
+}
+
+.premium-map {
+  height: 360px;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 196, 123, 0.22);
+}
+
+.premium-map iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.premium-home__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.premium-tile,
+.premium-wishes {
+  min-height: 190px;
+  padding: 0;
+  overflow: hidden;
+  color: #fff;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.premium-tile img {
+  display: block;
+  width: 100%;
+  height: 128px;
+  object-fit: cover;
+}
+
+.premium-tile span,
+.premium-tile small,
+.premium-wishes span,
+.premium-wishes small {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
+.premium-tile span,
+.premium-wishes span {
+  display: block;
+  margin-top: 12px;
+  font-weight: 900;
+}
+
+.premium-tile--utility {
+  display: grid;
+  align-content: center;
+  border-color: rgba(232, 196, 123, 0.24);
+}
+
+.premium-wishes {
+  grid-column: span 2;
+  display: grid;
+  align-content: center;
+  border-color: rgba(232, 196, 123, 0.24);
+  background: linear-gradient(135deg, rgba(185, 38, 65, 0.34), rgba(255, 255, 255, 0.06));
+}
+
+@media (max-width: 900px) {
+  .premium-intro__content {
+    padding: 0 21px 8vh;
+  }
+
+  .premium-wedding__nav {
+    padding: 0 14px;
+  }
+
+  .premium-invitation {
+    width: min(470px, calc(100% - 20px));
+    grid-template-columns: 1fr;
+    grid-template-rows: 42px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "top"
+      "layout"
+      "actions";
+    gap: 8px;
+    padding: 10px 0 calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .premium-invitation__sidebar {
+    display: none;
+  }
+
+  .premium-invitation::before {
+    background:
+      radial-gradient(circle at 70% 12%, rgba(229, 9, 20, 0.14), transparent 24%),
+      linear-gradient(180deg, rgba(10, 6, 7, 0.96), rgba(4, 2, 2, 0.98));
+  }
+
+  .premium-invitation__top {
+    justify-content: space-between;
+    min-height: 42px;
+  }
+
+  .premium-invitation__top span {
+    display: block;
+    font-size: 1.32rem;
+  }
+
+  .premium-invitation__top button {
+    width: 42px;
+    height: 42px;
+    min-height: 42px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    color: transparent;
+    text-indent: 999px;
+    border-radius: 999px;
+    background:
+      linear-gradient(#f2d29a, #f2d29a) center 14px / 18px 2px no-repeat,
+      linear-gradient(#f2d29a, #f2d29a) center 21px / 18px 2px no-repeat,
+      linear-gradient(#f2d29a, #f2d29a) center 28px / 18px 2px no-repeat,
+      rgba(255, 255, 255, 0.06);
+  }
+
+  .premium-invitation__top button::before {
+    display: none;
+  }
+
+  .premium-invitation__layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .premium-invitation__details {
+    display: none;
+  }
+
+  .premium-invitation .premium-actionbar {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: auto;
+    gap: 6px;
+    padding: 7px;
+    border-radius: 14px;
+    background: rgba(23, 17, 15, 0.92);
+    backdrop-filter: none;
+  }
+
+  .premium-invitation .premium-actionbar button {
+    min-height: 54px;
+    grid-template-columns: initial;
+    grid-template-rows: 1fr auto;
+    align-items: end;
+    justify-items: center;
+    gap: 0;
+    text-align: center;
+  }
+
+  .premium-venue__details,
+  .premium-home__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .wedding-top-actions {
+    top: 24px;
+    left: 76px;
+    gap: 14px;
+  }
+
+  .wedding-top-actions button {
+    font-size: 0.86rem;
+  }
+
+  .premium-intro h1 {
+    font-size: clamp(3.1rem, 18vw, 5rem);
+  }
+
+  .premium-intro__shade {
+    background:
+      linear-gradient(0deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.2) 74%),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.46), rgba(0, 0, 0, 0.18));
+  }
+
+  .premium-invitation__stage {
+    min-height: 0;
+  }
+
+  .premium-wedding--invitation {
+    background: #050506;
+  }
+
+  .premium-invitation {
+    width: min(100%, 430px);
+    grid-template-rows: 38px minmax(0, 1fr) 76px;
+    gap: 8px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+    background:
+      linear-gradient(90deg, rgba(193, 142, 76, 0.72), transparent 1px, transparent calc(100% - 1px), rgba(193, 142, 76, 0.72)),
+      linear-gradient(180deg, rgba(193, 142, 76, 0.72), transparent 1px, transparent calc(100% - 1px), rgba(193, 142, 76, 0.72)),
+      #030304;
+    border-radius: 20px;
+  }
+
+  .premium-invitation__top {
+    min-height: 36px;
+  }
+
+  .premium-invitation__top span {
+    color: #e50914;
+    font-size: 1.02rem;
+    letter-spacing: 0.08em;
+  }
+
+  .premium-invitation__top button {
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+    background:
+      linear-gradient(#d8b16d, #d8b16d) center 10px / 14px 2px no-repeat,
+      linear-gradient(#d8b16d, #d8b16d) center 16px / 14px 2px no-repeat,
+      linear-gradient(#d8b16d, #d8b16d) center 22px / 14px 2px no-repeat,
+      transparent;
+    border-color: rgba(216, 177, 109, 0.32);
+  }
+
+  .premium-invitation__card {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    aspect-ratio: auto;
+    gap: min(0.9vh, 8px);
+    padding: min(5.8vh, 42px) 24px min(5.2vh, 38px);
+    border-radius: 18px;
+    color: #24131a;
+    border-color: rgba(255, 255, 255, 0.58);
+    background:
+      radial-gradient(circle at 12% 10%, rgba(255, 105, 180, 0.2), transparent 24%),
+      radial-gradient(circle at 88% 86%, rgba(255, 199, 87, 0.2), transparent 28%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(255, 239, 244, 0.9) 48%, rgba(255, 250, 231, 0.92)),
+      #fff7f2;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+      0 16px 38px rgba(0, 0, 0, 0.22);
+  }
+
+  .premium-invitation__card::before {
+    inset: 14px;
+    border-width: 1px;
+    border-color: rgba(176, 113, 43, 0.58);
+    border-radius: 14px;
+    box-shadow:
+      inset 0 0 0 4px rgba(255, 253, 247, 0.72),
+      inset 0 0 0 5px rgba(196, 142, 68, 0.13);
+  }
+
+  .premium-invitation__card::after {
+    inset: 22px;
+    border: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(90deg, transparent 0 38%, rgba(176, 113, 43, 0.28) 38% 62%, transparent 62%) center 0 / 84px 1px no-repeat,
+      linear-gradient(90deg, transparent 0 38%, rgba(176, 113, 43, 0.28) 38% 62%, transparent 62%) center 100% / 84px 1px no-repeat;
+    opacity: 0.9;
+  }
+
+  .premium-invitation__card p,
+  .premium-invitation__card small {
+    max-width: 30ch;
+    color: rgba(36, 19, 26, 0.72);
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: clamp(0.58rem, 2.35vw, 0.74rem);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    line-height: 1.45;
+  }
+
+  .premium-invitation__card h2 {
+    color: #24131a;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: clamp(2.9rem, 14vw, 4.7rem);
+    font-weight: 900;
+    line-height: 0.86;
+    max-width: 7.2ch;
+    overflow-wrap: anywhere;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .premium-invitation__card em {
+    color: #c44978;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: 0.84rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+  }
+
+  .premium-invitation__date {
+    margin-top: min(1.2vh, 9px);
+    padding: 7px 0;
+    gap: 10px;
+    border-top: 0;
+    border-bottom: 0;
+    font-size: clamp(0.9rem, 4vw, 1.12rem);
+    letter-spacing: 0.08em;
+  }
+
+  .premium-invitation__date > span,
+  .premium-invitation__date > strong {
+    position: relative;
+  }
+
+  .premium-invitation__date > strong {
+    padding: 0 10px;
+    border-left: 1px solid rgba(196, 73, 117, 0.28);
+    border-right: 1px solid rgba(196, 73, 117, 0.28);
+  }
+
+  .premium-invitation__date > strong small {
+    font-size: 0.46rem;
+  }
+
+  .premium-invitation__card > strong {
+    max-width: 25ch;
+    color: #c44978;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: clamp(0.68rem, 2.5vw, 0.84rem);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+  }
+
+  .premium-invitation__card > span:not(.premium-invitation__flower):not(.premium-invitation__ribbon):not(.premium-invitation__monogram) {
+    display: -webkit-box;
+    max-width: 28ch;
+    overflow: hidden;
+    color: rgba(36, 19, 26, 0.72);
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-size: clamp(0.54rem, 2.1vw, 0.66rem);
+    letter-spacing: 0.05em;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .premium-invitation__monogram {
+    width: 54px;
+    height: 54px;
+    margin-bottom: min(1vh, 8px);
+    color: #c44978;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-weight: 900;
+    font-size: 0.92rem;
+    background: rgba(255, 255, 255, 0.68);
+    border-color: rgba(196, 73, 117, 0.22);
+    box-shadow: 0 12px 26px rgba(196, 73, 117, 0.12);
+  }
+
+  .premium-invitation__flower {
+    width: 112px;
+    height: 100px;
+    opacity: 0.32;
+  }
+
+  .premium-invitation__flower--top {
+    top: -20px;
+    left: -28px;
+  }
+
+  .premium-invitation__flower--bottom {
+    right: -32px;
+    bottom: -24px;
+  }
+
+  .premium-invitation__ribbon {
+    display: none !important;
+  }
+
+  .premium-invitation__music {
+    display: grid;
+    right: 15px;
+    bottom: 15px;
+    width: 42px;
+    height: 42px;
+    overflow: hidden;
+    color: transparent;
+    font-size: 0;
+  }
+
+  .premium-invitation__music::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    background:
+      linear-gradient(90deg, #fff 0 44%, transparent 44%) 0 4px / 9px 8px no-repeat,
+      radial-gradient(circle at 100% 50%, transparent 0 6px, #fff 6.5px 7.5px, transparent 8px);
+  }
+
+  .premium-invitation__quote {
+    display: none;
+  }
+
+  .premium-venue__hero,
+  .premium-home__hero {
+    min-height: 320px;
+    padding: 22px;
+  }
+
+  .premium-venue__details,
+  .premium-home__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-venue__editor {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-venue__block,
+  .premium-venue__add {
+    min-height: 142px;
+  }
+
+  .premium-wishes {
+    grid-column: span 1;
+  }
+
+  .premium-actionbar {
+    justify-content: stretch;
+  }
+
+  .premium-actionbar button,
+  .premium-actionbar a {
+    flex: 1 1 100%;
+  }
+
+  .premium-invitation .premium-actionbar {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    height: 76px;
+    box-sizing: border-box;
+    border-radius: 13px;
+    border-color: rgba(214, 170, 106, 0.28);
+    background: rgba(24, 18, 18, 0.96);
+  }
+
+  .premium-invitation .premium-actionbar button {
+    flex: initial;
+    min-height: 62px;
+    padding: 7px 3px 6px;
+    border-radius: 8px;
+    font-size: 0.54rem;
+  }
+
+  .premium-invitation .premium-actionbar button > span,
+  .premium-invitation .premium-actionbar button > span::before {
+    width: 22px;
+    height: 22px;
+    font-size: 1.22rem;
+    line-height: 22px;
+  }
 }
 
 @media (max-width: 1100px) {

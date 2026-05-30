@@ -16,7 +16,7 @@ export default function LazyHeroVideo({ src, title, poster, alt = "", className 
           alt={alt}
           loading="eager"
           decoding="async"
-          fetchPriority="high"
+          fetchpriority="high"
         />
       )}
       <iframe

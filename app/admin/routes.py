@@ -79,6 +79,38 @@ def _parse_custom_sections(raw_value):
     return cleaned
 
 
+def _parse_venue_blocks(raw_value):
+    raw = (raw_value or "").strip()
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(parsed, list):
+        return []
+    cleaned = []
+    for i, item in enumerate(parsed):
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or item.get("heading") or "").strip()
+        body = str(item.get("body") or item.get("description") or "").strip()
+        meta = str(item.get("meta") or item.get("time") or "").strip()
+        address = str(item.get("address") or "").strip()
+        if not any([title, body, meta, address]):
+            continue
+        key = str(item.get("key") or item.get("id") or f"venue_{i+1}").strip().lower()
+        key = "".join(ch if (ch.isalnum() or ch in {"_", "-"}) else "_" for ch in key)
+        cleaned.append({
+            "key": key or f"venue_{i+1}",
+            "title": title or f"Detail {i + 1}",
+            "meta": meta,
+            "body": body,
+            "address": address,
+        })
+    return cleaned
+
+
 def _resolve_image_url(form_name, file_name, existing=""):
     file_storage = request.files.get(file_name)
     if file_storage and file_storage.filename:
@@ -184,9 +216,15 @@ def create_wedding():
         "profile_image": _resolve_image_url("profile_image", "profile_image_file"),
         "music_url": _resolve_music_url("music_url", "music_file"),
         "access_level": access_level,
+        "premium_experience_enabled": request.form.get("premium_experience_enabled") in {"1", "true", "on", "yes"},
         "invitation_title": (request.form.get("invitation_title") or "Wedding Invitation").strip(),
         "programs_section_title": (request.form.get("programs_section_title") or "Wedding Programs").strip(),
         "custom_sections": _parse_custom_sections(request.form.get("custom_sections_json")),
+        "venue_blocks": (
+            _parse_venue_blocks(request.form.get("venue_blocks_json"))
+            if "venue_blocks_json" in request.form
+            else current.get("venue_blocks", [])
+        ),
         "custom_section_label": (request.form.get("custom_section_label") or "My Custom Box").strip(),
         "owner_user_id": str(current_user.id),
     }
@@ -217,9 +255,11 @@ def update_wedding(wedding_id):
         "profile_image": _resolve_image_url("profile_image", "profile_image_file", current.get("profile_image", "")),
         "music_url": _resolve_music_url("music_url", "music_file"),
         "access_level": access_level,
+        "premium_experience_enabled": request.form.get("premium_experience_enabled") in {"1", "true", "on", "yes"},
         "invitation_title": (request.form.get("invitation_title") or current.get("invitation_title") or "Wedding Invitation").strip(),
         "programs_section_title": (request.form.get("programs_section_title") or current.get("programs_section_title") or "Wedding Programs").strip(),
         "custom_sections": _parse_custom_sections(request.form.get("custom_sections_json")),
+        "venue_blocks": _parse_venue_blocks(request.form.get("venue_blocks_json")),
         "custom_section_label": (request.form.get("custom_section_label") or current.get("custom_section_label") or "My Custom Box").strip(),
     }
     mongo.db.weddings.update_one({"_id": ObjectId(wedding_id)}, {"$set": payload})
