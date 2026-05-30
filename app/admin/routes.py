@@ -223,13 +223,15 @@ def create_wedding():
         "venue_blocks": (
             _parse_venue_blocks(request.form.get("venue_blocks_json"))
             if "venue_blocks_json" in request.form
-            else current.get("venue_blocks", [])
+            else []
         ),
         "custom_section_label": (request.form.get("custom_section_label") or "My Custom Box").strip(),
         "owner_user_id": str(current_user.id),
     }
-    Wedding.create(payload)
-    flash("Wedding created", "success")
+    wedding_id = Wedding.create(payload)
+    success_response = _form_success("Wedding created", wedding_id=str(wedding_id))
+    if success_response:
+        return success_response
     return redirect(url_for("admin.home"))
 
 
@@ -263,7 +265,9 @@ def update_wedding(wedding_id):
         "custom_section_label": (request.form.get("custom_section_label") or current.get("custom_section_label") or "My Custom Box").strip(),
     }
     mongo.db.weddings.update_one({"_id": ObjectId(wedding_id)}, {"$set": payload})
-    flash("Wedding updated", "success")
+    success_response = _form_success("Wedding updated", wedding_id=wedding_id)
+    if success_response:
+        return success_response
     return redirect(url_for("admin.home", wedding_id=wedding_id))
 
 
@@ -287,7 +291,9 @@ def delete_wedding(wedding_id):
         mongo.db.programs.delete_many({"_id": {"$in": program_ids}})
     mongo.db.weddings.delete_one({"_id": wid})
 
-    flash("Wedding profile deleted", "success")
+    success_response = _form_success("Wedding profile deleted")
+    if success_response:
+        return success_response
     return redirect(url_for("admin.home"))
 
 
