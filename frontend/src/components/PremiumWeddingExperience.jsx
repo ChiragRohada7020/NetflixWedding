@@ -387,14 +387,18 @@ export default function PremiumWeddingExperience({
               </button>
               <span className="premium-invitation__ribbon" aria-hidden="true">You are cordially invited</span>
               <img className="premium-invitation__portrait" src={heroImage} alt={wedding.couple_names || "Couple"} />
-              <span className="premium-invitation__monogram" aria-hidden="true">
-                {(invitation.first || "K").charAt(0)}
-                {(invitation.second || "N").charAt(0)}
-              </span>
-              <p>{invitation.title}</p>
-              <h2>{invitation.first}</h2>
-              {invitation.second && <em>&amp;</em>}
-              {invitation.second && <h2>{invitation.second}</h2>}
+              <div className="premium-invitation__intro">
+                <span className="premium-invitation__monogram" aria-hidden="true">
+                  {(invitation.first || "K").charAt(0)}
+                  {(invitation.second || "N").charAt(0)}
+                </span>
+                <p>{invitation.title}</p>
+              </div>
+              <div className="premium-invitation__names">
+                <h2>{invitation.first}</h2>
+                {invitation.second && <em>&amp;</em>}
+                {invitation.second && <h2>{invitation.second}</h2>}
+              </div>
               <div className="premium-invitation__quote premium-invitation__quote--left" aria-hidden="true">
                 <strong>Two hearts, one love, a lifetime of togetherness.</strong>
               </div>
@@ -409,9 +413,11 @@ export default function PremiumWeddingExperience({
                 </strong>
                 {invitationDate.year && <span>{invitationDate.year}</span>}
               </div>
-              <strong>{venueName}</strong>
-              <span>{venueAddress}</span>
-              <small>Reception to follow</small>
+              <div className="premium-invitation__venue">
+                <strong>{venueName}</strong>
+                <span>{venueAddress}</span>
+                <small>Reception to follow</small>
+              </div>
             </div>
           </div>
           <aside className="premium-invitation__details">
