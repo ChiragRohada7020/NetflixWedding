@@ -5414,12 +5414,12 @@ body.premium-flow-open .wedflix-footer {
 
   .home-page--detail .home-hero__media.has-video .home-hero__video {
     display: block;
-    width: 100%;
-    height: 100%;
-    left: 0;
-    top: 0;
-    transform: none;
-    transform-origin: center center;
+    width: 270%;
+    height: 270%;
+    left: 50%;
+    top: -78%;
+    transform: translateX(-50%);
+    transform-origin: top center;
   }
 
   .home-hero__media.has-video .home-hero__image--mobile {
