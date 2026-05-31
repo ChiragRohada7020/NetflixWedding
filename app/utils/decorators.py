@@ -9,7 +9,11 @@ def admin_required(view):
     def wrapped(*args, **kwargs):
         if current_app.config.get("LOGIN_DISABLED"):
             return view(*args, **kwargs)
-        if not current_user.is_authenticated or not getattr(current_user, "is_admin", False):
+        if (
+            not current_user.is_authenticated
+            or not getattr(current_user, "is_admin", False)
+            or not getattr(current_user, "is_active", True)
+        ):
             abort(403)
         return view(*args, **kwargs)
 

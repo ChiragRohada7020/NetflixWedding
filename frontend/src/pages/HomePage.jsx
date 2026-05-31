@@ -86,6 +86,12 @@ export default function HomePage() {
     queryKey: ["weddings"],
     queryFn: () => apiGet("/api/weddings"),
   });
+  const { data: session } = useQuery({
+    queryKey: ["session"],
+    queryFn: () => apiGet("/api/session"),
+    retry: false,
+    enabled: canEdit,
+  });
 
   const featuredWedding = weddings[0] || null;
 
@@ -302,6 +308,7 @@ export default function HomePage() {
             <h3>{modal.type === "create" ? "Add Wedding" : "Edit Wedding"}</h3>
             <WeddingForm
               initial={modal.item}
+              isDeveloper={!!session?.is_developer}
               onCancel={() => setModal(null)}
               onSubmit={(values) => (modal.type === "create" ? createWedding(values) : saveWedding(values, modal.item._id))}
             />
@@ -312,7 +319,7 @@ export default function HomePage() {
   );
 }
 
-function WeddingForm({ initial, onSubmit, onCancel }) {
+function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
   const [form, setForm] = useState({
     couple_names: initial.couple_names || "",
     wedding_date: initial.wedding_date || "",
@@ -362,14 +369,16 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
             <option value="public">Public</option>
           </select>
         </label>
-        <label className="cms-field cms-check-field">
-          <input
-            type="checkbox"
-            checked={form.show_on_demo_home === "1"}
-            onChange={(e) => setForm((p) => ({ ...p, show_on_demo_home: e.target.checked ? "1" : "" }))}
-          />
-          <span>Show on demo home</span>
-        </label>
+        {isDeveloper && (
+          <label className="cms-field cms-check-field">
+            <input
+              type="checkbox"
+              checked={form.show_on_demo_home === "1"}
+              onChange={(e) => setForm((p) => ({ ...p, show_on_demo_home: e.target.checked ? "1" : "" }))}
+            />
+            <span>Show on demo home</span>
+          </label>
+        )}
         <label className="cms-field cms-field-wide">
           <span>Music URL</span>
           <input value={form.music_url} onChange={(e) => setForm((p) => ({ ...p, music_url: e.target.value }))} placeholder="https://cdn.example.com/song.mp3" />

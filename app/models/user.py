@@ -58,3 +58,7 @@ class UserRecord(UserMixin):
     @property
     def is_developer(self):
         return (self.role or "").strip().lower() == "developer"
+
+    @property
+    def is_active(self):
+        return (self.status or "active") == "active"

@@ -10,6 +10,7 @@ import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
+import { preparePhotoForUpload } from "../utils/imageUpload";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -189,7 +190,14 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
 
   const saveProgram = async (payload, programId) => {
     const fd = new FormData();
-    Object.entries(payload).forEach(([k, v]) => fd.append(k, v || ""));
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === undefined || v === null) continue;
+      if (k === "thumbnail_file" && v) {
+        fd.append(k, await preparePhotoForUpload(v));
+      } else {
+        fd.append(k, v);
+      }
+    }
     await apiPostForm(`/admin/programs/${programId}/update`, fd);
     setModal(null);
   };
@@ -244,7 +252,14 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     const fd = new FormData();
     fd.append("wedding_id", weddingId);
     fd.append("section_key", sectionKey);
-    Object.entries(payload).forEach(([k, v]) => fd.append(k, v || ""));
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === undefined || v === null) continue;
+      if (k === "thumbnail_file" && v) {
+        fd.append(k, await preparePhotoForUpload(v));
+      } else {
+        fd.append(k, v);
+      }
+    }
     await apiPostForm("/admin/programs/create", fd);
     await queryClient.invalidateQueries({ queryKey: ["wedding", weddingId] });
     await queryClient.invalidateQueries({ queryKey: ["session"] });
@@ -634,12 +649,14 @@ function ProgramForm({ initial, onSubmit, onCancel }) {
   const [form, setForm] = useState({
     title: initial.title || "",
     thumbnail: initial.thumbnail || "",
+    thumbnail_file: null,
     hero_video_url: initial.hero_video_url || "",
     event_date: initial.event_date || "",
     event_time: initial.event_time || "",
     venue_name: initial.venue_name || "",
     event_address: initial.event_address || "",
     music_url: initial.music_url || "",
+    music_file: null,
     order: initial.order || 0,
   });
 
@@ -669,6 +686,10 @@ function ProgramForm({ initial, onSubmit, onCancel }) {
           <input value={form.thumbnail} onChange={(e) => setForm((p) => ({ ...p, thumbnail: e.target.value }))} placeholder="https://..." disabled={isSaving} />
         </label>
         <label className="cms-field">
+          <span>Upload Thumbnail</span>
+          <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, thumbnail_file: e.target.files?.[0] || null }))} disabled={isSaving} />
+        </label>
+        <label className="cms-field">
           <span>Hero Video URL</span>
           <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." disabled={isSaving} />
         </label>
@@ -691,6 +712,10 @@ function ProgramForm({ initial, onSubmit, onCancel }) {
         <label className="cms-field cms-field-wide">
           <span>Music URL</span>
           <input value={form.music_url} onChange={(e) => setForm((p) => ({ ...p, music_url: e.target.value }))} placeholder="https://cdn.example.com/song.mp3" disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Upload Music</span>
+          <input type="file" accept="audio/*" onChange={(e) => setForm((p) => ({ ...p, music_file: e.target.files?.[0] || null }))} disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Display Order</span>

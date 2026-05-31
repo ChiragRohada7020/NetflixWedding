@@ -199,6 +199,19 @@ export default function DeveloperAdminPage() {
     }
   };
 
+  const updateWedding = async (wedding, patch) => {
+    setSavingUserId(`wedding:${wedding._id}`);
+    try {
+      await apiPost(`/api/developer/weddings/${wedding._id}`, patch);
+      await refreshDeveloperData();
+      showToast(`${wedding.couple_names || "Wedding"} updated`);
+    } catch (err) {
+      showToast(err?.message || "Wedding update failed");
+    } finally {
+      setSavingUserId("");
+    }
+  };
+
   const copyText = async (value, label) => {
     try {
       await navigator.clipboard.writeText(value);
@@ -381,6 +394,45 @@ export default function DeveloperAdminPage() {
                     <UsageBar label="Events" value={user.usage?.episodes} limit={plan.limits.episode_limit} />
                     <UsageBar label="Photos" value={user.usage?.photos} limit={plan.limits.photo_limit} />
                   </div>
+
+                  {!!user.weddings?.length && (
+                    <div className="developer-mini-list">
+                      {user.weddings.map((wedding) => {
+                        const isWeddingSaving = savingUserId === `wedding:${wedding._id}`;
+                        return (
+                          <div className="developer-user-main" key={wedding._id}>
+                            <div>
+                              <strong>{wedding.couple_names}</strong>
+                              <span>{wedding.wedding_date || "No date"} · {wedding.access_level}</span>
+                              <span>{wedding.public_slug ? `/p/${wedding.public_slug}` : "No public slug"}</span>
+                            </div>
+                            <div className="developer-user-controls">
+                              <select
+                                value={wedding.access_level || "private"}
+                                disabled={isWeddingSaving}
+                                onChange={(e) => updateWedding(wedding, { access_level: e.target.value })}
+                              >
+                                <option value="private">Private</option>
+                                <option value="public">Public</option>
+                              </select>
+                              <button
+                                type="button"
+                                disabled={isWeddingSaving || wedding.access_level !== "public"}
+                                onClick={() => updateWedding(wedding, { show_on_demo_home: !wedding.show_on_demo_home })}
+                              >
+                                {isWeddingSaving ? "Saving..." : wedding.show_on_demo_home ? "Remove From Demo" : "Approve Demo"}
+                              </button>
+                              {wedding.public_slug && (
+                                <button type="button" onClick={() => copyText(`${window.location.origin}/p/${wedding.public_slug}`, "public link")}>
+                                  Copy Public Link
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   <div className="developer-user-controls">
                     <select value={user.plan_id} disabled={isSaving || isDeveloper} onChange={(e) => updateUser(user, { plan_id: e.target.value })}>

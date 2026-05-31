@@ -49,6 +49,13 @@ def _can_view_wedding(wedding):
 def _json_user(doc):
     if not doc:
         return None
+    user_wedding_ids = [str(item) for item in doc.get("wedding_ids", [])]
+    owned_weddings = list(mongo.db.weddings.find({"owner_user_id": str(doc["_id"])}).sort("couple_names", 1))
+    if user_wedding_ids:
+        linked_weddings = list(mongo.db.weddings.find({"_id": {"$in": [ObjectId(item) for item in user_wedding_ids if ObjectId.is_valid(item)]}}))
+        by_id = {str(wedding.get("_id")): wedding for wedding in owned_weddings}
+        by_id.update({str(wedding.get("_id")): wedding for wedding in linked_weddings})
+        owned_weddings = list(by_id.values())
     return {
         "_id": str(doc["_id"]),
         "name": doc.get("name") or "",
@@ -59,7 +66,18 @@ def _json_user(doc):
         "phone": doc.get("phone") or "",
         "details": doc.get("details") or {},
         "usage": usage_for_user(doc),
-        "wedding_ids": [str(item) for item in doc.get("wedding_ids", [])],
+        "wedding_ids": user_wedding_ids,
+        "weddings": [
+            {
+                "_id": str(wedding.get("_id")),
+                "couple_names": wedding.get("couple_names") or "Untitled Wedding",
+                "wedding_date": wedding.get("wedding_date") or "",
+                "access_level": wedding.get("access_level") or "private",
+                "show_on_demo_home": bool(wedding.get("show_on_demo_home")),
+                "public_slug": wedding.get("public_slug") or "",
+            }
+            for wedding in owned_weddings
+        ],
     }
 
 
@@ -70,11 +88,12 @@ def health():
 @api_bp.route("/session", methods=["GET"])
 def session_info():
     current_user_doc = User.get_by_email(getattr(current_user, "email", "")) if current_user.is_authenticated else None
+    is_active = bool(getattr(current_user, "is_active", True)) if current_user.is_authenticated else False
     return jsonify(
         {
-            "authenticated": bool(current_user.is_authenticated),
-            "is_admin": bool(getattr(current_user, "is_admin", False)) if current_user.is_authenticated else False,
-            "is_developer": bool(getattr(current_user, "is_developer", False)) if current_user.is_authenticated else False,
+            "authenticated": bool(current_user.is_authenticated and is_active),
+            "is_admin": bool(getattr(current_user, "is_admin", False) and is_active) if current_user.is_authenticated else False,
+            "is_developer": bool(getattr(current_user, "is_developer", False) and is_active) if current_user.is_authenticated else False,
             "name": getattr(current_user, "name", "") if current_user.is_authenticated else "",
             "email": getattr(current_user, "email", "") if current_user.is_authenticated else "",
             "plan": _to_jsonable(get_current_plan()) if current_user.is_authenticated else None,
@@ -463,7 +482,7 @@ def like_episode(episode_id):
 
 
 def _developer_required():
-    return current_user.is_authenticated and bool(getattr(current_user, "is_developer", False))
+    return current_user.is_authenticated and bool(getattr(current_user, "is_developer", False)) and bool(getattr(current_user, "is_active", True))
 
 
 @api_bp.route("/developer/plans", methods=["GET", "POST"])
@@ -565,6 +584,27 @@ def developer_update_user(user_id):
         update["wedding_ids"] = payload["wedding_ids"]
     mongo.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update})
     return jsonify(_json_user(mongo.db.users.find_one({"_id": ObjectId(user_id)})))
+
+
+@api_bp.route("/developer/weddings/<wedding_id>", methods=["PATCH", "POST"])
+def developer_update_wedding(wedding_id):
+    if not _developer_required():
+        return jsonify({"error": "Developer access required"}), 403
+    if not ObjectId.is_valid(wedding_id):
+        return jsonify({"error": "Invalid wedding id"}), 400
+    payload = request.get_json(force=True) or {}
+    update = {}
+    if "show_on_demo_home" in payload:
+        update["show_on_demo_home"] = bool(payload.get("show_on_demo_home"))
+    if "access_level" in payload:
+        access_level = (payload.get("access_level") or "private").strip().lower()
+        if access_level not in {"public", "private"}:
+            return jsonify({"error": "Invalid access level"}), 400
+        update["access_level"] = access_level
+    if not update:
+        return jsonify({"error": "No wedding changes provided"}), 400
+    mongo.db.weddings.update_one({"_id": ObjectId(wedding_id)}, {"$set": update})
+    return jsonify(_to_jsonable(mongo.db.weddings.find_one({"_id": ObjectId(wedding_id)})))
 
 
 @api_bp.route("/media/telegram/<path:file_id>", methods=["GET"])

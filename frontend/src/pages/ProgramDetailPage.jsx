@@ -593,6 +593,8 @@ function EpisodeForm({ initial, onSubmit, onCancel }) {
     order: String(initial.order || 1),
     thumbnail: String(initial.thumbnail || ""),
     thumbnail_file: null,
+    music_url: String(initial.music_url || ""),
+    music_file: null,
   });
   return (
     <form
@@ -626,6 +628,14 @@ function EpisodeForm({ initial, onSubmit, onCancel }) {
         <label className="cms-field cms-field-wide">
           <span>Thumbnail Photo</span>
           <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, thumbnail_file: e.target.files?.[0] || null }))} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Music URL</span>
+          <input value={form.music_url ?? ""} onChange={(e) => setForm((p) => ({ ...p, music_url: e.target.value }))} placeholder="https://cdn.example.com/song.mp3" />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Upload Music</span>
+          <input type="file" accept="audio/*" onChange={(e) => setForm((p) => ({ ...p, music_file: e.target.files?.[0] || null }))} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Description</span>

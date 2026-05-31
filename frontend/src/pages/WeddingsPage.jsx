@@ -144,6 +144,7 @@ export default function WeddingsPage() {
             <h3>{modal.type === "create" ? "Add Wedding" : "Edit Wedding"}</h3>
             <WeddingForm
               initial={modal.item}
+              isDeveloper={!!session?.is_developer}
               onCancel={() => setModal(null)}
               onSubmit={(values) => (modal.type === "create" ? createWedding(values) : saveWedding(values, modal.item._id))}
             />
@@ -154,7 +155,7 @@ export default function WeddingsPage() {
   );
 }
 
-function WeddingForm({ initial, onSubmit, onCancel }) {
+function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
   const [saveError, setSaveError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
@@ -214,15 +215,17 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
             <option value="public">Public</option>
           </select>
         </label>
-        <label className="cms-field cms-check-field">
-          <input
-            type="checkbox"
-            checked={form.show_on_demo_home === "1"}
-            onChange={(e) => setForm((p) => ({ ...p, show_on_demo_home: e.target.checked ? "1" : "" }))}
-            disabled={isSaving}
-          />
-          <span>Show on demo home</span>
-        </label>
+        {isDeveloper && (
+          <label className="cms-field cms-check-field">
+            <input
+              type="checkbox"
+              checked={form.show_on_demo_home === "1"}
+              onChange={(e) => setForm((p) => ({ ...p, show_on_demo_home: e.target.checked ? "1" : "" }))}
+              disabled={isSaving}
+            />
+            <span>Show on demo home</span>
+          </label>
+        )}
         <label className="cms-field cms-check-field">
           <input
             type="checkbox"

@@ -239,7 +239,7 @@ def create_wedding():
         "profile_image": _resolve_image_url("profile_image", "profile_image_file"),
         "music_url": _resolve_music_url("music_url", "music_file"),
         "access_level": access_level,
-        "show_on_demo_home": request.form.get("show_on_demo_home") in {"1", "true", "on", "yes"},
+        "show_on_demo_home": request.form.get("show_on_demo_home") in {"1", "true", "on", "yes"} if is_developer() else False,
         "premium_experience_enabled": request.form.get("premium_experience_enabled") in {"1", "true", "on", "yes"},
         "invitation_title": (request.form.get("invitation_title") or "Wedding Invitation").strip(),
         "programs_section_title": (request.form.get("programs_section_title") or "Wedding Programs").strip(),
@@ -300,7 +300,11 @@ def update_wedding(wedding_id):
         "profile_image": _resolve_image_url("profile_image", "profile_image_file", current.get("profile_image", "")),
         "music_url": _resolve_music_url("music_url", "music_file", current.get("music_url", "")),
         "access_level": access_level,
-        "show_on_demo_home": request.form.get("show_on_demo_home") in {"1", "true", "on", "yes"},
+        "show_on_demo_home": (
+            request.form.get("show_on_demo_home") in {"1", "true", "on", "yes"}
+            if is_developer()
+            else bool(current.get("show_on_demo_home"))
+        ),
         "premium_experience_enabled": request.form.get("premium_experience_enabled") in {"1", "true", "on", "yes"},
         "invitation_title": (request.form.get("invitation_title") or current.get("invitation_title") or "Wedding Invitation").strip(),
         "programs_section_title": (request.form.get("programs_section_title") or current.get("programs_section_title") or "Wedding Programs").strip(),
@@ -456,6 +460,7 @@ def create_episode():
         "title": request.form.get("title"),
         "description": request.form.get("description"),
         "order": _safe_int(request.form.get("order"), 0),
+        "music_url": _resolve_music_url("music_url", "music_file"),
         **_resolve_episode_video(),
     }
     try:
@@ -491,6 +496,7 @@ def update_episode(episode_id):
         "title": (request.form.get("title") or "").strip(),
         "description": (request.form.get("description") or "").strip(),
         "order": _safe_int(request.form.get("order"), 0),
+        "music_url": _resolve_music_url("music_url", "music_file", (ep or {}).get("music_url", "")),
         **_resolve_episode_video(ep),
     }
     try:
