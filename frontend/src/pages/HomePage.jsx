@@ -323,6 +323,7 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
     music_url: initial.music_url || "",
     music_file: null,
     access_level: initial.access_level || "private",
+    show_on_demo_home: initial.show_on_demo_home ? "1" : "",
   });
 
   return (
@@ -360,6 +361,14 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
             <option value="private">Private</option>
             <option value="public">Public</option>
           </select>
+        </label>
+        <label className="cms-field cms-check-field">
+          <input
+            type="checkbox"
+            checked={form.show_on_demo_home === "1"}
+            onChange={(e) => setForm((p) => ({ ...p, show_on_demo_home: e.target.checked ? "1" : "" }))}
+          />
+          <span>Show on demo home</span>
         </label>
         <label className="cms-field cms-field-wide">
           <span>Music URL</span>

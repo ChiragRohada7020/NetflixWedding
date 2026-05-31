@@ -171,7 +171,10 @@ def session_logout():
 def weddings():
     docs = Wedding.all()
     if not current_user.is_authenticated:
-        docs = [w for w in docs if (w.get("access_level") or "private") == "public"]
+        docs = [
+            w for w in docs
+            if (w.get("access_level") or "private") == "public" and bool(w.get("show_on_demo_home"))
+        ]
     elif not is_developer():
         owned_ids = {str(item) for item in owned_wedding_ids()}
         docs = [w for w in docs if str(w.get("_id")) in owned_ids]

@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
-import { apiGet, mediaUrl } from "../api";
+import { apiGet, apiGetPublic, mediaUrl } from "../api";
 import AsyncState from "../components/AsyncState";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import SeoHead from "../components/SeoHead";
@@ -80,7 +80,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
     queryKey: ["share-home", weddingId || publicSlug],
     queryFn: async () => {
       const wedding = publicSlug
-        ? await apiGet(`/api/public-weddings/${publicSlug}`)
+        ? await apiGetPublic(`/api/public-weddings/${publicSlug}`)
         : await apiGet(`/api/weddings/${weddingId}`);
       const programs = await apiGet(`/api/weddings/${wedding._id}/programs`);
       return { wedding, programs };

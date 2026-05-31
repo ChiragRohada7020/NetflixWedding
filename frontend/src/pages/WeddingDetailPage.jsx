@@ -229,6 +229,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     fd.append("profile_image", wedding.profile_image || "");
     fd.append("music_url", wedding.music_url || "");
     fd.append("access_level", wedding.access_level || "private");
+    fd.append("show_on_demo_home", wedding.show_on_demo_home ? "1" : "");
     fd.append("premium_experience_enabled", wedding.premium_experience_enabled ? "1" : "");
     fd.append("invitation_title", invitationTitle);
     fd.append("programs_section_title", programsSectionTitle);

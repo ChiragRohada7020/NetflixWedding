@@ -87,7 +87,10 @@ def _build_wedding_card(wedding):
 def landing():
     weddings = Wedding.all()
     if not current_user.is_authenticated:
-        weddings = [w for w in weddings if (w.get("access_level") or "private") == "public"]
+        weddings = [
+            w for w in weddings
+            if (w.get("access_level") or "private") == "public" and bool(w.get("show_on_demo_home"))
+        ]
     elif not is_developer():
         owned_ids = {str(item) for item in owned_wedding_ids()}
         weddings = [w for w in weddings if str(w.get("_id")) in owned_ids]
@@ -281,7 +284,10 @@ def sitemap_xml():
     ]
 
     weddings = Wedding.all()
-    public_weddings = [w for w in weddings if (w.get("access_level") or "private") == "public"]
+    public_weddings = [
+        w for w in weddings
+        if (w.get("access_level") or "private") == "public" and bool(w.get("show_on_demo_home"))
+    ]
     for wedding in public_weddings:
         wedding_id = str(wedding.get("_id"))
         urls.append(_absolute_url(f"/weddings/{wedding_id}"))

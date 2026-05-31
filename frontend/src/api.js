@@ -43,6 +43,27 @@ export async function apiGet(path) {
   return res.json();
 }
 
+export async function apiGetPublic(path) {
+  const res = await fetch(`${API_BASE}${path}`, { credentials: "include" });
+  if (!res.ok) {
+    const text = await res.text();
+    try {
+      const payload = JSON.parse(text);
+      const error = new Error(payload.error || payload.message || `Request failed: ${res.status}`);
+      error.status = res.status;
+      throw error;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        const error = new Error(text || `Request failed: ${res.status}`);
+        error.status = res.status;
+        throw error;
+      }
+      throw err;
+    }
+  }
+  return res.json();
+}
+
 export async function apiPost(path, body) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
