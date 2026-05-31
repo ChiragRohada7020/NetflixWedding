@@ -5,7 +5,7 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Skeleton from "react-loading-skeleton";
-import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm } from "../api";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm, mediaUrl } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import { useEditMode } from "../components/EditModeContext";
 import InlineEditableText from "../components/InlineEditableText";
@@ -124,6 +124,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   });
   const wedding = data?.wedding;
   const program = data?.program;
+  const pageMusicUrl = mediaUrl(program?.music_url || wedding?.music_url || "");
   const episodes = React.useMemo(() => data?.episodes || [], [data?.episodes]);
   const episodeLimit = Number(session?.plan?.limits?.episode_limit || 0);
   const canAddEpisode = Boolean(isEditing && session && (session.is_developer || !episodeLimit || episodes.length < episodeLimit));
@@ -159,21 +160,21 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
     audioRef.current.pause();
     audioRef.current.load();
     const saved = localStorage.getItem("wedflix_music_on");
-    const shouldPlay = saved === "0" ? false : !!(program?.music_url || wedding?.music_url);
+    const shouldPlay = saved === "0" ? false : !!pageMusicUrl;
     setIsMusicOn(shouldPlay);
-    if (shouldPlay && (program?.music_url || wedding?.music_url)) {
+    if (shouldPlay && pageMusicUrl) {
       audioRef.current.play().catch(() => {});
     }
-  }, [program?.music_url, wedding?.music_url]);
+  }, [pageMusicUrl]);
 
   useEffect(() => {
     const pauseMusicForVideo = () => {
-      if (!audioRef.current || !(program?.music_url || wedding?.music_url)) return;
+      if (!audioRef.current || !pageMusicUrl) return;
       pausedForVideoRef.current = true;
       audioRef.current.pause();
     };
     const resumeMusicAfterVideo = () => {
-      if (!audioRef.current || !(program?.music_url || wedding?.music_url) || !isMusicOn || !pausedForVideoRef.current) return;
+      if (!audioRef.current || !pageMusicUrl || !isMusicOn || !pausedForVideoRef.current) return;
       pausedForVideoRef.current = false;
       audioRef.current.play().catch(() => {});
     };
@@ -183,13 +184,13 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       window.removeEventListener("wedflix-video-playing", pauseMusicForVideo);
       window.removeEventListener("wedflix-video-stopped", resumeMusicAfterVideo);
     };
-  }, [program?.music_url, wedding?.music_url, isMusicOn]);
+  }, [pageMusicUrl, isMusicOn]);
   React.useEffect(() => {
     onMusicUrlChange(program?.music_url || wedding?.music_url || "");
   }, [program?.music_url, wedding?.music_url, onMusicUrlChange]);
 
   const toggleMusic = async () => {
-    if (!audioRef.current || !(program?.music_url || wedding?.music_url)) return;
+    if (!audioRef.current || !pageMusicUrl) return;
     if (isMusicOn) {
       audioRef.current.pause();
       setIsMusicOn(false);
@@ -343,7 +344,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         image={program?.thumbnail || wedding?.profile_image || `${window.location.origin}/favicon.svg`}
         type="article"
       />
-      <audio ref={audioRef} src={program?.music_url || wedding?.music_url || ""} loop preload="none" />
+      <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />
       <header className="home-hero page-program-hero">
         <div className={`home-hero__media ${programHeroVideo ? "has-video" : ""}`}>
           {programHeroVideo ? (

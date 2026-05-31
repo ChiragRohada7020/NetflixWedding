@@ -2,7 +2,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEditMode } from "./EditModeContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPost } from "../api";
+import { apiGet, apiPost, mediaUrl } from "../api";
 
 export default function Navbar({ musicUrl }) {
   const navigate = useNavigate();
@@ -19,7 +19,6 @@ export default function Navbar({ musicUrl }) {
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
-  const apiHost = import.meta.env.VITE_API_BASE_URL || `${window.location.protocol}//${window.location.hostname}:5000`;
   const queryClient = useQueryClient();
   const navRef = useRef(null);
   const { data: session } = useQuery({ queryKey: ["session"], queryFn: () => apiGet("/api/session"), retry: false });
@@ -60,9 +59,7 @@ export default function Navbar({ musicUrl }) {
   }, [location.pathname]);
 
   const normalizedMusicUrl = (musicUrl || "").trim();
-  const resolvedMusicUrl = normalizedMusicUrl
-    ? (/^https?:\/\//i.test(normalizedMusicUrl) ? normalizedMusicUrl : `${apiHost}${normalizedMusicUrl.startsWith("/") ? "" : "/"}${normalizedMusicUrl}`)
-    : "";
+  const resolvedMusicUrl = mediaUrl(normalizedMusicUrl);
 
   useEffect(() => {
     if (!resolvedMusicUrl) {

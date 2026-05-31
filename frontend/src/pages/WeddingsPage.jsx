@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
-import { apiGet, apiPostForm } from "../api";
+import { apiGet, apiPostForm, apiPostFormJson } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
@@ -63,10 +63,19 @@ export default function WeddingsPage() {
       if (v instanceof File) fd.append(k, v);
       else fd.append(k, v || "");
     });
-    await apiPostForm("/admin/weddings/create", fd);
+    const result = await apiPostFormJson("/admin/weddings/create", fd);
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     await queryClient.invalidateQueries({ queryKey: ["session"] });
     setModal(null);
+    if (result?.public_home_path) {
+      const publicUrl = `${window.location.origin}${result.public_home_path}`;
+      try {
+        await navigator.clipboard.writeText(publicUrl);
+        window.alert(`Public home link copied:\n${publicUrl}`);
+      } catch {
+        window.prompt("Copy this public home link", publicUrl);
+      }
+    }
   };
 
   const deleteWedding = async (wedding) => {
@@ -77,12 +86,14 @@ export default function WeddingsPage() {
   };
 
   const copyShareLink = async (wedding) => {
-    const shareUrl = `${window.location.origin}/share/${wedding._id}`;
+    const shareUrl = wedding.public_slug
+      ? `${window.location.origin}/p/${wedding.public_slug}`
+      : `${window.location.origin}/share/${wedding._id}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
-      window.alert("Public share link copied.");
+      window.alert("Public home link copied.");
     } catch {
-      window.prompt("Copy this public share link", shareUrl);
+      window.prompt("Copy this public home link", shareUrl);
     }
   };
 
@@ -151,15 +162,11 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
     wedding_date: initial.wedding_date || "",
     hero_video_url: initial.hero_video_url || "",
     description: initial.description || "",
-    venue_name: initial.venue_name || "",
-    event_address: initial.event_address || "",
-    venue_map_location: initial.venue_map_location || initial.event_address || "",
-    venue_description: initial.venue_description || "",
-    venue_image: initial.venue_image || "",
-    venue_image_file: null,
     profile_image: initial.profile_image || "",
+    profile_image_file: null,
     music_url: initial.music_url || "",
-    access_level: initial.access_level || "private",
+    music_file: null,
+    access_level: initial.access_level || "public",
     premium_experience_enabled: initial.premium_experience_enabled ? "1" : "",
   });
   return (
@@ -192,12 +199,12 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
           <input value={form.profile_image} onChange={(e) => setForm((p) => ({ ...p, profile_image: e.target.value }))} placeholder="https://..." disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
+          <span>Upload Profile Image</span>
+          <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, profile_image_file: e.target.files?.[0] || null }))} disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
           <span>Hero Video URL</span>
           <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." disabled={isSaving} />
-        </label>
-        <label className="cms-field">
-          <span>Venue Name</span>
-          <input value={form.venue_name} onChange={(e) => setForm((p) => ({ ...p, venue_name: e.target.value }))} placeholder="Royal Banquet" disabled={isSaving} />
         </label>
         <label className="cms-field">
           <span>Access Level</span>
@@ -216,28 +223,12 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
           <span>Show Premium Wedding Experience First</span>
         </label>
         <label className="cms-field cms-field-wide">
-          <span>Event Address</span>
-          <input value={form.event_address} onChange={(e) => setForm((p) => ({ ...p, event_address: e.target.value }))} placeholder="Full address..." disabled={isSaving} />
-        </label>
-        <label className="cms-field cms-field-wide">
-          <span>Google Maps Location</span>
-          <input value={form.venue_map_location} onChange={(e) => setForm((p) => ({ ...p, venue_map_location: e.target.value }))} placeholder="Google Maps link, plus code, or exact venue location" disabled={isSaving} />
-        </label>
-        <label className="cms-field cms-field-wide">
-          <span>Venue Image URL</span>
-          <input value={form.venue_image} onChange={(e) => setForm((p) => ({ ...p, venue_image: e.target.value }))} placeholder="https://..." disabled={isSaving} />
-        </label>
-        <label className="cms-field cms-field-wide">
-          <span>Upload Venue Image</span>
-          <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, venue_image_file: e.target.files?.[0] || null }))} disabled={isSaving} />
-        </label>
-        <label className="cms-field cms-field-wide">
-          <span>Venue Description</span>
-          <textarea value={form.venue_description} onChange={(e) => setForm((p) => ({ ...p, venue_description: e.target.value }))} placeholder="Venue note..." disabled={isSaving} />
-        </label>
-        <label className="cms-field cms-field-wide">
           <span>Music URL</span>
           <input value={form.music_url} onChange={(e) => setForm((p) => ({ ...p, music_url: e.target.value }))} placeholder="https://cdn.example.com/song.mp3" disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Upload Music</span>
+          <input type="file" accept="audio/*" onChange={(e) => setForm((p) => ({ ...p, music_file: e.target.files?.[0] || null }))} disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Description</span>

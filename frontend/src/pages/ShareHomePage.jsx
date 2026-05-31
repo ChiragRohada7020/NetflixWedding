@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
-import { apiGet } from "../api";
+import { apiGet, mediaUrl } from "../api";
 import AsyncState from "../components/AsyncState";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import SeoHead from "../components/SeoHead";
@@ -68,35 +68,39 @@ function SharePoster({ item, href, title, subtitle }) {
 }
 
 export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
-  const { weddingId } = useParams();
+  const { weddingId, publicSlug } = useParams();
+  const publicHome = Boolean(publicSlug);
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
-  const [premiumSeen, setPremiumSeen] = useState(() => localStorage.getItem(`wedflix_premium_seen_${weddingId}`) === "1");
+  const premiumSeenKey = `wedflix_premium_seen_${weddingId || publicSlug}`;
+  const [premiumSeen, setPremiumSeen] = useState(() => localStorage.getItem(premiumSeenKey) === "1");
   const [premiumPanel, setPremiumPanel] = useState("");
   const audioRef = useRef(null);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["share-home", weddingId],
+    queryKey: ["share-home", weddingId || publicSlug],
     queryFn: async () => {
-      const [wedding, programs] = await Promise.all([
-        apiGet(`/api/weddings/${weddingId}`),
-        apiGet(`/api/weddings/${weddingId}/programs`),
-      ]);
+      const wedding = publicSlug
+        ? await apiGet(`/api/public-weddings/${publicSlug}`)
+        : await apiGet(`/api/weddings/${weddingId}`);
+      const programs = await apiGet(`/api/weddings/${wedding._id}/programs`);
       return { wedding, programs };
     },
   });
 
   const wedding = data?.wedding;
   const programs = data?.programs || [];
+  const shareBasePath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}`;
+  const nestedBasePath = wedding?._id ? `/share/${wedding._id}` : shareBasePath;
   const featuredProgram = programs[0] || null;
   const heroImage = wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names);
   const heroVideo = withHeroParams(toEmbed(wedding?.hero_video_url || featuredProgram?.hero_video_url));
-  const pageMusicUrl = wedding?.music_url || "";
-  const firstProgramHref = featuredProgram ? `/share/${weddingId}/programs/${featuredProgram._id}` : "#celebration-series";
+  const pageMusicUrl = mediaUrl(wedding?.music_url || "");
+  const firstProgramHref = featuredProgram ? `${nestedBasePath}/programs/${featuredProgram._id}` : "#celebration-series";
 
   const rows = useMemo(() => {
     const cards = programs.map((program, index) => ({
       id: program._id,
-      href: `/share/${weddingId}/programs/${program._id}`,
+      href: `${nestedBasePath}/programs/${program._id}`,
       title: program.title || `Function ${index + 1}`,
       subtitle: program.event_date || program.venue_name || "Wedding Function",
       item: program,
@@ -106,7 +110,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
       { id: "celebration-series", title: wedding?.programs_section_title || "The Celebration Series", cards },
       { id: "wedding-films", title: "Wedding Films", cards: [...cards].reverse() },
     ];
-  }, [programs, wedding?.programs_section_title, weddingId]);
+  }, [programs, wedding?.programs_section_title, nestedBasePath]);
 
   useEffect(() => {
     onMusicUrlChange(pageMusicUrl);
@@ -145,12 +149,12 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
 
-  if (wedding?.premium_experience_enabled && !premiumSeen) {
+  if (!publicHome && wedding?.premium_experience_enabled && !premiumSeen) {
     return (
       <PremiumWeddingExperience
         wedding={wedding}
         programs={programs}
-        basePath={`/share/${weddingId}`}
+        basePath={shareBasePath}
         onMusicUrlChange={onMusicUrlChange}
         onComplete={() => setPremiumSeen(true)}
       />
@@ -162,7 +166,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
       <PremiumWeddingExperience
         wedding={wedding}
         programs={programs}
-        basePath={`/share/${weddingId}`}
+        basePath={shareBasePath}
         initialScreen={premiumPanel}
         onMusicUrlChange={onMusicUrlChange}
         onComplete={() => setPremiumPanel("")}
@@ -175,14 +179,14 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
       <SeoHead
         title={wedding ? `${wedding.couple_names} | Wedflix` : "Wedflix | Wedding Home"}
         description={wedding?.description || "Watch this private wedding story on Wedflix."}
-        canonicalPath={`/share/${weddingId}`}
+        canonicalPath={shareBasePath}
         image={wedding?.profile_image || heroImage}
         type="article"
       />
       <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />
 
       <nav className="share-home-nav" aria-label="Wedding home">
-        <Link to={`/share/${weddingId}`} className="share-home-nav__brand">WEDFLIX</Link>
+        <Link to={shareBasePath} className="share-home-nav__brand">WEDFLIX</Link>
         <a href="#celebration-series" className="share-home-nav__link">Home</a>
         {wedding?.premium_experience_enabled && (
           <>

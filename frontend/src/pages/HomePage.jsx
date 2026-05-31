@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
-import { apiGet, apiPostForm } from "../api";
+import { apiGet, apiPostForm, mediaUrl } from "../api";
 import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
@@ -97,7 +97,7 @@ export default function HomePage() {
 
   const featuredVideoUrl = useMemo(() => withAutoplay(toEmbed(featuredWedding?.hero_video_url)), [featuredWedding?.hero_video_url]);
   const heroImage = featuredWedding?.hero_image || featuredWedding?.profile_image || getPlaceholder(featuredWedding?.couple_names);
-  const pageMusicUrl = featuredWedding?.music_url || "";
+  const pageMusicUrl = mediaUrl(featuredWedding?.music_url || "");
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -318,14 +318,10 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
     wedding_date: initial.wedding_date || "",
     hero_video_url: initial.hero_video_url || "",
     description: initial.description || "",
-    venue_name: initial.venue_name || "",
-    event_address: initial.event_address || "",
-    venue_map_location: initial.venue_map_location || initial.event_address || "",
-    venue_description: initial.venue_description || "",
-    venue_image: initial.venue_image || "",
-    venue_image_file: null,
     profile_image: initial.profile_image || "",
+    profile_image_file: null,
     music_url: initial.music_url || "",
+    music_file: null,
     access_level: initial.access_level || "private",
   });
 
@@ -351,12 +347,12 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
           <input value={form.profile_image} onChange={(e) => setForm((p) => ({ ...p, profile_image: e.target.value }))} placeholder="https://..." />
         </label>
         <label className="cms-field cms-field-wide">
+          <span>Upload Profile Image</span>
+          <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, profile_image_file: e.target.files?.[0] || null }))} />
+        </label>
+        <label className="cms-field cms-field-wide">
           <span>Hero Video URL</span>
           <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." />
-        </label>
-        <label className="cms-field">
-          <span>Venue Name</span>
-          <input value={form.venue_name} onChange={(e) => setForm((p) => ({ ...p, venue_name: e.target.value }))} placeholder="Royal Banquet" />
         </label>
         <label className="cms-field">
           <span>Access Level</span>
@@ -366,28 +362,12 @@ function WeddingForm({ initial, onSubmit, onCancel }) {
           </select>
         </label>
         <label className="cms-field cms-field-wide">
-          <span>Event Address</span>
-          <input value={form.event_address} onChange={(e) => setForm((p) => ({ ...p, event_address: e.target.value }))} placeholder="Full address..." />
-        </label>
-        <label className="cms-field cms-field-wide">
-          <span>Google Maps Location</span>
-          <input value={form.venue_map_location} onChange={(e) => setForm((p) => ({ ...p, venue_map_location: e.target.value }))} placeholder="Google Maps link, plus code, or exact venue location" />
-        </label>
-        <label className="cms-field cms-field-wide">
-          <span>Venue Image URL</span>
-          <input value={form.venue_image} onChange={(e) => setForm((p) => ({ ...p, venue_image: e.target.value }))} placeholder="https://..." />
-        </label>
-        <label className="cms-field cms-field-wide">
-          <span>Upload Venue Image</span>
-          <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, venue_image_file: e.target.files?.[0] || null }))} />
-        </label>
-        <label className="cms-field cms-field-wide">
-          <span>Venue Description</span>
-          <textarea value={form.venue_description} onChange={(e) => setForm((p) => ({ ...p, venue_description: e.target.value }))} placeholder="Venue note..." />
-        </label>
-        <label className="cms-field cms-field-wide">
           <span>Music URL</span>
           <input value={form.music_url} onChange={(e) => setForm((p) => ({ ...p, music_url: e.target.value }))} placeholder="https://cdn.example.com/song.mp3" />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Upload Music</span>
+          <input type="file" accept="audio/*" onChange={(e) => setForm((p) => ({ ...p, music_file: e.target.files?.[0] || null }))} />
         </label>
         <label className="cms-field cms-field-wide">
           <span>Description</span>

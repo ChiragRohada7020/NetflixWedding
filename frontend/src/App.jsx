@@ -34,7 +34,7 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
   const location = useLocation();
   const isSiteRoute = location.pathname === "/site";
   const isDeveloperRoute = location.pathname.startsWith("/developer");
-  const isShareRoute = location.pathname.startsWith("/share/");
+  const isShareRoute = location.pathname.startsWith("/share/") || location.pathname.startsWith("/p/");
 
   return (
     <>
@@ -56,6 +56,7 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
             <Route path="/share/:weddingId" element={<ShareHomePage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/share/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} publicMode />} />
             <Route path="/share/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage publicMode />} />
+            <Route path="/p/:publicSlug" element={<ShareHomePage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/developer" element={<DeveloperAdminPage />} />
             <Route path="/developer-login" element={<DeveloperLoginPage />} />
           </Routes>

@@ -11,10 +11,15 @@ from app.models.wedding import Wedding
 from app.utils.decorators import admin_required
 from app.utils.media import normalize_image_url
 from app.utils.plans import can_manage_wedding, is_developer, limit_error, public_access_allowed
-from app.utils.telegram_media import TelegramMediaError, upload_photo_to_telegram
+from app.utils.telegram_media import TelegramMediaError, upload_file_to_telegram, upload_photo_to_telegram
 from app.utils.video import youtube_embed_url
 
 admin_bp = Blueprint("admin", __name__)
+
+
+@admin_bp.errorhandler(TelegramMediaError)
+def handle_telegram_media_error(exc):
+    return _form_error(str(exc), 400) or redirect(url_for("admin.home"))
 
 
 def _safe_int(value, default=0):
@@ -50,9 +55,20 @@ def _form_error(message, status_code=400):
     return None
 
 
-def _resolve_music_url(form_name="music_url", file_name="music_file"):
+def _resolve_music_url(form_name="music_url", file_name="music_file", existing=""):
+    file_storage = request.files.get(file_name)
+    if file_storage and file_storage.filename:
+        uploaded = upload_file_to_telegram(
+            file_storage,
+            caption=(request.form.get("title") or request.form.get("couple_names") or "Wedflix music").strip(),
+        )
+        if uploaded:
+            return uploaded
+
     direct = (request.form.get(form_name) or "").strip()
-    return direct
+    if direct:
+        return direct
+    return existing or ""
 
 def _parse_custom_sections(raw_value):
     raw = (raw_value or "").strip()
@@ -235,8 +251,14 @@ def create_wedding():
         "custom_section_label": (request.form.get("custom_section_label") or "My Custom Box").strip(),
         "owner_user_id": str(current_user.id),
     }
+    payload["public_slug"] = Wedding.unique_public_slug(payload.get("couple_names") or "wedding")
     wedding_id = Wedding.create(payload)
-    success_response = _form_success("Wedding created", wedding_id=str(wedding_id))
+    success_response = _form_success(
+        "Wedding created",
+        wedding_id=str(wedding_id),
+        public_slug=payload["public_slug"],
+        public_home_path=f"/p/{payload['public_slug']}",
+    )
     if success_response:
         return success_response
     return redirect(url_for("admin.home"))
@@ -260,26 +282,46 @@ def update_wedding(wedding_id):
         "wedding_time": (request.form.get("wedding_time") or current.get("wedding_time") or "").strip(),
         "hero_video_url": (request.form.get("hero_video_url") or "").strip(),
         "description": (request.form.get("description") or "").strip(),
-        "venue_name": (request.form.get("venue_name") or "").strip(),
-        "event_address": (request.form.get("event_address") or "").strip(),
+        "venue_name": (request.form.get("venue_name") or current.get("venue_name") or "").strip(),
+        "event_address": (request.form.get("event_address") or current.get("event_address") or "").strip(),
         "venue_eyebrow": (request.form.get("venue_eyebrow") or current.get("venue_eyebrow") or "You're Invited To").strip(),
         "venue_script": (request.form.get("venue_script") or current.get("venue_script") or "the wedding of").strip(),
         "venue_section_label": (request.form.get("venue_section_label") or current.get("venue_section_label") or "Our Venue").strip(),
-        "venue_map_location": (request.form.get("venue_map_location") or request.form.get("event_address") or "").strip(),
+        "venue_map_location": (
+            request.form.get("venue_map_location")
+            or request.form.get("event_address")
+            or current.get("venue_map_location")
+            or current.get("event_address")
+            or ""
+        ).strip(),
         "venue_description": (request.form.get("venue_description") or current.get("venue_description") or "").strip(),
         "venue_image": _resolve_image_url("venue_image", "venue_image_file", current.get("venue_image", "")),
         "profile_image": _resolve_image_url("profile_image", "profile_image_file", current.get("profile_image", "")),
-        "music_url": _resolve_music_url("music_url", "music_file"),
+        "music_url": _resolve_music_url("music_url", "music_file", current.get("music_url", "")),
         "access_level": access_level,
         "premium_experience_enabled": request.form.get("premium_experience_enabled") in {"1", "true", "on", "yes"},
         "invitation_title": (request.form.get("invitation_title") or current.get("invitation_title") or "Wedding Invitation").strip(),
         "programs_section_title": (request.form.get("programs_section_title") or current.get("programs_section_title") or "Wedding Programs").strip(),
-        "custom_sections": _parse_custom_sections(request.form.get("custom_sections_json")),
-        "venue_blocks": _parse_venue_blocks(request.form.get("venue_blocks_json")),
+        "custom_sections": (
+            _parse_custom_sections(request.form.get("custom_sections_json"))
+            if "custom_sections_json" in request.form
+            else current.get("custom_sections", [])
+        ),
+        "venue_blocks": (
+            _parse_venue_blocks(request.form.get("venue_blocks_json"))
+            if "venue_blocks_json" in request.form
+            else current.get("venue_blocks", [])
+        ),
         "custom_section_label": (request.form.get("custom_section_label") or current.get("custom_section_label") or "My Custom Box").strip(),
     }
+    payload["public_slug"] = current.get("public_slug") or Wedding.unique_public_slug(payload.get("couple_names") or "wedding", exclude_id=wedding_id)
     mongo.db.weddings.update_one({"_id": ObjectId(wedding_id)}, {"$set": payload})
-    success_response = _form_success("Wedding updated", wedding_id=wedding_id)
+    success_response = _form_success(
+        "Wedding updated",
+        wedding_id=wedding_id,
+        public_slug=payload["public_slug"],
+        public_home_path=f"/p/{payload['public_slug']}",
+    )
     if success_response:
         return success_response
     return redirect(url_for("admin.home", wedding_id=wedding_id))
@@ -364,7 +406,7 @@ def update_program(program_id):
         "event_time": (request.form.get("event_time") or "").strip(),
         "venue_name": (request.form.get("venue_name") or "").strip(),
         "event_address": (request.form.get("event_address") or "").strip(),
-        "music_url": _resolve_music_url("music_url", "music_file"),
+        "music_url": _resolve_music_url("music_url", "music_file", (program or {}).get("music_url", "")),
         "order": _safe_int(request.form.get("order"), 0),
     }
     mongo.db.programs.update_one({"_id": ObjectId(program_id)}, {"$set": payload})

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { mediaUrl } from "../api";
 
 function placeholder(label) {
   const text = encodeURIComponent((label || "Wedflix Wedding").trim().slice(0, 28));
@@ -72,8 +73,8 @@ export default function PremiumWeddingExperience({
   const audioRef = useRef(null);
   const invitationRef = useRef(null);
   const featuredProgram = programs[0] || null;
-  const heroImage = wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || placeholder(wedding?.couple_names);
-  const venueImage = wedding?.venue_image || heroImage;
+  const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || "") || placeholder(wedding?.couple_names);
+  const venueImage = mediaUrl(wedding?.venue_image || "") || heroImage;
   const venueName = wedding?.venue_name || featuredProgram?.venue_name || "Wedding Venue";
   const venueAddress = wedding?.event_address || featuredProgram?.event_address || "Venue address";
   const venueEyebrow = wedding?.venue_eyebrow || "You're Invited To";
@@ -81,7 +82,7 @@ export default function PremiumWeddingExperience({
   const venueSectionLabel = wedding?.venue_section_label || "Our Venue";
   const mapLocation = wedding?.venue_map_location || venueAddress;
   const weddingTime = wedding?.wedding_time || featuredProgram?.event_time || "11:00 AM";
-  const musicUrl = wedding?.music_url || "";
+  const musicUrl = mediaUrl(wedding?.music_url || "");
   const invitation = getInvitationText(wedding);
   const invitationDate = getInvitationDate(wedding?.wedding_date);
   const mapQuery = mapLocation || [venueName, venueAddress].filter(Boolean).join(", ");

@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
-import { apiGet, apiPostForm } from "../api";
+import { apiGet, apiPostForm, mediaUrl } from "../api";
 import { useEditMode } from "../components/EditModeContext";
 import InlineEditableText from "../components/InlineEditableText";
 import AsyncState from "../components/AsyncState";
@@ -277,7 +277,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
   const featuredProgram = ordered[0] || mainPrograms[0] || programs[0] || null;
   const featuredVideoUrl = useMemo(() => withPlayerParams(toEmbed(wedding?.hero_video_url || featuredProgram?.hero_video_url)), [wedding?.hero_video_url, featuredProgram?.hero_video_url]);
   const heroImage = wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names);
-  const pageMusicUrl = wedding?.music_url || "";
+  const pageMusicUrl = mediaUrl(wedding?.music_url || "");
   const firstProgramHref = featuredProgram ? `${weddingBasePath}/programs/${featuredProgram._id}` : "#programs";
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const matchesSearch = (program) => {
