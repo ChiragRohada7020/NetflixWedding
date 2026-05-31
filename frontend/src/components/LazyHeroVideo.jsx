@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { mediaUrl } from "../api";
 
 export default function LazyHeroVideo({ src, title, poster, alt = "", className = "home-hero__video" }) {
   const [frameLoaded, setFrameLoaded] = useState(false);
+  const resolvedPoster = mediaUrl(poster);
 
   if (!src) {
-    return <img className="home-hero__image" src={poster} alt={alt} loading="eager" decoding="async" />;
+    return <img className="home-hero__image" src={resolvedPoster} alt={alt} loading="eager" decoding="async" />;
   }
 
   return (
@@ -12,7 +14,7 @@ export default function LazyHeroVideo({ src, title, poster, alt = "", className 
       {poster && (
         <img
           className={`home-hero__image home-hero__poster ${frameLoaded ? "is-hidden" : ""}`}
-          src={poster}
+          src={resolvedPoster}
           alt={alt}
           loading="eager"
           decoding="async"

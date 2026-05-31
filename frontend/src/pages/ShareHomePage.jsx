@@ -49,7 +49,7 @@ function getPlaceholder(label) {
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
 function SharePoster({ item, href, title, subtitle }) {
-  const image = item?.thumbnail || item?.profile_image || item?.hero_image || getPlaceholder(title);
+  const image = mediaUrl(item?.thumbnail || item?.profile_image || item?.hero_image || getPlaceholder(title));
   return (
     <motion.div className="home-poster-wrap" whileHover={{ y: -4, scale: 1.015 }} transition={{ type: "spring", stiffness: 240, damping: 20 }}>
       <Link to={href} className="home-poster">
@@ -92,7 +92,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   const shareBasePath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}/home`;
   const nestedBasePath = wedding?._id ? `/share/${wedding._id}` : shareBasePath;
   const featuredProgram = programs[0] || null;
-  const heroImage = wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names);
+  const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names));
   const heroVideo = withHeroParams(toEmbed(wedding?.hero_video_url || featuredProgram?.hero_video_url));
   const pageMusicUrl = mediaUrl(wedding?.music_url || "");
   const firstProgramHref = featuredProgram ? `${nestedBasePath}/programs/${featuredProgram._id}` : "#celebration-series";
@@ -180,7 +180,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
         title={wedding ? `${wedding.couple_names} | Wedflix` : "Wedflix | Wedding Home"}
         description={wedding?.description || "Watch this private wedding story on Wedflix."}
         canonicalPath={shareBasePath}
-        image={wedding?.profile_image || heroImage}
+        image={mediaUrl(wedding?.profile_image || heroImage)}
         type="article"
       />
       <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />

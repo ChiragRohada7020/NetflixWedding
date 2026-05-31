@@ -56,7 +56,7 @@ function getPlaceholder(label) {
 }
 
 function imageFor(item, label) {
-  return item?.thumbnail || item?.profile_image || item?.hero_image || getPlaceholder(label);
+  return mediaUrl(item?.thumbnail || item?.profile_image || item?.hero_image || getPlaceholder(label));
 }
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
@@ -292,7 +292,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
 
   const featuredProgram = ordered[0] || mainPrograms[0] || programs[0] || null;
   const featuredVideoUrl = useMemo(() => withPlayerParams(toEmbed(wedding?.hero_video_url || featuredProgram?.hero_video_url)), [wedding?.hero_video_url, featuredProgram?.hero_video_url]);
-  const heroImage = wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names);
+  const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names));
   const pageMusicUrl = mediaUrl(wedding?.music_url || "");
   const firstProgramHref = featuredProgram ? `${weddingBasePath}/programs/${featuredProgram._id}` : "#programs";
   const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -402,7 +402,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
         title={wedding ? `${wedding.couple_names} | Wedflix` : "Wedflix | Wedding Story"}
         description={wedding?.description || "Watch wedding programs, stories, and cinematic memories on Wedflix."}
         canonicalPath={wedding ? weddingBasePath : "/"}
-        image={wedding?.profile_image || heroImage}
+        image={mediaUrl(wedding?.profile_image || heroImage)}
         type="article"
       />
       <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />
