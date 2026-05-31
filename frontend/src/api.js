@@ -77,6 +77,26 @@ export async function apiPost(path, body) {
   return res.json();
 }
 
+export async function apiAuthPost(path, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    try {
+      const payload = JSON.parse(text);
+      throw new Error(payload.error || payload.message || "Login failed. Check credentials.");
+    } catch (err) {
+      if (err instanceof SyntaxError) throw new Error(text || "Login failed. Check credentials.");
+      throw err;
+    }
+  }
+  return res.json();
+}
+
 export async function apiPatch(path, body) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "PATCH",

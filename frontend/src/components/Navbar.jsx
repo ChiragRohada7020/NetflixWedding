@@ -2,7 +2,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEditMode } from "./EditModeContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPost, mediaUrl } from "../api";
+import { apiAuthPost, apiGet, apiPost, mediaUrl } from "../api";
 
 export default function Navbar({ musicUrl }) {
   const navigate = useNavigate();
@@ -175,7 +175,7 @@ export default function Navbar({ musicUrl }) {
     setAuthError("");
     try {
       const endpoint = authMode === "signup" ? "/api/session/signup" : "/api/session/login";
-      const loginRes = await apiPost(endpoint, {
+      const loginRes = await apiAuthPost(endpoint, {
         name: authForm.name.trim(),
         phone: authForm.phone.trim(),
         business_name: authForm.business_name.trim(),
