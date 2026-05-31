@@ -54,7 +54,8 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
             <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
-            <Route path="/share/:weddingId" element={<ShareHomePage onMusicUrlChange={setMusicUrl} />} />
+            <Route path="/share/:weddingId" element={<PublicWeddingProfilePage />} />
+            <Route path="/share/:weddingId/home" element={<ShareHomePage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/share/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} publicMode />} />
             <Route path="/share/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage publicMode />} />
             <Route path="/p/:publicSlug" element={<PublicWeddingProfilePage />} />

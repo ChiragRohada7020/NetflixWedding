@@ -12,7 +12,7 @@ const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_
 function PublicWeddingPoster({ wedding }) {
   return (
     <motion.div whileHover={{ scale: 1.04 }} className="profile-wrap">
-      <Link to={`/share/${wedding._id}`} className="home-poster profile-card profile-card--watching">
+      <Link to={`/share/${wedding._id}/home`} className="home-poster profile-card profile-card--watching">
         <ProgressiveImage src={wedding.profile_image} alt={wedding.couple_names} className="profile-card__image" />
         <div className="home-poster__fade" />
         <div className="home-poster__content">
@@ -28,10 +28,15 @@ function PublicWeddingPoster({ wedding }) {
 }
 
 export default function PublicWeddingProfilePage() {
-  const { publicSlug } = useParams();
+  const { publicSlug, weddingId } = useParams();
+  const publicPath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}`;
   const { data: wedding, isLoading, error, refetch } = useQuery({
-    queryKey: ["public-wedding-profile", publicSlug],
-    queryFn: () => apiGet(`/api/public-weddings/${publicSlug}`),
+    queryKey: ["public-wedding-profile", publicSlug || weddingId],
+    queryFn: () => (
+      publicSlug
+        ? apiGet(`/api/public-weddings/${publicSlug}`)
+        : apiGet(`/api/weddings/${weddingId}`)
+    ),
   });
 
   if (isLoading && !wedding) return <AsyncState mode="loading" />;
@@ -42,7 +47,7 @@ export default function PublicWeddingProfilePage() {
       <SeoHead
         title={wedding ? `${wedding.couple_names} | Wedflix` : "Wedflix"}
         description={wedding?.description || "Choose this wedding profile on Wedflix."}
-        canonicalPath={`/p/${publicSlug}`}
+        canonicalPath={publicPath}
         image={wedding?.profile_image || `${window.location.origin}/favicon.svg`}
       />
       <div className="home-center">

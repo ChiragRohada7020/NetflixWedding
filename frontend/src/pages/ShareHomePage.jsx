@@ -89,7 +89,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
 
   const wedding = data?.wedding;
   const programs = data?.programs || [];
-  const shareBasePath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}`;
+  const shareBasePath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}/home`;
   const nestedBasePath = wedding?._id ? `/share/${wedding._id}` : shareBasePath;
   const featuredProgram = programs[0] || null;
   const heroImage = wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names);
