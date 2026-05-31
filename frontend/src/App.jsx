@@ -17,6 +17,7 @@ const SitePage = React.lazy(() => import("./pages/SitePage"));
 const DeveloperAdminPage = React.lazy(() => import("./pages/DeveloperAdminPage"));
 const DeveloperLoginPage = React.lazy(() => import("./pages/DeveloperLoginPage"));
 const ShareHomePage = React.lazy(() => import("./pages/ShareHomePage"));
+const PublicWeddingProfilePage = React.lazy(() => import("./pages/PublicWeddingProfilePage"));
 
 function ScrollToTop({ containerRef }) {
   const { pathname } = useLocation();
@@ -34,7 +35,7 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
   const location = useLocation();
   const isSiteRoute = location.pathname === "/site";
   const isDeveloperRoute = location.pathname.startsWith("/developer");
-  const isShareRoute = location.pathname.startsWith("/share/") || location.pathname.startsWith("/p/");
+  const isShareRoute = location.pathname.startsWith("/share/");
 
   return (
     <>
@@ -56,7 +57,7 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
             <Route path="/share/:weddingId" element={<ShareHomePage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/share/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} publicMode />} />
             <Route path="/share/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage publicMode />} />
-            <Route path="/p/:publicSlug" element={<ShareHomePage onMusicUrlChange={setMusicUrl} />} />
+            <Route path="/p/:publicSlug" element={<PublicWeddingProfilePage />} />
             <Route path="/developer" element={<DeveloperAdminPage />} />
             <Route path="/developer-login" element={<DeveloperLoginPage />} />
           </Routes>
