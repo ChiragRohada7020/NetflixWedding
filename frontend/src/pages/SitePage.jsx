@@ -43,6 +43,7 @@ const navLinks = [
   { label: "Home", href: "#top" },
   { label: "Films", href: "#films" },
   { label: "About", href: "#about" },
+  { label: "Blog", href: "/site/blog" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -269,6 +270,16 @@ export default function SitePage() {
             </article>
           ))}
         </div>
+      </section>
+
+      <section className="site-lux__section site-lux__blog-strip" id="blog" data-reveal>
+        <div>
+          <p className="site-lux__eyebrow">Wedding Planning Blog</p>
+          <h2>guides for wedding websites, digital albums, captions, songs, and sharing memories</h2>
+        </div>
+        <a href="/site/blog" className="site-lux__button site-lux__button--secondary">
+          Read Blog
+        </a>
       </section>
 
       <section className="site-lux__section site-lux__contact" id="contact" data-reveal>

@@ -14,6 +14,7 @@ const WeddingDetailPage = React.lazy(() => import("./pages/WeddingDetailPage"));
 const ProgramDetailPage = React.lazy(() => import("./pages/ProgramDetailPage"));
 const EpisodeDetailPage = React.lazy(() => import("./pages/EpisodeDetailPage"));
 const SitePage = React.lazy(() => import("./pages/SitePage"));
+const BlogPage = React.lazy(() => import("./pages/BlogPage"));
 const DeveloperAdminPage = React.lazy(() => import("./pages/DeveloperAdminPage"));
 const DeveloperLoginPage = React.lazy(() => import("./pages/DeveloperLoginPage"));
 const ShareHomePage = React.lazy(() => import("./pages/ShareHomePage"));
@@ -33,7 +34,7 @@ function ScrollToTop({ containerRef }) {
 
 function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
   const location = useLocation();
-  const isSiteRoute = location.pathname === "/site";
+  const isSiteRoute = location.pathname.startsWith("/site");
   const isDeveloperRoute = location.pathname.startsWith("/developer");
   const isShareRoute = location.pathname.startsWith("/share/");
 
@@ -51,6 +52,8 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
           <Routes>
             <Route path="/" element={<WeddingsPage />} />
             <Route path="/site" element={<SitePage />} />
+            <Route path="/site/blog" element={<BlogPage />} />
+            <Route path="/site/blog/:slug" element={<BlogPage />} />
             <Route path="/weddings/:weddingId" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
