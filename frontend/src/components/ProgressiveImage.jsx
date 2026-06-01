@@ -12,14 +12,18 @@ export default function ProgressiveImage({
   loading = "lazy",
   fetchPriority,
   sizes = "(max-width: 640px) 46vw, (max-width: 1100px) 30vw, 220px",
+  fallbackSrc = "",
 }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
-  const resolvedSrc = mediaUrl(src);
+  const resolvedSrc = mediaUrl(src) || fallbackSrc;
+  const resolvedFallback = mediaUrl(fallbackSrc);
+  const [currentSrc, setCurrentSrc] = useState(resolvedSrc);
 
   useEffect(() => {
     setLoaded(false);
     setFailed(false);
+    setCurrentSrc(resolvedSrc);
   }, [resolvedSrc]);
 
   return (
@@ -30,7 +34,7 @@ export default function ProgressiveImage({
         </div>
       )}
       <img
-        src={resolvedSrc}
+        src={currentSrc}
         alt={alt}
         className={`progressive-img ${loaded ? "is-loaded" : ""}`}
         loading={loading}
@@ -38,7 +42,13 @@ export default function ProgressiveImage({
         fetchPriority={fetchPriority || (loading === "eager" ? "high" : "auto")}
         sizes={sizes}
         onLoad={() => setLoaded(true)}
-        onError={() => setFailed(true)}
+        onError={() => {
+          if (resolvedFallback && currentSrc !== resolvedFallback) {
+            setCurrentSrc(resolvedFallback);
+            return;
+          }
+          setFailed(true);
+        }}
       />
     </div>
   );
