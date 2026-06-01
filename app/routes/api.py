@@ -672,17 +672,27 @@ def telegram_media(file_id):
         return jsonify({"error": "Telegram file path missing"}), 502
 
     file_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
-    file_response = requests.get(file_url, stream=True, timeout=(20, 120))
+    upstream_headers = {}
+    if request.headers.get("Range"):
+        upstream_headers["Range"] = request.headers["Range"]
+    file_response = requests.get(file_url, headers=upstream_headers, stream=True, timeout=(20, 120))
     if not file_response.ok:
         return jsonify({"error": "Telegram file download failed"}), 502
 
     content_type = file_response.headers.get("content-type") or mimetypes.guess_type(file_path)[0] or "application/octet-stream"
     disposition = "attachment" if request.args.get("download") == "1" else "inline"
+    headers = {
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=604800, stale-while-revalidate=86400",
+        "Content-Disposition": f'{disposition}; filename="{os.path.basename(file_path) or "wedflix-photo"}"',
+    }
+    for header in ("Content-Length", "Content-Range"):
+        if file_response.headers.get(header):
+            headers[header] = file_response.headers[header]
+
     return Response(
         stream_with_context(file_response.iter_content(chunk_size=1024 * 64)),
+        status=file_response.status_code,
         content_type=content_type,
-        headers={
-            "Cache-Control": "private, max-age=300",
-            "Content-Disposition": f'{disposition}; filename="{os.path.basename(file_path) or "wedflix-photo"}"',
-        },
+        headers=headers,
     )

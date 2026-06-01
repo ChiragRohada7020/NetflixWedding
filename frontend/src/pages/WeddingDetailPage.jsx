@@ -298,7 +298,9 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
   const featuredVideoUrl = useMemo(() => withPlayerParams(toEmbed(wedding?.hero_video_url || featuredProgram?.hero_video_url)), [wedding?.hero_video_url, featuredProgram?.hero_video_url]);
   const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names));
   const pageMusicUrl = mediaUrl(wedding?.music_url || "");
-  const firstProgramHref = featuredProgram ? `${weddingBasePath}/programs/${featuredProgram._id}` : "#programs";
+  const scrollToFunctions = () => {
+    document.getElementById("programs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const matchesSearch = (program) => {
     if (!normalizedSearch) return true;
@@ -409,7 +411,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
         image={mediaUrl(wedding?.profile_image || heroImage)}
         type="article"
       />
-      <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />
+      <audio ref={audioRef} src={pageMusicUrl} loop preload="metadata" />
 
       {isLoading && !wedding && <AsyncState mode="loading" />}
       {error && !wedding && <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />}
@@ -475,14 +477,14 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
               <span>Romance</span>
             </div>
             <div className="home-hero__actions">
-              <Link to={firstProgramHref} className="home-btn home-btn--primary">
+              <button type="button" className="home-btn home-btn--primary" onClick={scrollToFunctions}>
                 <span aria-hidden="true">▶</span>
                 Play
-              </Link>
-              <a href="#programs" className="home-btn home-btn--secondary">
+              </button>
+              <button type="button" className="home-btn home-btn--secondary" onClick={scrollToFunctions}>
                 <span aria-hidden="true">ⓘ</span>
                 More Info
-              </a>
+              </button>
             </div>
           </div>
 

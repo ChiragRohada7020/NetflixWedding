@@ -338,6 +338,9 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
   const programHeroVideo = toEmbed(program?.hero_video_url) || ordered[0]?.embed_url || "";
   const programHeroImage = program?.thumbnail || ordered[0]?.thumbnail || "https://picsum.photos/seed/program-hero/1200/800";
+  const scrollToEvents = () => {
+    document.getElementById("events")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <section className="home-page home-page--detail page-program-detail">
@@ -348,7 +351,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         image={program?.thumbnail || wedding?.profile_image || `${window.location.origin}/favicon.svg`}
         type="article"
       />
-      <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />
+      <audio ref={audioRef} src={pageMusicUrl} loop preload="metadata" />
       <header className="home-hero page-program-hero">
         <div className={`home-hero__media ${programHeroVideo ? "has-video" : ""}`}>
           {programHeroVideo ? (
@@ -382,23 +385,18 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
             {program?.event_date || "Date TBD"}
           </p>
           <div className="home-hero__actions">
-            {!!programHeroVideo && (
             <button
               type="button"
               className="home-btn home-btn--primary"
-              onClick={() => {
-                window.dispatchEvent(new Event("wedflix-video-playing"));
-                setOpenVideo(true);
-              }}
+              onClick={scrollToEvents}
             >
               <span aria-hidden="true">▶</span>
               Play
             </button>
-            )}
-            <Link to={weddingBasePath} className="home-btn home-btn--secondary">
+            <button type="button" className="home-btn home-btn--secondary" onClick={scrollToEvents}>
               <span aria-hidden="true">ⓘ</span>
               More Info
-            </Link>
+            </button>
           </div>
         </div>
         <button
@@ -412,7 +410,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         </button>
       </header>
       {error && <p className="error">{error.message}</p>}
-      <div className="cms-row-head">
+      <div className="cms-row-head" id="events">
         <h2 className="section-title">Events</h2>
       </div>
       <div className="wedding-detail-search-wrap wedding-detail-search-wrap--events">

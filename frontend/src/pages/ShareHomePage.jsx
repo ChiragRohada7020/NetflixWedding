@@ -95,7 +95,9 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names));
   const heroVideo = withHeroParams(toEmbed(wedding?.hero_video_url || featuredProgram?.hero_video_url));
   const pageMusicUrl = mediaUrl(wedding?.music_url || "");
-  const firstProgramHref = featuredProgram ? `${nestedBasePath}/programs/${featuredProgram._id}` : "#celebration-series";
+  const scrollToFunctions = () => {
+    document.getElementById("celebration-series")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const rows = useMemo(() => {
     const cards = programs.map((program, index) => ({
@@ -183,7 +185,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
         image={mediaUrl(wedding?.profile_image || heroImage)}
         type="article"
       />
-      <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />
+      <audio ref={audioRef} src={pageMusicUrl} loop preload="metadata" />
 
       <nav className="share-home-nav" aria-label="Wedding home">
         <Link to={shareBasePath} className="share-home-nav__brand">WEDFLIX</Link>
@@ -227,14 +229,14 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
               <span>Romance</span>
             </div>
             <div className="home-hero__actions">
-              <Link to={firstProgramHref} className="home-btn home-btn--primary">
+              <button type="button" className="home-btn home-btn--primary" onClick={scrollToFunctions}>
                 <span aria-hidden="true">&#9654;</span>
                 Play
-              </Link>
-              <a href="#celebration-series" className="home-btn home-btn--secondary">
+              </button>
+              <button type="button" className="home-btn home-btn--secondary" onClick={scrollToFunctions}>
                 <span aria-hidden="true">i</span>
                 Browse
-              </a>
+              </button>
             </div>
           </div>
 

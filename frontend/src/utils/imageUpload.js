@@ -1,5 +1,5 @@
-const MAX_PHOTO_EDGE = 1800;
-const PHOTO_QUALITY = 0.84;
+const MAX_PHOTO_EDGE = 1280;
+const PHOTO_QUALITY = 0.72;
 
 function canvasToBlob(canvas, type, quality) {
   return new Promise((resolve, reject) => {

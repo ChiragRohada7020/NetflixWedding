@@ -59,6 +59,8 @@ def create_app(env_name="development"):
         elif response.headers.get("Access-Control-Allow-Origin") == "*":
             response.headers.pop("Access-Control-Allow-Origin", None)
             response.headers.pop("Access-Control-Allow-Credentials", None)
+        if request.path.startswith("/static/uploads/"):
+            response.headers["Cache-Control"] = "public, max-age=604800, stale-while-revalidate=86400"
         return response
 
     login_manager.login_view = "auth.login"

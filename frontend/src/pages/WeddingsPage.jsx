@@ -27,11 +27,17 @@ const defaultPartnerProfile = {
   service_three_text: "Loved by hundreds",
 };
 
-function WeddingPosterCard({ wedding, editMode }) {
+function WeddingPosterCard({ wedding, editMode, priority = false }) {
   return (
     <motion.div key={wedding._id} whileHover={{ scale: 1.04 }} className="profile-wrap">
       <Link to={`/weddings/${wedding._id}`} className="home-poster profile-card profile-card--watching" onClick={(e) => editMode && e.preventDefault()}>
-        <ProgressiveImage src={wedding.profile_image} alt={wedding.couple_names} className="profile-card__image" />
+        <ProgressiveImage
+          src={wedding.profile_image}
+          alt={wedding.couple_names}
+          className="profile-card__image"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
+        />
         <div className="home-poster__fade" />
         <div className="home-poster__content">
           <img src={netflixLogoUrl} alt="" aria-hidden="true" className="home-poster__logo" />
@@ -159,9 +165,9 @@ export default function WeddingsPage() {
             </div>
           ))}
       {!isLoading &&
-          weddings.map((w) => (
+          weddings.map((w, index) => (
             <div key={w._id} className="profile-wrap">
-              <WeddingPosterCard wedding={w} editMode={editMode} />
+              <WeddingPosterCard wedding={w} editMode={editMode} priority={index < 2} />
               {canEdit && editMode && (
                 <div className="cms-overlay-actions" onClick={(e) => e.stopPropagation()}>
                   <button type="button" className="cms-fab" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModal({ type: "edit", item: w }); }}>Edit</button>
@@ -308,6 +314,7 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
 }
 
 function PartnerCard({ profile, editMode, onEdit }) {
+  const [expanded, setExpanded] = useState(false);
   const logoText = (profile.business_name || "Partner").slice(0, 1).toUpperCase();
   const logoUrl = mediaUrl(profile.logo_url || "");
   const services = [
@@ -319,7 +326,7 @@ function PartnerCard({ profile, editMode, onEdit }) {
     if (profile.portfolio_url) window.open(profile.portfolio_url, "_blank", "noopener,noreferrer");
   };
   return (
-    <section className="partner-showcase-card">
+    <section className={`partner-showcase-card ${expanded ? "is-expanded" : ""}`}>
       {editMode && (
         <button type="button" className="partner-edit-btn" onClick={onEdit}>
           Edit Partner Card
@@ -337,19 +344,29 @@ function PartnerCard({ profile, editMode, onEdit }) {
         </div>
         <span className="partner-verified" aria-label="Verified partner">✓</span>
       </div>
-      {!!services.length && (
-        <div className="partner-services">
-          {services.map(([title, text, icon], index) => (
-            <div key={`${title || "service"}-${index}`}>
-              <i aria-hidden="true">{icon}</i>
-              {title && <strong>{title}</strong>}
-              {text && <span>{text}</span>}
-            </div>
-          ))}
-        </div>
-      )}
-      <button type="button" className="partner-portfolio-btn" onClick={openPortfolio} disabled={!profile.portfolio_url}>
-        View {profile.business_name} Portfolio
+      <div className="partner-expandable">
+        {!!services.length && (
+          <div className="partner-services">
+            {services.map(([title, text, icon], index) => (
+              <div key={`${title || "service"}-${index}`}>
+                <i aria-hidden="true">{icon}</i>
+                {title && <strong>{title}</strong>}
+                {text && <span>{text}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+        <button type="button" className="partner-portfolio-btn" onClick={openPortfolio} disabled={!profile.portfolio_url}>
+          View {profile.business_name} Portfolio
+        </button>
+      </div>
+      <button
+        type="button"
+        className="partner-expand-btn"
+        onClick={() => setExpanded((value) => !value)}
+        aria-expanded={expanded}
+      >
+        {expanded ? "Show Less" : "Expand"}
       </button>
     </section>
   );

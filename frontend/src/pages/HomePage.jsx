@@ -195,8 +195,9 @@ export default function HomePage() {
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
   };
 
-  const firstProgramHref = featuredPrograms[0] ? `/weddings/${featuredWedding?._id}/programs/${featuredPrograms[0]._id}` : featuredWedding ? `/weddings/${featuredWedding._id}` : "#";
-  const infoHref = featuredWedding ? `/weddings/${featuredWedding._id}` : "#";
+  const scrollToFunctions = () => {
+    document.getElementById("seasons")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <section className="home-page">
@@ -206,7 +207,7 @@ export default function HomePage() {
         canonicalPath="/weddings"
         image={featuredWedding?.profile_image || featuredWedding?.hero_image || `${window.location.origin}/favicon.svg`}
       />
-      <audio ref={audioRef} src={pageMusicUrl} loop preload="none" />
+      <audio ref={audioRef} src={pageMusicUrl} loop preload="metadata" />
 
       {isLoading && weddings.length === 0 && <AsyncState mode="loading" />}
       {error && weddings.length === 0 && <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />}
@@ -248,14 +249,14 @@ export default function HomePage() {
               <span>Romance</span>
             </div>
             <div className="home-hero__actions">
-              <Link to={firstProgramHref} className="home-btn home-btn--primary">
+              <button type="button" className="home-btn home-btn--primary" onClick={scrollToFunctions}>
                 <span aria-hidden="true">▶</span>
                 Play
-              </Link>
-              <Link to={infoHref} className="home-btn home-btn--secondary">
+              </button>
+              <button type="button" className="home-btn home-btn--secondary" onClick={scrollToFunctions}>
                 <span aria-hidden="true">ⓘ</span>
                 More Info
-              </Link>
+              </button>
             </div>
           </div>
 

@@ -315,7 +315,7 @@ export default function PremiumWeddingExperience({
 
   const shell = (children) => (
     <section className={`premium-wedding premium-wedding--${screen}`}>
-      <audio ref={audioRef} src={musicUrl} loop preload="none" />
+      <audio ref={audioRef} src={musicUrl} loop preload="metadata" />
       {children}
     </section>
   );
