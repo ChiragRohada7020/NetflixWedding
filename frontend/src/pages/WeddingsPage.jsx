@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
-import { apiGet, apiPost, apiPostForm, apiPostFormJson } from "../api";
+import { apiGet, apiPostForm, apiPostFormJson } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
@@ -63,7 +63,13 @@ export default function WeddingsPage() {
   const partnerProfile = { ...defaultPartnerProfile, ...(session?.partner_profile || {}) };
 
   const savePartnerProfile = async (payload) => {
-    await apiPost("/api/partner/profile", payload);
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === undefined || v === null) continue;
+      if (k === "logo_file" && v) fd.append(k, await preparePhotoForUpload(v));
+      else fd.append(k, v);
+    }
+    await apiPostFormJson("/api/partner/profile", fd);
     await queryClient.invalidateQueries({ queryKey: ["session"] });
     setModal(null);
   };
@@ -301,6 +307,11 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
 
 function PartnerCard({ profile, editMode, onEdit }) {
   const logoText = (profile.business_name || "Partner").slice(0, 1).toUpperCase();
+  const services = [
+    [profile.service_one_title, profile.service_one_text, "C"],
+    [profile.service_two_title, profile.service_two_text, "V"],
+    [profile.service_three_title, profile.service_three_text, "H"],
+  ].filter(([title, text]) => String(title || "").trim() || String(text || "").trim());
   const openPortfolio = () => {
     if (profile.portfolio_url) window.open(profile.portfolio_url, "_blank", "noopener,noreferrer");
   };
@@ -323,19 +334,17 @@ function PartnerCard({ profile, editMode, onEdit }) {
         </div>
         <span className="partner-verified" aria-label="Verified partner">✓</span>
       </div>
-      <div className="partner-services">
-        {[
-          [profile.service_one_title, profile.service_one_text, "C"],
-          [profile.service_two_title, profile.service_two_text, "V"],
-          [profile.service_three_title, profile.service_three_text, "H"],
-        ].map(([title, text, icon]) => (
-          <div key={title}>
-            <i aria-hidden="true">{icon}</i>
-            <strong>{title}</strong>
-            <span>{text}</span>
-          </div>
-        ))}
-      </div>
+      {!!services.length && (
+        <div className="partner-services">
+          {services.map(([title, text, icon], index) => (
+            <div key={`${title || "service"}-${index}`}>
+              <i aria-hidden="true">{icon}</i>
+              {title && <strong>{title}</strong>}
+              {text && <span>{text}</span>}
+            </div>
+          ))}
+        </div>
+      )}
       <button type="button" className="partner-portfolio-btn" onClick={openPortfolio} disabled={!profile.portfolio_url}>
         View {profile.business_name} Portfolio
       </button>
@@ -346,8 +355,11 @@ function PartnerCard({ profile, editMode, onEdit }) {
 function PartnerForm({ initial, onSubmit, onCancel }) {
   const [saveError, setSaveError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [form, setForm] = useState({ ...defaultPartnerProfile, ...(initial || {}) });
+  const [form, setForm] = useState({ ...defaultPartnerProfile, ...(initial || {}), logo_file: null });
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+  const removeService = (key) => {
+    setForm((prev) => ({ ...prev, [`${key}_title`]: "", [`${key}_text`]: "" }));
+  };
   return (
     <form
       className="cms-form"
@@ -378,6 +390,10 @@ function PartnerForm({ initial, onSubmit, onCancel }) {
           <input value={form.logo_url} onChange={(e) => update("logo_url", e.target.value)} placeholder="https://..." disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
+          <span>Upload Profile Photo / Logo</span>
+          <input type="file" accept="image/*" onChange={(e) => update("logo_file", e.target.files?.[0] || null)} disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
           <span>Portfolio URL</span>
           <input value={form.portfolio_url} onChange={(e) => update("portfolio_url", e.target.value)} placeholder="https://..." disabled={isSaving} />
         </label>
@@ -390,16 +406,14 @@ function PartnerForm({ initial, onSubmit, onCancel }) {
           ["service_two", "Service 2"],
           ["service_three", "Service 3"],
         ].map(([key, label]) => (
-          <React.Fragment key={key}>
-            <label className="cms-field">
-              <span>{label} Title</span>
-              <input value={form[`${key}_title`]} onChange={(e) => update(`${key}_title`, e.target.value)} disabled={isSaving} />
-            </label>
-            <label className="cms-field">
-              <span>{label} Text</span>
-              <input value={form[`${key}_text`]} onChange={(e) => update(`${key}_text`, e.target.value)} disabled={isSaving} />
-            </label>
-          </React.Fragment>
+          <div className="cms-field cms-field-wide partner-service-editor" key={key}>
+            <div className="partner-service-editor__head">
+              <span>{label}</span>
+              <button type="button" onClick={() => removeService(key)} disabled={isSaving}>Remove</button>
+            </div>
+            <input value={form[`${key}_title`]} onChange={(e) => update(`${key}_title`, e.target.value)} placeholder={`${label} title`} disabled={isSaving} />
+            <input value={form[`${key}_text`]} onChange={(e) => update(`${key}_text`, e.target.value)} placeholder={`${label} text`} disabled={isSaving} />
+          </div>
         ))}
       </div>
       {saveError && <p className="error">{saveError}</p>}

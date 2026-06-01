@@ -197,7 +197,8 @@ def partner_profile():
     if not bool(getattr(current_user, "is_partner", False)):
         return jsonify({"error": "Partner access required"}), 403
 
-    payload = request.get_json(force=True) or {}
+    is_multipart = request.content_type and request.content_type.startswith("multipart/form-data")
+    payload = request.form if is_multipart else (request.get_json(force=True) or {})
     existing = (User.get_by_email(getattr(current_user, "email", "")) or {}).get("partner_profile") or {}
     allowed = {
         "business_name",
@@ -216,6 +217,12 @@ def partner_profile():
     for key in allowed:
         if key in payload:
             profile[key] = str(payload.get(key) or "").strip()
+    logo_file = request.files.get("logo_file") if is_multipart else None
+    if logo_file and logo_file.filename:
+        profile["logo_url"] = upload_photo_to_telegram(
+            logo_file,
+            caption=f"{profile.get('business_name') or current_user.name or 'Wedflix partner'} logo",
+        )
     mongo.db.users.update_one({"_id": ObjectId(current_user.id)}, {"$set": {"partner_profile": profile}})
     return jsonify(_to_jsonable(profile))
 
