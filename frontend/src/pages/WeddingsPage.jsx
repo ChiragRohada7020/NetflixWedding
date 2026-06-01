@@ -9,6 +9,7 @@ import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
+import { mediaUrl } from "../api";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
@@ -69,7 +70,8 @@ export default function WeddingsPage() {
       if (k === "logo_file" && v) fd.append(k, await preparePhotoForUpload(v));
       else fd.append(k, v);
     }
-    await apiPostFormJson("/api/partner/profile", fd);
+    const savedProfile = await apiPostFormJson("/api/partner/profile", fd);
+    queryClient.setQueryData(["session"], (prev) => prev ? { ...prev, partner_profile: savedProfile } : prev);
     await queryClient.invalidateQueries({ queryKey: ["session"] });
     setModal(null);
   };
@@ -307,6 +309,7 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
 
 function PartnerCard({ profile, editMode, onEdit }) {
   const logoText = (profile.business_name || "Partner").slice(0, 1).toUpperCase();
+  const logoUrl = mediaUrl(profile.logo_url || "");
   const services = [
     [profile.service_one_title, profile.service_one_text, "C"],
     [profile.service_two_title, profile.service_two_text, "V"],
@@ -325,7 +328,7 @@ function PartnerCard({ profile, editMode, onEdit }) {
       <div className="partner-badge">Official Wedding Partner</div>
       <div className="partner-head">
         <div className="partner-logo">
-          {profile.logo_url ? <img src={profile.logo_url} alt={profile.business_name} /> : <span>{logoText}</span>}
+          {logoUrl ? <img src={logoUrl} alt={profile.business_name} /> : <span>{logoText}</span>}
         </div>
         <div>
           <h2>{profile.business_name}</h2>
