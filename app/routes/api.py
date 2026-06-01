@@ -65,6 +65,7 @@ def _json_user(doc):
         "status": doc.get("status") or "active",
         "phone": doc.get("phone") or "",
         "details": doc.get("details") or {},
+        "partner_profile": doc.get("partner_profile") or {},
         "usage": usage_for_user(doc),
         "wedding_ids": user_wedding_ids,
         "weddings": [
@@ -94,8 +95,11 @@ def session_info():
             "authenticated": bool(current_user.is_authenticated and is_active),
             "is_admin": bool(getattr(current_user, "is_admin", False) and is_active) if current_user.is_authenticated else False,
             "is_developer": bool(getattr(current_user, "is_developer", False) and is_active) if current_user.is_authenticated else False,
+            "is_partner": bool(getattr(current_user, "is_partner", False) and is_active) if current_user.is_authenticated else False,
             "name": getattr(current_user, "name", "") if current_user.is_authenticated else "",
             "email": getattr(current_user, "email", "") if current_user.is_authenticated else "",
+            "role": getattr(current_user, "role", "") if current_user.is_authenticated else "",
+            "partner_profile": current_user_doc.get("partner_profile", {}) if current_user_doc else {},
             "plan": _to_jsonable(get_current_plan()) if current_user.is_authenticated else None,
             "usage": _to_jsonable(usage_for_user(current_user_doc)) if current_user_doc else None,
         }
@@ -184,6 +188,36 @@ def session_logout():
     if current_user.is_authenticated:
         logout_user()
     return jsonify({"authenticated": False})
+
+
+@api_bp.route("/partner/profile", methods=["PATCH", "POST"])
+def partner_profile():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Login required"}), 401
+    if not bool(getattr(current_user, "is_partner", False)):
+        return jsonify({"error": "Partner access required"}), 403
+
+    payload = request.get_json(force=True) or {}
+    existing = (User.get_by_email(getattr(current_user, "email", "")) or {}).get("partner_profile") or {}
+    allowed = {
+        "business_name",
+        "tagline",
+        "description",
+        "logo_url",
+        "portfolio_url",
+        "service_one_title",
+        "service_one_text",
+        "service_two_title",
+        "service_two_text",
+        "service_three_title",
+        "service_three_text",
+    }
+    profile = {**existing}
+    for key in allowed:
+        if key in payload:
+            profile[key] = str(payload.get(key) or "").strip()
+    mongo.db.users.update_one({"_id": ObjectId(current_user.id)}, {"$set": {"partner_profile": profile}})
+    return jsonify(_to_jsonable(profile))
 
 
 @api_bp.route("/weddings", methods=["GET"])
@@ -580,6 +614,10 @@ def developer_update_user(user_id):
     for key in ("name", "plan_id", "status"):
         if key in payload:
             update[key] = payload[key]
+    if "role" in payload:
+        role = (payload.get("role") or "admin").strip().lower()
+        if role in {"admin", "partner"}:
+            update["role"] = role
     if "wedding_ids" in payload and isinstance(payload.get("wedding_ids"), list):
         update["wedding_ids"] = payload["wedding_ids"]
     mongo.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update})

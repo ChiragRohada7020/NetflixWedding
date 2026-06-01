@@ -10,7 +10,7 @@ import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
-import { preparePhotoForUpload } from "../utils/imageUpload";
+import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -160,7 +160,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     const src = Array.isArray(wedding?.custom_sections) ? wedding.custom_sections : [];
     if (src.length) return src;
     if (wedding?.custom_section_label) return [{ key: "custom", label: wedding.custom_section_label }];
-    return [{ key: "custom", label: "My Custom Box" }];
+    return [];
   }, [wedding?.custom_sections, wedding?.custom_section_label]);
 
   const programsBySection = useMemo(() => {
@@ -194,6 +194,8 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
       if (v === undefined || v === null) continue;
       if (k === "thumbnail_file" && v) {
         fd.append(k, await preparePhotoForUpload(v));
+      } else if (k === "music_file" && v) {
+        fd.append(k, await prepareAudioForUpload(v));
       } else {
         fd.append(k, v);
       }
@@ -207,7 +209,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     const invitationTitle = field === "invitation_title" ? val : wedding.invitation_title || "Wedding Invitation";
     const programsSectionTitle = field === "programs_section_title" ? val : wedding.programs_section_title || "Wedding Programs";
     const customSectionsValue = field === "custom_sections" ? (Array.isArray(val) ? val : []) : customSections;
-    const customSectionLabel = customSectionsValue[0]?.label || wedding.custom_section_label || "My Custom Box";
+    const customSectionLabel = customSectionsValue[0]?.label || "";
     const venueBlocksValue = field === "venue_blocks" ? (Array.isArray(val) ? val : []) : (Array.isArray(wedding.venue_blocks) ? wedding.venue_blocks : []);
     const venueDetailsValue = field === "venue_details" && val && typeof val === "object" ? val : {};
 
@@ -256,6 +258,8 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
       if (v === undefined || v === null) continue;
       if (k === "thumbnail_file" && v) {
         fd.append(k, await preparePhotoForUpload(v));
+      } else if (k === "music_file" && v) {
+        fd.append(k, await prepareAudioForUpload(v));
       } else {
         fd.append(k, v);
       }

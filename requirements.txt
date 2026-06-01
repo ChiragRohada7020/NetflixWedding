@@ -8,3 +8,5 @@ pymongo==4.8.0
 gunicorn==22.0.0
 flask-cors==5.0.0
 requests==2.32.3
+Pillow==12.2.0
+imageio-ffmpeg==0.5.1

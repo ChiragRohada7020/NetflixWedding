@@ -270,7 +270,7 @@ export default function Navbar({ musicUrl }) {
         <div className="cms-modal-backdrop auth-backdrop" onClick={() => setShowLogin(false)}>
           <div className="cms-modal auth-modal netflix-login" onClick={(e) => e.stopPropagation()}>
             <p className="netflix-login-brand">WEDFLIX</p>
-            <h3>{authMode === "signup" ? "Create Admin" : "Sign In"}</h3>
+            <h3>{authMode === "signup" ? "Create Client Account" : "Sign In"}</h3>
             <form className="cms-form" onSubmit={submitLogin}>
               {authMode === "signup" && (
                 <>
@@ -284,7 +284,7 @@ export default function Navbar({ musicUrl }) {
               <input type="email" value={authForm.email} onChange={(e) => setAuthForm((p) => ({ ...p, email: e.target.value }))} placeholder="Email or phone number" />
               <input type="password" value={authForm.password} onChange={(e) => setAuthForm((p) => ({ ...p, password: e.target.value }))} placeholder="Password" />
               {!!authError && <p className="auth-error">{authError}</p>}
-              <button type="submit" className="netflix-login-btn" disabled={authLoading}>{authLoading ? "Please wait..." : authMode === "signup" ? "Create Free Admin" : "Sign In"}</button>
+              <button type="submit" className="netflix-login-btn" disabled={authLoading}>{authLoading ? "Please wait..." : authMode === "signup" ? "Create Free Client" : "Sign In"}</button>
               <div className="netflix-login-meta">
                 <label><input type="checkbox" defaultChecked /> Remember me</label>
                 <button
@@ -295,7 +295,7 @@ export default function Navbar({ musicUrl }) {
                     setAuthMode((mode) => (mode === "signup" ? "login" : "signup"));
                   }}
                 >
-                  {authMode === "signup" ? "Already have login?" : "Create free admin"}
+                  {authMode === "signup" ? "Already have login?" : "Create free client"}
                 </button>
               </div>
             </form>

@@ -53,11 +53,15 @@ class UserRecord(UserMixin):
 
     @property
     def is_admin(self):
-        return (self.role or "").strip().lower() in {"admin", "developer"}
+        return (self.role or "").strip().lower() in {"admin", "partner", "developer"}
 
     @property
     def is_developer(self):
         return (self.role or "").strip().lower() == "developer"
+
+    @property
+    def is_partner(self):
+        return (self.role or "").strip().lower() == "partner"
 
     @property
     def is_active(self):

@@ -249,7 +249,7 @@ def create_wedding():
             if "venue_blocks_json" in request.form
             else []
         ),
-        "custom_section_label": (request.form.get("custom_section_label") or "My Custom Box").strip(),
+        "custom_section_label": (request.form.get("custom_section_label") or "").strip(),
         "owner_user_id": str(current_user.id),
     }
     payload["public_slug"] = Wedding.unique_public_slug(payload.get("couple_names") or "wedding")
@@ -318,7 +318,11 @@ def update_wedding(wedding_id):
             if "venue_blocks_json" in request.form
             else current.get("venue_blocks", [])
         ),
-        "custom_section_label": (request.form.get("custom_section_label") or current.get("custom_section_label") or "My Custom Box").strip(),
+        "custom_section_label": (
+            (request.form.get("custom_section_label") or "").strip()
+            if "custom_section_label" in request.form
+            else (current.get("custom_section_label") or "").strip()
+        ),
     }
     payload["public_slug"] = current.get("public_slug") or Wedding.unique_public_slug(payload.get("couple_names") or "wedding", exclude_id=wedding_id)
     mongo.db.weddings.update_one({"_id": ObjectId(wedding_id)}, {"$set": payload})

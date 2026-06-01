@@ -137,6 +137,7 @@ export default function DeveloperAdminPage() {
         user.details?.business_name,
         user.details?.city,
         user.details?.purpose,
+        user.partner_profile?.business_name,
       ].filter(Boolean).join(" ").toLowerCase();
       const matchesTerm = !term || haystack.includes(term);
       const matchesPlan = planFilter === "all" || user.plan_id === planFilter;
@@ -383,7 +384,7 @@ export default function DeveloperAdminPage() {
                     </div>
                     <div className="developer-user-tags">
                       <b className={user.status === "active" ? "is-active" : "is-paused"}>{user.status}</b>
-                      <b>{isDeveloper ? "developer" : "admin"}</b>
+                      <b>{user.role || (isDeveloper ? "developer" : "admin")}</b>
                       <b>{plan.name || user.plan_id}</b>
                     </div>
                   </div>
@@ -437,6 +438,10 @@ export default function DeveloperAdminPage() {
                   <div className="developer-user-controls">
                     <select value={user.plan_id} disabled={isSaving || isDeveloper} onChange={(e) => updateUser(user, { plan_id: e.target.value })}>
                       {planOptions.map((planId) => <option key={planId} value={planId}>{planById[planId]?.name || planId}</option>)}
+                    </select>
+                    <select value={user.role || "admin"} disabled={isSaving || isDeveloper} onChange={(e) => updateUser(user, { role: e.target.value })}>
+                      <option value="admin">Normal Client</option>
+                      <option value="partner">Partner</option>
                     </select>
                     <button type="button" disabled={isSaving || isDeveloper} onClick={() => updateUser(user, { status: user.status === "active" ? "paused" : "active" })}>
                       {isSaving ? "Saving..." : user.status === "active" ? "Pause Access" : "Activate"}

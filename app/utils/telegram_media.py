@@ -1,11 +1,22 @@
 import os
+import shutil
+import subprocess
+import tempfile
 from io import BytesIO
+from pathlib import Path
 
 import requests
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 
 class TelegramMediaError(RuntimeError):
     pass
+
+
+PHOTO_MAX_DIMENSION = int(os.getenv("TELEGRAM_PHOTO_MAX_DIMENSION", "1600"))
+PHOTO_JPEG_QUALITY = int(os.getenv("TELEGRAM_PHOTO_JPEG_QUALITY", "78"))
+MUSIC_TRIM_SECONDS = int(os.getenv("TELEGRAM_MUSIC_TRIM_SECONDS", "90"))
+MUSIC_AUDIO_BITRATE = os.getenv("TELEGRAM_MUSIC_BITRATE", "96k")
 
 
 def telegram_file_url(file_id):
@@ -38,6 +49,99 @@ def _post_telegram_file(endpoint, data, field_name, file_payload):
         )
     except requests.RequestException as exc:
         raise TelegramMediaError(f"Telegram photo upload failed: {exc}") from exc
+
+
+def _read_stream(stream):
+    try:
+        stream.seek(0)
+    except (AttributeError, OSError):
+        pass
+    return stream.read()
+
+
+def _compressed_photo_payload(filename, stream, mimetype="application/octet-stream"):
+    original = _read_stream(stream)
+    if not original:
+        return filename, BytesIO(original), mimetype or "application/octet-stream", 0
+
+    try:
+        with Image.open(BytesIO(original)) as image:
+            image = ImageOps.exif_transpose(image)
+            if image.mode not in ("RGB", "L"):
+                image = image.convert("RGB")
+            image.thumbnail((PHOTO_MAX_DIMENSION, PHOTO_MAX_DIMENSION), Image.Resampling.LANCZOS)
+
+            output = BytesIO()
+            image.save(
+                output,
+                format="JPEG",
+                quality=PHOTO_JPEG_QUALITY,
+                optimize=True,
+                progressive=True,
+            )
+            compressed = output.getvalue()
+    except (UnidentifiedImageError, OSError):
+        return filename, BytesIO(original), mimetype or "application/octet-stream", len(original)
+
+    # Keep the original if conversion would make an already-small image heavier.
+    if len(compressed) >= len(original):
+        return filename, BytesIO(original), mimetype or "application/octet-stream", len(original)
+
+    stem = Path(filename).stem or "wedflix-photo"
+    return f"{stem}.jpg", BytesIO(compressed), "image/jpeg", len(compressed)
+
+
+def _compressed_music_payload(filename, stream, mimetype):
+    original = _read_stream(stream)
+    if not original:
+        return filename, BytesIO(original), mimetype or "application/octet-stream", 0
+
+    ffmpeg_path = shutil.which("ffmpeg")
+    if not ffmpeg_path:
+        try:
+            from imageio_ffmpeg import get_ffmpeg_exe
+
+            ffmpeg_path = get_ffmpeg_exe()
+        except Exception:
+            ffmpeg_path = ""
+    if not ffmpeg_path:
+        return filename, BytesIO(original), mimetype or "application/octet-stream", len(original)
+
+    suffix = Path(filename).suffix or ".audio"
+    with tempfile.TemporaryDirectory() as temp_dir:
+        input_path = os.path.join(temp_dir, f"input{suffix}")
+        output_path = os.path.join(temp_dir, "wedflix-music.mp3")
+        with open(input_path, "wb") as input_file:
+            input_file.write(original)
+
+        command = [
+            ffmpeg_path,
+            "-y",
+            "-i",
+            input_path,
+            "-t",
+            str(max(MUSIC_TRIM_SECONDS, 1)),
+            "-vn",
+            "-ac",
+            "2",
+            "-ar",
+            "44100",
+            "-b:a",
+            MUSIC_AUDIO_BITRATE,
+            output_path,
+        ]
+        try:
+            subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            with open(output_path, "rb") as output_file:
+                compressed = output_file.read()
+        except (OSError, subprocess.CalledProcessError):
+            return filename, BytesIO(original), mimetype or "application/octet-stream", len(original)
+
+    if not compressed or len(compressed) >= len(original):
+        return filename, BytesIO(original), mimetype or "application/octet-stream", len(original)
+
+    stem = Path(filename).stem or "wedflix-music"
+    return f"{stem}.mp3", BytesIO(compressed), "audio/mpeg", len(compressed)
 
 
 def _upload_file_payload_to_telegram(filename, stream, mimetype, content_length=None, caption="", prefer_photo=True):
@@ -99,11 +203,16 @@ def _upload_file_payload_to_telegram(filename, stream, mimetype, content_length=
 def upload_photo_to_telegram(file_storage, caption=""):
     if not file_storage or not file_storage.filename:
         return ""
-    return _upload_file_payload_to_telegram(
+    filename, stream, mimetype, content_length = _compressed_photo_payload(
         file_storage.filename,
         file_storage.stream,
         file_storage.mimetype or "application/octet-stream",
-        getattr(file_storage, "content_length", None),
+    )
+    return _upload_file_payload_to_telegram(
+        filename,
+        stream,
+        mimetype,
+        content_length,
         caption=caption,
     )
 
@@ -111,21 +220,28 @@ def upload_photo_to_telegram(file_storage, caption=""):
 def upload_file_to_telegram(file_storage, caption=""):
     if not file_storage or not file_storage.filename:
         return ""
-    return _upload_file_payload_to_telegram(
+    filename, stream, mimetype, content_length = _compressed_music_payload(
         file_storage.filename,
         file_storage.stream,
         file_storage.mimetype or "application/octet-stream",
-        getattr(file_storage, "content_length", None),
+    )
+    return _upload_file_payload_to_telegram(
+        filename,
+        stream,
+        mimetype,
+        content_length,
         caption=caption,
         prefer_photo=False,
     )
 
 
 def upload_bytes_to_telegram(filename, content, mimetype="application/octet-stream", caption=""):
+    content = content or b""
+    filename, stream, mimetype, content_length = _compressed_photo_payload(filename, BytesIO(content), mimetype)
     return _upload_file_payload_to_telegram(
         filename,
-        BytesIO(content),
+        stream,
         mimetype,
-        len(content) if content is not None else None,
+        content_length,
         caption=caption,
     )

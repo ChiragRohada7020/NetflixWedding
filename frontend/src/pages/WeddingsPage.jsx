@@ -3,13 +3,28 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
-import { apiGet, apiPostForm, apiPostFormJson } from "../api";
+import { apiGet, apiPost, apiPostForm, apiPostFormJson } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
+import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
+
+const defaultPartnerProfile = {
+  business_name: "Wedo Photography",
+  tagline: "Official Wedflix Partner",
+  description: "Capturing your moments.\nCreating your memories.",
+  logo_url: "",
+  portfolio_url: "",
+  service_one_title: "Photography",
+  service_one_text: "Timeless clicks",
+  service_two_title: "Cinematography",
+  service_two_text: "Stories that last",
+  service_three_title: "Trusted by Couples",
+  service_three_text: "Loved by hundreds",
+};
 
 function WeddingPosterCard({ wedding, editMode }) {
   return (
@@ -45,13 +60,22 @@ export default function WeddingsPage() {
   const weddingLimit = Number(session?.plan?.limits?.wedding_limit || 0);
   const weddingUsage = Number(session?.usage?.weddings ?? weddings.length);
   const canAddWedding = Boolean(session && (session.is_developer || !weddingLimit || weddingUsage < weddingLimit));
+  const partnerProfile = { ...defaultPartnerProfile, ...(session?.partner_profile || {}) };
+
+  const savePartnerProfile = async (payload) => {
+    await apiPost("/api/partner/profile", payload);
+    await queryClient.invalidateQueries({ queryKey: ["session"] });
+    setModal(null);
+  };
 
   const saveWedding = async (payload, weddingId) => {
     const fd = new FormData();
-    Object.entries(payload).forEach(([k, v]) => {
-      if (v instanceof File) fd.append(k, v);
-      else fd.append(k, v || "");
-    });
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === undefined || v === null) continue;
+      if (k === "profile_image_file" && v) fd.append(k, await preparePhotoForUpload(v));
+      else if (k === "music_file" && v) fd.append(k, await prepareAudioForUpload(v));
+      else fd.append(k, v);
+    }
     await apiPostForm(`/admin/weddings/${weddingId}/update`, fd);
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     setModal(null);
@@ -59,10 +83,12 @@ export default function WeddingsPage() {
 
   const createWedding = async (payload) => {
     const fd = new FormData();
-    Object.entries(payload).forEach(([k, v]) => {
-      if (v instanceof File) fd.append(k, v);
-      else fd.append(k, v || "");
-    });
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === undefined || v === null) continue;
+      if (k === "profile_image_file" && v) fd.append(k, await preparePhotoForUpload(v));
+      else if (k === "music_file" && v) fd.append(k, await prepareAudioForUpload(v));
+      else fd.append(k, v);
+    }
     const result = await apiPostFormJson("/admin/weddings/create", fd);
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     await queryClient.invalidateQueries({ queryKey: ["session"] });
@@ -138,16 +164,32 @@ export default function WeddingsPage() {
             </div>
           ))}
       </div>
+      {session?.is_partner && (
+        <PartnerCard
+          profile={partnerProfile}
+          editMode={editMode}
+          onEdit={() => setModal({ type: "partner", item: partnerProfile })}
+        />
+      )}
       {modal && (
         <div className="cms-modal-backdrop" onClick={() => setModal(null)}>
           <div className="cms-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{modal.type === "create" ? "Add Wedding" : "Edit Wedding"}</h3>
-            <WeddingForm
-              initial={modal.item}
-              isDeveloper={!!session?.is_developer}
-              onCancel={() => setModal(null)}
-              onSubmit={(values) => (modal.type === "create" ? createWedding(values) : saveWedding(values, modal.item._id))}
-            />
+            {modal.type === "partner" ? (
+              <>
+                <h3>Edit Partner Card</h3>
+                <PartnerForm initial={modal.item} onCancel={() => setModal(null)} onSubmit={savePartnerProfile} />
+              </>
+            ) : (
+              <>
+                <h3>{modal.type === "create" ? "Add Wedding" : "Edit Wedding"}</h3>
+                <WeddingForm
+                  initial={modal.item}
+                  isDeveloper={!!session?.is_developer}
+                  onCancel={() => setModal(null)}
+                  onSubmit={(values) => (modal.type === "create" ? createWedding(values) : saveWedding(values, modal.item._id))}
+                />
+              </>
+            )}
           </div>
         </div>
       )}
@@ -247,6 +289,118 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
           <span>Description</span>
           <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Wedding story..." disabled={isSaving} />
         </label>
+      </div>
+      {saveError && <p className="error">{saveError}</p>}
+      <div className="cms-form-actions">
+        <button type="button" className="cms-fab" onClick={onCancel} disabled={isSaving}>Cancel</button>
+        <button type="submit" className="cms-fab" disabled={isSaving}>{isSaving ? "Saving..." : "Save"}</button>
+      </div>
+    </form>
+  );
+}
+
+function PartnerCard({ profile, editMode, onEdit }) {
+  const logoText = (profile.business_name || "Partner").slice(0, 1).toUpperCase();
+  const openPortfolio = () => {
+    if (profile.portfolio_url) window.open(profile.portfolio_url, "_blank", "noopener,noreferrer");
+  };
+  return (
+    <section className="partner-showcase-card">
+      {editMode && (
+        <button type="button" className="partner-edit-btn" onClick={onEdit}>
+          Edit Partner Card
+        </button>
+      )}
+      <div className="partner-badge">Official Wedding Partner</div>
+      <div className="partner-head">
+        <div className="partner-logo">
+          {profile.logo_url ? <img src={profile.logo_url} alt={profile.business_name} /> : <span>{logoText}</span>}
+        </div>
+        <div>
+          <h2>{profile.business_name}</h2>
+          <strong>{profile.tagline}</strong>
+          <p>{profile.description}</p>
+        </div>
+        <span className="partner-verified" aria-label="Verified partner">✓</span>
+      </div>
+      <div className="partner-services">
+        {[
+          [profile.service_one_title, profile.service_one_text, "C"],
+          [profile.service_two_title, profile.service_two_text, "V"],
+          [profile.service_three_title, profile.service_three_text, "H"],
+        ].map(([title, text, icon]) => (
+          <div key={title}>
+            <i aria-hidden="true">{icon}</i>
+            <strong>{title}</strong>
+            <span>{text}</span>
+          </div>
+        ))}
+      </div>
+      <button type="button" className="partner-portfolio-btn" onClick={openPortfolio} disabled={!profile.portfolio_url}>
+        View {profile.business_name} Portfolio
+      </button>
+    </section>
+  );
+}
+
+function PartnerForm({ initial, onSubmit, onCancel }) {
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [form, setForm] = useState({ ...defaultPartnerProfile, ...(initial || {}) });
+  const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+  return (
+    <form
+      className="cms-form"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setSaveError("");
+        setIsSaving(true);
+        try {
+          await onSubmit(form);
+        } catch (err) {
+          setSaveError(err?.message || "Save failed. Please try again.");
+        } finally {
+          setIsSaving(false);
+        }
+      }}
+    >
+      <div className="cms-form-grid">
+        <label className="cms-field">
+          <span>Business Name</span>
+          <input value={form.business_name} onChange={(e) => update("business_name", e.target.value)} disabled={isSaving} />
+        </label>
+        <label className="cms-field">
+          <span>Tagline</span>
+          <input value={form.tagline} onChange={(e) => update("tagline", e.target.value)} disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Logo URL</span>
+          <input value={form.logo_url} onChange={(e) => update("logo_url", e.target.value)} placeholder="https://..." disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Portfolio URL</span>
+          <input value={form.portfolio_url} onChange={(e) => update("portfolio_url", e.target.value)} placeholder="https://..." disabled={isSaving} />
+        </label>
+        <label className="cms-field cms-field-wide">
+          <span>Description</span>
+          <textarea value={form.description} onChange={(e) => update("description", e.target.value)} disabled={isSaving} />
+        </label>
+        {[
+          ["service_one", "Service 1"],
+          ["service_two", "Service 2"],
+          ["service_three", "Service 3"],
+        ].map(([key, label]) => (
+          <React.Fragment key={key}>
+            <label className="cms-field">
+              <span>{label} Title</span>
+              <input value={form[`${key}_title`]} onChange={(e) => update(`${key}_title`, e.target.value)} disabled={isSaving} />
+            </label>
+            <label className="cms-field">
+              <span>{label} Text</span>
+              <input value={form[`${key}_text`]} onChange={(e) => update(`${key}_text`, e.target.value)} disabled={isSaving} />
+            </label>
+          </React.Fragment>
+        ))}
       </div>
       {saveError && <p className="error">{saveError}</p>}
       <div className="cms-form-actions">
