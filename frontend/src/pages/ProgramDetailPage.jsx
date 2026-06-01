@@ -13,7 +13,7 @@ import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import PhotoGalleryModal from "../components/PhotoGalleryModal";
 import LazyHeroVideo from "../components/LazyHeroVideo";
-import { preparePhotoForUpload, preparePhotosForUpload } from "../utils/imageUpload";
+import { prepareAudioForUpload, preparePhotoForUpload, preparePhotosForUpload } from "../utils/imageUpload";
 
 const noop = () => {};
 const VideoModal = React.lazy(() => import("../components/VideoModal"));
@@ -213,6 +213,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       if (v === undefined || v === null) continue;
       if (k === "thumbnail_file" && v) {
         fd.append(k, await preparePhotoForUpload(v));
+      } else if (k === "music_file" && v) {
+        fd.append(k, await prepareAudioForUpload(v));
       } else {
         fd.append(k, v);
       }
@@ -243,6 +245,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       if (v === undefined || v === null) continue;
       if (k === "thumbnail_file" && v) {
         fd.append(k, await preparePhotoForUpload(v));
+      } else if (k === "music_file" && v) {
+        fd.append(k, await prepareAudioForUpload(v));
       } else {
         fd.append(k, v);
       }

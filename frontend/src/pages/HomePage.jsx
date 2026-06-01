@@ -7,6 +7,7 @@ import { apiGet, apiPostForm, mediaUrl } from "../api";
 import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
+import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -164,10 +165,12 @@ export default function HomePage() {
 
   const saveWedding = async (payload, weddingId) => {
     const fd = new FormData();
-    Object.entries(payload).forEach(([k, v]) => {
-      if (v instanceof File) fd.append(k, v);
-      else fd.append(k, v || "");
-    });
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === undefined || v === null) continue;
+      if (k === "profile_image_file" && v) fd.append(k, await preparePhotoForUpload(v));
+      else if (k === "music_file" && v) fd.append(k, await prepareAudioForUpload(v));
+      else fd.append(k, v);
+    }
     await apiPostForm(`/admin/weddings/${weddingId}/update`, fd);
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     setModal(null);
@@ -175,10 +178,12 @@ export default function HomePage() {
 
   const createWedding = async (payload) => {
     const fd = new FormData();
-    Object.entries(payload).forEach(([k, v]) => {
-      if (v instanceof File) fd.append(k, v);
-      else fd.append(k, v || "");
-    });
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === undefined || v === null) continue;
+      if (k === "profile_image_file" && v) fd.append(k, await preparePhotoForUpload(v));
+      else if (k === "music_file" && v) fd.append(k, await prepareAudioForUpload(v));
+      else fd.append(k, v);
+    }
     await apiPostForm("/admin/weddings/create", fd);
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     setModal(null);
