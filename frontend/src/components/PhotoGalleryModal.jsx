@@ -8,6 +8,9 @@ export default function PhotoGalleryModal({ open, title = "Gallery", photos = []
   const [confirmDeleteId, setConfirmDeleteId] = useState("");
   const [actionError, setActionError] = useState("");
   const [activePhoto, setActivePhoto] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState("all");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -22,10 +25,24 @@ export default function PhotoGalleryModal({ open, title = "Gallery", photos = []
       setConfirmDeleteId("");
       setActionError("");
       setActivePhoto(null);
+      setSearchTerm("");
+      setSelectedEvent("all");
+      setFiltersOpen(false);
     }
   }, [open]);
 
   if (!open) return null;
+
+  const eventOptions = Array.from(new Set(photos.map((photo) => photo.episode_title || "Event").filter(Boolean)));
+  const filteredPhotos = photos.filter((photo) => {
+    const eventTitle = photo.episode_title || "Event";
+    const matchesEvent = selectedEvent === "all" || eventTitle === selectedEvent;
+    const term = searchTerm.trim().toLowerCase();
+    const matchesSearch = !term || [eventTitle, photo.caption, photo.uploaded_by]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(term));
+    return matchesEvent && matchesSearch;
+  });
 
   const startEdit = (photo) => {
     setActionError("");
@@ -91,7 +108,7 @@ export default function PhotoGalleryModal({ open, title = "Gallery", photos = []
         <header className="photo-gallery-modal__header">
           <div>
             <span className="photo-gallery-modal__kicker">
-              {`${photos.length} Photos`}
+              {`${filteredPhotos.length} of ${photos.length} Photos`}
             </span>
             <h2>{title}</h2>
           </div>
@@ -101,9 +118,51 @@ export default function PhotoGalleryModal({ open, title = "Gallery", photos = []
             </button>
           </div>
         </header>
+        <div className="photo-gallery-modal__tools">
+          <label className="photo-gallery-modal__search">
+            <span aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by event or caption..."
+              aria-label="Search photos by event or caption"
+            />
+          </label>
+          <div className="photo-gallery-modal__filter-wrap">
+            <button
+              type="button"
+              className={`photo-gallery-modal__filter-btn ${filtersOpen ? "is-active" : ""}`}
+              onClick={() => setFiltersOpen((value) => !value)}
+              aria-label="Show photo filters"
+              aria-expanded={filtersOpen}
+            >
+              ⚙
+            </button>
+            {filtersOpen && (
+              <div className="photo-gallery-modal__filter-panel">
+                <span>Event</span>
+                <button type="button" className={selectedEvent === "all" ? "is-active" : ""} onClick={() => setSelectedEvent("all")}>
+                  All Events
+                </button>
+                {eventOptions.map((eventTitle) => (
+                  <button
+                    type="button"
+                    key={eventTitle}
+                    className={selectedEvent === eventTitle ? "is-active" : ""}
+                    onClick={() => setSelectedEvent(eventTitle)}
+                  >
+                    {eventTitle}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
         {actionError && <p className="photo-gallery-modal__error">{actionError}</p>}
-        <div className="photo-gallery-modal__grid">
-          {photos.map((photo, index) => (
+        {filteredPhotos.length ? (
+          <div className="photo-gallery-modal__grid">
+            {filteredPhotos.map((photo, index) => (
             <figure
               key={photo._id || `${photo.url}-${index}`}
               className={`photo-gallery-modal__item photo-gallery-modal__item--${index % 6}`}
@@ -144,8 +203,11 @@ export default function PhotoGalleryModal({ open, title = "Gallery", photos = []
                 </>
               )}
             </figure>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p className="photo-gallery-modal__empty">No photos matched this filter.</p>
+        )}
       </div>
       {activePhoto && (
         <div className="photo-gallery-zoom" role="dialog" aria-modal="true" aria-label="Photo preview" onClick={() => setActivePhoto(null)}>

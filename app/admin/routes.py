@@ -95,6 +95,18 @@ def _parse_custom_sections(raw_value):
     return cleaned
 
 
+def _clean_section_key(value, default="main"):
+    key = str(value or default).strip().lower()
+    key = "".join(ch if (ch.isalnum() or ch in {"_", "-"}) else "_" for ch in key)
+    return key or default
+
+
+def _form_text(name, default=""):
+    if name in request.form:
+        return str(request.form.get(name) or "").strip()
+    return default
+
+
 def _parse_venue_blocks(raw_value):
     raw = (raw_value or "").strip()
     if not raw:
@@ -241,6 +253,12 @@ def create_wedding():
         "access_level": access_level,
         "show_on_demo_home": request.form.get("show_on_demo_home") in {"1", "true", "on", "yes"} if is_developer() else False,
         "premium_experience_enabled": request.form.get("premium_experience_enabled") in {"1", "true", "on", "yes"},
+        "hero_kicker": _form_text("hero_kicker", "A WEDDING ORIGINAL"),
+        "hero_badge_top": _form_text("hero_badge_top", "TOP"),
+        "hero_badge_bottom": _form_text("hero_badge_bottom", "10"),
+        "hero_meta_one": _form_text("hero_meta_one", "Celebration"),
+        "hero_meta_two": _form_text("hero_meta_two", "Family"),
+        "hero_meta_three": _form_text("hero_meta_three", "Romance"),
         "invitation_title": (request.form.get("invitation_title") or "Wedding Invitation").strip(),
         "programs_section_title": (request.form.get("programs_section_title") or "Wedding Programs").strip(),
         "custom_sections": _parse_custom_sections(request.form.get("custom_sections_json")),
@@ -306,6 +324,12 @@ def update_wedding(wedding_id):
             else bool(current.get("show_on_demo_home"))
         ),
         "premium_experience_enabled": request.form.get("premium_experience_enabled") in {"1", "true", "on", "yes"},
+        "hero_kicker": _form_text("hero_kicker", current.get("hero_kicker") or "A WEDDING ORIGINAL"),
+        "hero_badge_top": _form_text("hero_badge_top", current.get("hero_badge_top") or "TOP"),
+        "hero_badge_bottom": _form_text("hero_badge_bottom", current.get("hero_badge_bottom") or "10"),
+        "hero_meta_one": _form_text("hero_meta_one", current.get("hero_meta_one") or "Celebration"),
+        "hero_meta_two": _form_text("hero_meta_two", current.get("hero_meta_two") or "Family"),
+        "hero_meta_three": _form_text("hero_meta_three", current.get("hero_meta_three") or "Romance"),
         "invitation_title": (request.form.get("invitation_title") or current.get("invitation_title") or "Wedding Invitation").strip(),
         "programs_section_title": (request.form.get("programs_section_title") or current.get("programs_section_title") or "Wedding Programs").strip(),
         "custom_sections": (
@@ -373,9 +397,7 @@ def create_program():
     plan_error = limit_error("program")
     if plan_error:
         return _form_error(plan_error, 403) or redirect(url_for("admin.home", wedding_id=wedding_id))
-    section_key = (request.form.get("section_key") or "main").strip().lower()
-    if section_key not in {"main", "custom"}:
-        section_key = "main"
+    section_key = _clean_section_key(request.form.get("section_key"), "main")
     payload = {
         "wedding_id": ObjectId(wedding_id),
         "section_key": section_key,
@@ -388,6 +410,7 @@ def create_program():
         "venue_name": (request.form.get("venue_name") or "").strip(),
         "event_address": (request.form.get("event_address") or "").strip(),
         "music_url": _resolve_music_url("music_url", "music_file"),
+        "event_sections": _parse_custom_sections(request.form.get("event_sections_json")),
         "order": _safe_int(request.form.get("order"), 0),
     }
     Program.create(payload)
@@ -403,9 +426,7 @@ def update_program(program_id):
     wedding_id = str(program.get("wedding_id")) if program else ""
     if not can_manage_wedding(Wedding.get(wedding_id)):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
-    section_key = (request.form.get("section_key") or (program or {}).get("section_key") or "main").strip().lower()
-    if section_key not in {"main", "custom"}:
-        section_key = "main"
+    section_key = _clean_section_key(request.form.get("section_key") or (program or {}).get("section_key"), "main")
     payload = {
         "section_key": section_key,
         "title": (request.form.get("title") or "").strip(),
@@ -417,6 +438,11 @@ def update_program(program_id):
         "venue_name": (request.form.get("venue_name") or "").strip(),
         "event_address": (request.form.get("event_address") or "").strip(),
         "music_url": _resolve_music_url("music_url", "music_file", (program or {}).get("music_url", "")),
+        "event_sections": (
+            _parse_custom_sections(request.form.get("event_sections_json"))
+            if "event_sections_json" in request.form
+            else (program or {}).get("event_sections", [])
+        ),
         "order": _safe_int(request.form.get("order"), 0),
     }
     mongo.db.programs.update_one({"_id": ObjectId(program_id)}, {"$set": payload})
@@ -460,6 +486,7 @@ def create_episode():
 
     payload = {
         "program_id": ObjectId(program_id),
+        "section_key": _clean_section_key(request.form.get("section_key"), "main"),
         "season_number": _safe_int(request.form.get("season_number"), 1),
         "title": request.form.get("title"),
         "description": request.form.get("description"),
@@ -496,6 +523,7 @@ def update_episode(episode_id):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
 
     payload = {
+        "section_key": _clean_section_key(request.form.get("section_key") or (ep or {}).get("section_key"), "main"),
         "season_number": _safe_int(request.form.get("season_number"), 1),
         "title": (request.form.get("title") or "").strip(),
         "description": (request.form.get("description") or "").strip(),

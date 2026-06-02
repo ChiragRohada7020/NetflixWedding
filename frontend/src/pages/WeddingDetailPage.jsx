@@ -208,6 +208,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     if (!wedding) return;
     const invitationTitle = field === "invitation_title" ? val : wedding.invitation_title || "Wedding Invitation";
     const programsSectionTitle = field === "programs_section_title" ? val : wedding.programs_section_title || "Wedding Programs";
+    const fieldValue = (name, fallback = "") => (field === name ? val : (wedding[name] ?? fallback));
     const customSectionsValue = field === "custom_sections" ? (Array.isArray(val) ? val : []) : customSections;
     const customSectionLabel = customSectionsValue[0]?.label || "";
     const venueBlocksValue = field === "venue_blocks" ? (Array.isArray(val) ? val : []) : (Array.isArray(wedding.venue_blocks) ? wedding.venue_blocks : []);
@@ -241,6 +242,12 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     fd.append("access_level", wedding.access_level || "private");
     fd.append("show_on_demo_home", wedding.show_on_demo_home ? "1" : "");
     fd.append("premium_experience_enabled", wedding.premium_experience_enabled ? "1" : "");
+    fd.append("hero_kicker", fieldValue("hero_kicker", "A WEDDING ORIGINAL"));
+    fd.append("hero_badge_top", fieldValue("hero_badge_top", "TOP"));
+    fd.append("hero_badge_bottom", fieldValue("hero_badge_bottom", "10"));
+    fd.append("hero_meta_one", fieldValue("hero_meta_one", "Celebration"));
+    fd.append("hero_meta_two", fieldValue("hero_meta_two", "Family"));
+    fd.append("hero_meta_three", fieldValue("hero_meta_three", "Romance"));
     fd.append("invitation_title", invitationTitle);
     fd.append("programs_section_title", programsSectionTitle);
     fd.append("custom_sections_json", JSON.stringify(customSectionsValue));
@@ -445,7 +452,14 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
           </div>
 
           <div className="home-hero__content">
-            <p className="home-hero__kicker">A WEDDING ORIGINAL</p>
+            <InlineEditableText
+              as="p"
+              className="home-hero__kicker"
+              enabled={isEditing}
+              value={wedding.hero_kicker ?? "A WEDDING ORIGINAL"}
+              placeholder="A WEDDING ORIGINAL"
+              onSave={(v) => saveWeddingField("hero_kicker", v)}
+            />
             <InlineEditableText
               as="h1"
               className="home-hero__names"
@@ -456,8 +470,20 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
             />
             <div className="home-hero__headline">
               <span className="home-hero__badge">
-                <strong>TOP</strong>
-                <strong>10</strong>
+                <InlineEditableText
+                  as="strong"
+                  enabled={isEditing}
+                  value={wedding.hero_badge_top ?? "TOP"}
+                  placeholder="TOP"
+                  onSave={(v) => saveWeddingField("hero_badge_top", v)}
+                />
+                <InlineEditableText
+                  as="strong"
+                  enabled={isEditing}
+                  value={wedding.hero_badge_bottom ?? "10"}
+                  placeholder="10"
+                  onSave={(v) => saveWeddingField("hero_badge_bottom", v)}
+                />
               </span>
               <InlineEditableText
                 as="h2"
@@ -472,9 +498,27 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
               {wedding.description || "A simple hello turned into a lifetime together. Through laughter, memories, and countless moments, their story found its way to forever."}
             </p>
             <div className="home-hero__meta">
-              <span>Celebration</span>
-              <span>Family</span>
-              <span>Romance</span>
+              <InlineEditableText
+                as="span"
+                enabled={isEditing}
+                value={wedding.hero_meta_one ?? "Celebration"}
+                placeholder="Celebration"
+                onSave={(v) => saveWeddingField("hero_meta_one", v)}
+              />
+              <InlineEditableText
+                as="span"
+                enabled={isEditing}
+                value={wedding.hero_meta_two ?? "Family"}
+                placeholder="Family"
+                onSave={(v) => saveWeddingField("hero_meta_two", v)}
+              />
+              <InlineEditableText
+                as="span"
+                enabled={isEditing}
+                value={wedding.hero_meta_three ?? "Romance"}
+                placeholder="Romance"
+                onSave={(v) => saveWeddingField("hero_meta_three", v)}
+              />
             </div>
             <div className="home-hero__actions">
               <button type="button" className="home-btn home-btn--primary" onClick={scrollToFunctions}>

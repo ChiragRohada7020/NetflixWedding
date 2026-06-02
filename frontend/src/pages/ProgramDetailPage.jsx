@@ -155,6 +155,23 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       return haystack.includes(term);
     });
   }, [ordered, searchTerm]);
+  const eventSections = React.useMemo(() => {
+    const src = Array.isArray(program?.event_sections) ? program.event_sections : [];
+    return src.filter((section) => section?.key && section?.label);
+  }, [program?.event_sections]);
+  const mainEpisodes = React.useMemo(
+    () => filteredEpisodes.filter((episode) => (episode.section_key || "main") === "main"),
+    [filteredEpisodes],
+  );
+  const episodesBySection = React.useMemo(() => {
+    const map = {};
+    filteredEpisodes.forEach((episode) => {
+      const key = (episode.section_key || "main").toLowerCase();
+      if (!map[key]) map[key] = [];
+      map[key].push(episode);
+    });
+    return map;
+  }, [filteredEpisodes]);
   useEffect(() => {
     if (!audioRef.current) return;
     audioRef.current.pause();
@@ -224,6 +241,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   };
   const saveProgramField = async (field, val) => {
     if (!program) return;
+    const eventSectionsValue = field === "event_sections" ? (Array.isArray(val) ? val : []) : eventSections;
     const fd = new FormData();
     fd.append("title", field === "title" ? val : program.title || "");
     fd.append("thumbnail", program.thumbnail || "");
@@ -233,14 +251,17 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
     fd.append("venue_name", program.venue_name || "");
     fd.append("event_address", program.event_address || "");
     fd.append("music_url", program.music_url || "");
+    fd.append("section_key", program.section_key || "main");
+    fd.append("event_sections_json", JSON.stringify(eventSectionsValue));
     fd.append("order", program.order || 0);
     await apiPostForm(`/admin/programs/${programId}/update`, fd);
     await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
   };
 
-  const createEpisode = async (values) => {
+  const createEpisode = async (values, sectionKey = "main") => {
     const fd = new FormData();
     fd.append("program_id", programId);
+    fd.append("section_key", sectionKey);
     for (const [k, v] of Object.entries(values)) {
       if (v === undefined || v === null) continue;
       if (k === "thumbnail_file" && v) {
@@ -262,6 +283,22 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
     await apiPostForm(`/admin/episodes/${item._id}/delete`, new FormData());
     await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
     await queryClient.invalidateQueries({ queryKey: ["session"] });
+  };
+
+  const deleteEventSection = async (sectionKey, sectionLabel) => {
+    const sectionEpisodes = episodes.filter((episode) => (episode.section_key || "main") === sectionKey);
+    const confirmed = window.confirm(
+      sectionEpisodes.length
+        ? `Delete ${sectionLabel}? ${sectionEpisodes.length} event(s) will move back to Events.`
+        : `Delete ${sectionLabel}?`
+    );
+    if (!confirmed) return;
+    for (const episode of sectionEpisodes) {
+      await saveEpisode({ ...episode, youtube_url: episode.youtube_url || episode.embed_url, section_key: "main" }, episode._id);
+    }
+    const nextSections = eventSections.filter((section) => section.key !== sectionKey);
+    await saveProgramField("event_sections", nextSections);
+    await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
   };
 
   const uploadProgramPhotos = async (ev) => {
@@ -410,9 +447,6 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         </button>
       </header>
       {error && <p className="error">{error.message}</p>}
-      <div className="cms-row-head" id="events">
-        <h2 className="section-title">Events</h2>
-      </div>
       <div className="wedding-detail-search-wrap wedding-detail-search-wrap--events">
         <input
           className="search wedding-detail-search"
@@ -423,11 +457,14 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
           aria-label="Search program events"
         />
       </div>
+      <div className="cms-row-head" id="events">
+        <h2 className="section-title">Events</h2>
+      </div>
       {isLoading && <Skeleton count={4} height={34} />}
       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <SortableContext items={filteredEpisodes.map((e) => e._id)} strategy={rectSortingStrategy}>
+        <SortableContext items={mainEpisodes.map((e) => e._id)} strategy={rectSortingStrategy}>
           <div className="grid">
-            {filteredEpisodes.map((e) => (
+            {mainEpisodes.map((e) => (
               <EpisodeCard
                 key={e._id}
                 item={e}
@@ -435,7 +472,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
                 programId={programId}
                 editMode={isEditing}
                 publicMode={publicMode}
-                onEdit={(item) => setModal({ type: "edit", item })}
+                onEdit={(item) => setModal({ type: "edit", item, sectionKey: item.section_key || "main" })}
                 onDelete={deleteEpisode}
                 onPlay={(item) => {
                   window.dispatchEvent(new Event("wedflix-video-playing"));
@@ -445,7 +482,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
               />
             ))}
             {canAddEpisode && (
-              <button type="button" className="add-card-tile" onClick={() => setModal({ type: "create", item: {} })}>
+              <button type="button" className="add-card-tile" onClick={() => setModal({ type: "create", item: {}, sectionKey: "main" })}>
                 <span className="add-card-plus">+</span>
                 <span>Add Event</span>
               </button>
@@ -455,6 +492,88 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       </DndContext>
       {!isLoading && filteredEpisodes.length === 0 && (
         <p className="empty-rail">No events matched your search.</p>
+      )}
+
+      {eventSections.map((section, index) => {
+        const sectionEpisodes = episodesBySection[section.key] || [];
+        return (
+          <div className="episode-section-shell" key={section.key} id={section.key}>
+            <div className="cms-row-head">
+              <InlineEditableText
+                as="h2"
+                className="section-title home-rail__heading-editable"
+                enabled={isEditing}
+                value={section.label || `Custom Box ${index + 1}`}
+                placeholder={`Custom Box ${index + 1}`}
+                onSave={(v) => {
+                  const next = eventSections.map((item, idx) => (idx === index ? { ...item, label: v } : item));
+                  return saveProgramField("event_sections", next);
+                }}
+              />
+              {isEditing && (
+                <button
+                  type="button"
+                  className="cms-fab danger home-rail__delete-box"
+                  onClick={() => deleteEventSection(section.key, section.label || `Custom Box ${index + 1}`)}
+                >
+                  Delete Box
+                </button>
+              )}
+            </div>
+            <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+              <SortableContext items={sectionEpisodes.map((e) => e._id)} strategy={rectSortingStrategy}>
+                <div className="grid">
+                  {sectionEpisodes.map((e) => (
+                    <EpisodeCard
+                      key={e._id}
+                      item={e}
+                      weddingId={weddingId}
+                      programId={programId}
+                      editMode={isEditing}
+                      publicMode={publicMode}
+                      onEdit={(item) => setModal({ type: "edit", item, sectionKey: item.section_key || section.key })}
+                      onDelete={deleteEpisode}
+                      onPlay={(item) => {
+                        window.dispatchEvent(new Event("wedflix-video-playing"));
+                        setActiveEpisode(item);
+                        setEpisodeVideoOpen(true);
+                      }}
+                    />
+                  ))}
+                  {canAddEpisode && (
+                    <button type="button" className="add-card-tile" onClick={() => setModal({ type: "create", item: {}, sectionKey: section.key })}>
+                      <span className="add-card-plus">+</span>
+                      <span>Add Event</span>
+                    </button>
+                  )}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+        );
+      })}
+
+      {isEditing && (
+        <div className="home-admin-fab-row">
+          {canAddEpisode && (
+            <button type="button" className="cms-fab" onClick={() => setModal({ type: "create", item: {}, sectionKey: "main" })}>
+              Add Event
+            </button>
+          )}
+          <button
+            type="button"
+            className="add-card-tile add-card-tile--compact"
+            onClick={async () => {
+              const nextIdx = eventSections.length + 1;
+              const key = `event_custom_${Date.now()}`;
+              const next = [...eventSections, { key, label: `Custom Box ${nextIdx}` }];
+              await saveProgramField("event_sections", next);
+            }}
+          >
+            <span className="add-card-plus">+</span>
+            <span>Add Custom Box</span>
+          </button>
+        </div>
       )}
 
       <div className="episode-section-shell program-photo-gallery">
@@ -569,10 +688,10 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
               onCancel={() => setModal(null)}
               onSubmit={async (values) => {
                 if (modal.type === "create") {
-                  await createEpisode(values);
+                  await createEpisode(values, modal.sectionKey || "main");
                   return;
                 }
-                await saveEpisode(values, modal.item._id);
+                await saveEpisode({ ...values, section_key: modal.sectionKey || modal.item.section_key || "main" }, modal.item._id);
                 await queryClient.invalidateQueries({ queryKey: ["program", weddingId, programId] });
                 setModal(null);
               }}
