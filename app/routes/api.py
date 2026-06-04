@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timezone
 
 import requests
-from flask import Blueprint, Response, jsonify, request, stream_with_context
+from flask import Blueprint, Response, current_app, jsonify, request, stream_with_context
 from flask_login import current_user, login_required, login_user, logout_user
 from bson import ObjectId
 from werkzeug.security import generate_password_hash
@@ -41,6 +41,38 @@ def _is_debug_env():
 
 def _otp_ttl_minutes():
     return int(os.getenv("WEDFLIX_OTP_TTL_MINUTES", "10"))
+
+
+def _smtp_configured():
+    return bool((os.getenv("SMTP_HOST") or "").strip() and (os.getenv("SMTP_FROM_EMAIL") or os.getenv("SMTP_USER") or "").strip())
+
+
+def _log_otp_delivery_failure(email, purpose, smtp_error=None):
+    configured = _smtp_configured()
+    host = (os.getenv("SMTP_HOST") or "").strip() or "(missing)"
+    port = (os.getenv("SMTP_PORT") or "587").strip()
+    from_email = (os.getenv("SMTP_FROM_EMAIL") or os.getenv("SMTP_USER") or "").strip() or "(missing)"
+    if smtp_error:
+        current_app.logger.error(
+            "Email OTP delivery failed for %s to %s. smtp_configured=%s host=%s port=%s from_email=%s error_type=%s",
+            purpose,
+            email,
+            configured,
+            host,
+            port,
+            from_email,
+            smtp_error.__class__.__name__,
+        )
+    else:
+        current_app.logger.error(
+            "Email OTP delivery failed for %s to %s. smtp_configured=%s host=%s port=%s from_email=%s",
+            purpose,
+            email,
+            configured,
+            host,
+            port,
+            from_email,
+        )
 
 
 def _store_email_otp(email, purpose, otp):
@@ -225,13 +257,17 @@ def session_signup_request_otp():
 
     otp = generate_otp()
     sent = False
+    smtp_error = None
     try:
         sent = send_signup_otp(email, otp, name)
-    except Exception:
+    except Exception as exc:
+        current_app.logger.exception("Could not send signup OTP email to %s: %s", email, exc)
+        smtp_error = exc
         sent = False
 
     is_debug = _is_debug_env()
     if not sent and not is_debug:
+        _log_otp_delivery_failure(email, "signup", smtp_error)
         return jsonify({"error": "Could not send OTP right now. Please try again later."}), 503
 
     _store_email_otp(email, "signup", otp)
@@ -239,7 +275,12 @@ def session_signup_request_otp():
     response = {"message": "OTP sent to your email.", "expires_in_minutes": _otp_ttl_minutes()}
     if not sent and is_debug:
         print(f"[DEV OTP] signup email={email} otp={otp}")
-        response["message"] = "SMTP is not configured. Check the server console for the dev OTP."
+        if _smtp_configured():
+            response["message"] = "Email delivery failed. Check the server console for the dev OTP and SMTP error."
+        else:
+            response["message"] = "SMTP is not configured. Check the server console for the dev OTP."
+        if smtp_error:
+            response["smtp_error"] = smtp_error.__class__.__name__
     return jsonify(response)
 
 
@@ -301,19 +342,28 @@ def session_password_request_otp():
 
     otp = generate_otp()
     sent = False
+    smtp_error = None
     try:
         sent = send_password_reset_otp(email, otp, user_doc.get("name") or "")
-    except Exception:
+    except Exception as exc:
+        current_app.logger.exception("Could not send password reset OTP email to %s: %s", email, exc)
+        smtp_error = exc
         sent = False
 
     is_debug = _is_debug_env()
     if not sent and not is_debug:
+        _log_otp_delivery_failure(email, "password_reset", smtp_error)
         return jsonify({"error": "Could not send OTP right now. Please try again later."}), 503
 
     _store_email_otp(email, "password_reset", otp)
     if not sent and is_debug:
         print(f"[DEV OTP] password_reset email={email} otp={otp}")
-        response["message"] = "SMTP is not configured. Check the server console for the dev OTP."
+        if _smtp_configured():
+            response["message"] = "Email delivery failed. Check the server console for the dev OTP and SMTP error."
+        else:
+            response["message"] = "SMTP is not configured. Check the server console for the dev OTP."
+        if smtp_error:
+            response["smtp_error"] = smtp_error.__class__.__name__
     return jsonify(response)
 
 

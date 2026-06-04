@@ -43,6 +43,16 @@ If users are missing in MongoDB, backend auto-creates default admin/guest at sta
 ## Deployment
 - Flask backend on Render:
   - Start command: `gunicorn run:app`
+  - Set `FLASK_ENV=production`.
+  - Add the SMTP environment variables from `.env.example`; email OTP signup/password reset will return `Could not send OTP right now` in production if SMTP is missing or rejected by the provider.
+  - For Gmail, use an app password, not your normal account password:
+    - `SMTP_HOST=smtp.gmail.com`
+    - `SMTP_PORT=587`
+    - `SMTP_USER=<your gmail address>`
+    - `SMTP_PASSWORD=<your 16-character app password>`
+    - `SMTP_FROM_EMAIL=<your gmail address>`
+    - `SMTP_FROM_NAME=Wedflix`
+    - `SMTP_USE_SSL=0`
 - React frontend on Vercel/Netlify/Render Static.
 
 ## Optional Face Vector Service
