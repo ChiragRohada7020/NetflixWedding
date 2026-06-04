@@ -35,22 +35,29 @@ def send_password_reset_otp(email, otp, name=""):
 
 
 def email_delivery_configured():
-    return bool(_resend_configured() or _smtp_configured())
+    return bool(_brevo_configured() or _resend_configured() or _smtp_configured())
 
 
 def email_delivery_summary():
+    brevo_from = os.getenv("BREVO_FROM_EMAIL", "").strip()
     resend_from = os.getenv("RESEND_FROM_EMAIL", "").strip()
     smtp_user = os.getenv("SMTP_USER", "").strip()
     smtp_from = os.getenv("SMTP_FROM_EMAIL", smtp_user).strip()
+    provider = "brevo" if _brevo_configured() else "resend" if _resend_configured() else "smtp" if _smtp_configured() else "none"
     return {
         "configured": email_delivery_configured(),
-        "provider": "resend" if _resend_configured() else "smtp" if _smtp_configured() else "none",
+        "provider": provider,
+        "brevo_configured": _brevo_configured(),
         "resend_configured": _resend_configured(),
         "smtp_configured": _smtp_configured(),
         "smtp_host": os.getenv("SMTP_HOST", "").strip() or "(missing)",
         "smtp_port": os.getenv("SMTP_PORT", "587").strip(),
-        "from_email": resend_from or smtp_from or "(missing)",
+        "from_email": brevo_from or resend_from or smtp_from or "(missing)",
     }
+
+
+def _brevo_configured():
+    return bool(os.getenv("BREVO_API_KEY", "").strip() and os.getenv("BREVO_FROM_EMAIL", "").strip())
 
 
 def _resend_configured():
@@ -67,13 +74,15 @@ def send_otp_email(email, otp, name="", purpose="signup"):
     port = int(os.getenv("SMTP_PORT", "587"))
     username = os.getenv("SMTP_USER", "").strip()
     password = os.getenv("SMTP_PASSWORD", "")
+    brevo_api_key = os.getenv("BREVO_API_KEY", "").strip()
+    brevo_from_email = os.getenv("BREVO_FROM_EMAIL", "").strip()
     resend_api_key = os.getenv("RESEND_API_KEY", "").strip()
     resend_from_email = os.getenv("RESEND_FROM_EMAIL", "").strip()
-    from_email = resend_from_email or os.getenv("SMTP_FROM_EMAIL", username).strip()
-    from_name = os.getenv("RESEND_FROM_NAME", os.getenv("SMTP_FROM_NAME", "Wedflix")).strip()
+    from_email = brevo_from_email or resend_from_email or os.getenv("SMTP_FROM_EMAIL", username).strip()
+    from_name = os.getenv("BREVO_FROM_NAME", os.getenv("RESEND_FROM_NAME", os.getenv("SMTP_FROM_NAME", "Wedflix"))).strip()
     use_ssl = os.getenv("SMTP_USE_SSL", "0") == "1"
 
-    if not _resend_configured() and not _smtp_configured():
+    if not _brevo_configured() and not _resend_configured() and not _smtp_configured():
         return False
 
     heading = "Confirm your Wedflix signup" if purpose == "signup" else "Reset your Wedflix password"
@@ -148,6 +157,24 @@ def send_otp_email(email, otp, name="", purpose="signup"):
 """,
         subtype="html",
     )
+
+    if brevo_api_key and brevo_from_email:
+        html_body = message.get_body(("html",)).get_content()
+        text_body = message.get_body(("plain",)).get_content()
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={"api-key": brevo_api_key, "Content-Type": "application/json"},
+            json={
+                "sender": {"name": from_name, "email": brevo_from_email},
+                "to": [{"email": email}],
+                "subject": message["Subject"],
+                "textContent": text_body,
+                "htmlContent": html_body,
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
+        return True
 
     if resend_api_key and resend_from_email:
         html_body = message.get_body(("html",)).get_content()

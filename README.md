@@ -44,7 +44,12 @@ If users are missing in MongoDB, backend auto-creates default admin/guest at sta
 - Flask backend on Render:
   - Start command: `gunicorn run:app`
   - Set `FLASK_ENV=production`.
-  - Recommended on Render free services: use Resend API email because Render blocks outbound SMTP ports on free web services.
+  - Recommended on Render free services: use Brevo or Resend API email because Render blocks outbound SMTP ports on free web services.
+  - Brevo:
+    - `BREVO_API_KEY=<your Brevo SMTP/API key>`
+    - `BREVO_FROM_EMAIL=<your verified Brevo sender email>`
+    - `BREVO_FROM_NAME=Wedflix`
+  - Resend:
     - `RESEND_API_KEY=<your Resend API key>`
     - `RESEND_FROM_EMAIL=<verified sender email>`
     - `RESEND_FROM_NAME=Wedflix`

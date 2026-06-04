@@ -55,11 +55,12 @@ def _log_otp_delivery_failure(email, purpose, smtp_error=None):
     summary = email_delivery_summary()
     if smtp_error:
         current_app.logger.error(
-            "Email OTP delivery failed for %s to %s. provider=%s configured=%s resend_configured=%s smtp_configured=%s host=%s port=%s from_email=%s error_type=%s",
+            "Email OTP delivery failed for %s to %s. provider=%s configured=%s brevo_configured=%s resend_configured=%s smtp_configured=%s host=%s port=%s from_email=%s error_type=%s",
             purpose,
             email,
             summary["provider"],
             summary["configured"],
+            summary["brevo_configured"],
             summary["resend_configured"],
             summary["smtp_configured"],
             summary["smtp_host"],
@@ -69,11 +70,12 @@ def _log_otp_delivery_failure(email, purpose, smtp_error=None):
         )
     else:
         current_app.logger.error(
-            "Email OTP delivery failed for %s to %s. provider=%s configured=%s resend_configured=%s smtp_configured=%s host=%s port=%s from_email=%s",
+            "Email OTP delivery failed for %s to %s. provider=%s configured=%s brevo_configured=%s resend_configured=%s smtp_configured=%s host=%s port=%s from_email=%s",
             purpose,
             email,
             summary["provider"],
             summary["configured"],
+            summary["brevo_configured"],
             summary["resend_configured"],
             summary["smtp_configured"],
             summary["smtp_host"],
