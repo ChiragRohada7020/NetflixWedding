@@ -126,7 +126,7 @@ export default function WeddingsPage() {
   };
 
   const deleteWedding = async (wedding) => {
-    if (!window.confirm(`Delete ${wedding.couple_names}? This removes programs and events too.`)) return;
+    if (!window.confirm(`Delete ${wedding.couple_names}? This removes sections and episodes too.`)) return;
     await apiPostForm(`/admin/weddings/${wedding._id}/delete`, new FormData());
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
     await queryClient.invalidateQueries({ queryKey: ["session"] });
@@ -159,7 +159,7 @@ export default function WeddingsPage() {
     <section className="home-shell home-profiles-netflix">
       <SeoHead
         title="Wedflix | Who's Watching?"
-        description="Choose a wedding story profile on Wedflix and start streaming programs, episodes, and wedding memories."
+        description="Choose a story profile on Wedflix and start streaming sections, episodes, and personal memories."
         canonicalPath="/"
       />
       {isLoading && weddings.length === 0 && <AsyncState mode="loading" />}
@@ -177,7 +177,7 @@ export default function WeddingsPage() {
         {canEdit && canAddWedding && (editMode || (!isLoading && weddings.length === 0)) && (
           <button className="add-card-tile" onClick={() => setModal({ type: "create", item: {} })}>
             <span className="add-card-plus">+</span>
-            <span>Add Wedding</span>
+            <span>Add Story</span>
           </button>
         )}
         {isLoading &&
@@ -218,7 +218,7 @@ export default function WeddingsPage() {
               </>
             ) : (
               <>
-                <h3>{modal.type === "create" ? "Add Wedding" : "Edit Wedding"}</h3>
+                <h3>{modal.type === "create" ? "Add Story" : "Edit Story"}</h3>
                 <WeddingForm
                   initial={modal.item}
                   isDeveloper={!!session?.is_developer}
@@ -268,11 +268,11 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
     >
       <div className="cms-form-grid">
         <label className="cms-field">
-          <span>Couple Names</span>
+          <span>Story Title</span>
           <input value={form.couple_names} onChange={(e) => setForm((p) => ({ ...p, couple_names: e.target.value }))} placeholder="Aarav & Kavya" disabled={isSaving} />
         </label>
         <label className="cms-field">
-          <span>Wedding Date</span>
+          <span>Story Date</span>
           <input value={form.wedding_date} onChange={(e) => setForm((p) => ({ ...p, wedding_date: e.target.value }))} placeholder="2026-12-01" disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
@@ -284,7 +284,7 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
           <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, profile_image_file: e.target.files?.[0] || null }))} disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
-          <span>Hero Video URL</span>
+          <span>Feature Video URL</span>
           <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." disabled={isSaving} />
         </label>
         <label className="cms-field">
@@ -312,7 +312,7 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
             onChange={(e) => setForm((p) => ({ ...p, premium_experience_enabled: e.target.checked ? "1" : "" }))}
             disabled={isSaving}
           />
-          <span>Show Premium Wedding Experience First</span>
+          <span>Show Premium Story Experience First</span>
         </label>
         <label className="cms-field cms-field-wide">
           <span>Music URL</span>
@@ -324,7 +324,7 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
         </label>
         <label className="cms-field cms-field-wide">
           <span>Description</span>
-          <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Wedding story..." disabled={isSaving} />
+          <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Story details..." disabled={isSaving} />
         </label>
       </div>
       {saveError && <p className="error">{saveError}</p>}
@@ -355,7 +355,7 @@ function PartnerCard({ profile, editMode, onEdit }) {
           Edit Partner Card
         </button>
       )}
-      <div className="partner-badge">Official Wedding Partner</div>
+      <div className="partner-badge">Official Wedflix Partner</div>
       <div className="partner-head">
         <div className="partner-logo">
           {logoUrl ? <img src={logoUrl} alt={profile.business_name} /> : <span>{logoText}</span>}

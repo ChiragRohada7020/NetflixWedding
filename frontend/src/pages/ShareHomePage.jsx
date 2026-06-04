@@ -205,7 +205,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
         {wedding?.premium_experience_enabled && (
           <>
             <button type="button" className="share-home-nav__link share-home-nav__button" onClick={() => setPremiumPanel("invitation")}>Invitation</button>
-            <button type="button" className="share-home-nav__link share-home-nav__button" onClick={() => setPremiumPanel("venue")}>Venue</button>
+            <button type="button" className="share-home-nav__link share-home-nav__button" onClick={() => setPremiumPanel("venue")}>Location</button>
           </>
         )}
         {wedding && (
@@ -246,7 +246,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
           </div>
 
           <div className="home-hero__content">
-            <p className="home-hero__kicker">A WEDDING ORIGINAL</p>
+            <p className="home-hero__kicker">A WEDFLIX ORIGINAL</p>
             <h1 className="home-hero__names">{wedding.couple_names}</h1>
             <div className="home-hero__headline">
               <span className="home-hero__badge">

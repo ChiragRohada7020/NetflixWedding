@@ -19,9 +19,11 @@ export default function Navbar({ musicUrl }) {
   const [showLogin, setShowLogin] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
-  const [authForm, setAuthForm] = useState({ name: "", phone: "", business_name: "", city: "", purpose: "", email: "", password: "" });
+  const [authForm, setAuthForm] = useState({ name: "", phone: "", business_name: "", city: "", purpose: "", email: "", password: "", otp: "" });
   const [authError, setAuthError] = useState("");
+  const [authNotice, setAuthNotice] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
+  const [signupOtpSent, setSignupOtpSent] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
   const queryClient = useQueryClient();
   const navRef = useRef(null);
@@ -160,7 +162,9 @@ export default function Navbar({ musicUrl }) {
       return;
     }
     setAuthError("");
+    setAuthNotice("");
     setAuthMode("login");
+    setSignupOtpSent(false);
     setShowLogin(true);
   };
 
@@ -175,11 +179,19 @@ export default function Navbar({ musicUrl }) {
       setAuthError("Email and password are required.");
       return;
     }
+    if (authMode === "signup" && (!authForm.name.trim() || !authForm.phone.trim())) {
+      setAuthError("Name, phone, email, and password are required.");
+      return;
+    }
+    if (authMode === "signup" && signupOtpSent && !authForm.otp.trim()) {
+      setAuthError("Enter the OTP sent to your email.");
+      return;
+    }
     setAuthLoading(true);
     setAuthError("");
+    setAuthNotice("");
     try {
-      const endpoint = authMode === "signup" ? "/api/session/signup" : "/api/session/login";
-      const loginRes = await apiAuthPost(endpoint, {
+      const signupPayload = {
         name: authForm.name.trim(),
         phone: authForm.phone.trim(),
         business_name: authForm.business_name.trim(),
@@ -187,6 +199,17 @@ export default function Navbar({ musicUrl }) {
         purpose: authForm.purpose.trim(),
         email: authForm.email.trim(),
         password: authForm.password,
+      };
+      if (authMode === "signup" && !signupOtpSent) {
+        const otpRes = await apiAuthPost("/api/session/signup/request-otp", signupPayload);
+        setSignupOtpSent(true);
+        setAuthNotice(otpRes?.dev_otp ? `OTP sent. Dev OTP: ${otpRes.dev_otp}` : otpRes?.message || "OTP sent to your email.");
+        return;
+      }
+      const endpoint = authMode === "signup" ? "/api/session/signup/verify-otp" : "/api/session/login";
+      const loginRes = await apiAuthPost(endpoint, {
+        ...signupPayload,
+        otp: authForm.otp.trim(),
       });
       if (!loginRes?.authenticated || !loginRes?.is_admin) {
         setAuthError("Login failed. Check credentials.");
@@ -199,7 +222,9 @@ export default function Navbar({ musicUrl }) {
       await queryClient.invalidateQueries({ queryKey: ["weddings"] });
       await queryClient.invalidateQueries({ queryKey: ["wedding-programs"] });
       setShowLogin(false);
-      setAuthForm({ name: "", phone: "", business_name: "", city: "", purpose: "", email: "", password: "" });
+      setSignupOtpSent(false);
+      setAuthNotice("");
+      setAuthForm({ name: "", phone: "", business_name: "", city: "", purpose: "", email: "", password: "", otp: "" });
     } catch (err) {
       setAuthError(err.message || "Login failed");
     } finally {
@@ -284,7 +309,7 @@ export default function Navbar({ musicUrl }) {
         <div className="cms-modal-backdrop auth-backdrop" onClick={() => setShowLogin(false)}>
           <div className="cms-modal auth-modal netflix-login" onClick={(e) => e.stopPropagation()}>
             <p className="netflix-login-brand">WEDFLIX</p>
-            <h3>{authMode === "signup" ? "Create Client Account" : "Sign In"}</h3>
+            <h3>{authMode === "signup" ? (signupOtpSent ? "Verify Email OTP" : "Create Client Account") : "Sign In"}</h3>
             <form className="cms-form" onSubmit={submitLogin}>
               {authMode === "signup" && (
                 <>
@@ -292,13 +317,34 @@ export default function Navbar({ musicUrl }) {
                   <input type="tel" value={authForm.phone} onChange={(e) => setAuthForm((p) => ({ ...p, phone: e.target.value }))} placeholder="Phone number" />
                   <input type="text" value={authForm.business_name} onChange={(e) => setAuthForm((p) => ({ ...p, business_name: e.target.value }))} placeholder="Business / studio name" />
                   <input type="text" value={authForm.city} onChange={(e) => setAuthForm((p) => ({ ...p, city: e.target.value }))} placeholder="City" />
-                  <input type="text" value={authForm.purpose} onChange={(e) => setAuthForm((p) => ({ ...p, purpose: e.target.value }))} placeholder="Wedding / business use" />
+                  <input type="text" value={authForm.purpose} onChange={(e) => setAuthForm((p) => ({ ...p, purpose: e.target.value }))} placeholder="Story / business use" />
                 </>
               )}
               <input type="email" value={authForm.email} onChange={(e) => setAuthForm((p) => ({ ...p, email: e.target.value }))} placeholder="Email or phone number" />
               <input type="password" value={authForm.password} onChange={(e) => setAuthForm((p) => ({ ...p, password: e.target.value }))} placeholder="Password" />
+              {authMode === "signup" && signupOtpSent && (
+                <input type="text" inputMode="numeric" maxLength="6" value={authForm.otp} onChange={(e) => setAuthForm((p) => ({ ...p, otp: e.target.value.replace(/\D/g, "").slice(0, 6) }))} placeholder="Enter 6-digit email OTP" />
+              )}
+              {!!authNotice && <p className="auth-subtitle">{authNotice}</p>}
               {!!authError && <p className="auth-error">{authError}</p>}
-              <button type="submit" className="netflix-login-btn" disabled={authLoading}>{authLoading ? "Please wait..." : authMode === "signup" ? "Create Free Client" : "Sign In"}</button>
+              <button type="submit" className="netflix-login-btn" disabled={authLoading}>
+                {authLoading ? "Please wait..." : authMode === "signup" ? (signupOtpSent ? "Verify & Create Account" : "Send Email OTP") : "Sign In"}
+              </button>
+              {authMode === "signup" && signupOtpSent && (
+                <button
+                  type="button"
+                  className="netflix-help-btn"
+                  disabled={authLoading}
+                  onClick={() => {
+                    setSignupOtpSent(false);
+                    setAuthForm((p) => ({ ...p, otp: "" }));
+                    setAuthNotice("");
+                    setAuthError("");
+                  }}
+                >
+                  Change details or resend OTP
+                </button>
+              )}
               <div className="netflix-login-meta">
                 <label><input type="checkbox" defaultChecked /> Remember me</label>
                 <button
@@ -306,6 +352,9 @@ export default function Navbar({ musicUrl }) {
                   className="netflix-help-btn"
                   onClick={() => {
                     setAuthError("");
+                    setAuthNotice("");
+                    setSignupOtpSent(false);
+                    setAuthForm((p) => ({ ...p, otp: "" }));
                     setAuthMode((mode) => (mode === "signup" ? "login" : "signup"));
                   }}
                 >

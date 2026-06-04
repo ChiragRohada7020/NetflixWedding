@@ -32,7 +32,7 @@ function NextEventCard({ item, weddingId, programId, publicMode, onPlay }) {
         <img src={netflixLogoUrl} alt="" aria-hidden="true" className="home-poster__logo" />
         <div className="home-poster__text next-event-copy">
           <span className="next-event-kicker">Next Event</span>
-          <h3>{item.title || "Untitled Event"}</h3>
+          <h3>{item.title || "Untitled Episode"}</h3>
           {item.description && <p>{item.description}</p>}
         </div>
       </div>
@@ -220,7 +220,7 @@ export default function EpisodeDetailPage({ publicMode = false }) {
       <Suspense fallback={null}>
         <VideoModal
           open={episodeVideoOpen}
-          title={activeEpisode?.title || "Event Video"}
+          title={activeEpisode?.title || "Episode Video"}
           url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
           downloadUrl={activeEpisode?.download_url || activeEpisode?.video_download_url || ""}
           onClose={() => {
@@ -232,7 +232,7 @@ export default function EpisodeDetailPage({ publicMode = false }) {
 
       <div className="episode-section-shell">
         <div className="cms-row-head">
-          <h2 className="section-title">Next Events</h2>
+          <h2 className="section-title">Next Episodes</h2>
         </div>
         {nextEpisodes.length ? (
           <div className="next-events-rail">
@@ -289,7 +289,7 @@ export default function EpisodeDetailPage({ publicMode = false }) {
           </>
         )}
         {photos.length ? (
-          <div className="program-gallery-diary" aria-label="Event photo gallery preview">
+          <div className="program-gallery-diary" aria-label="Episode photo gallery preview">
             <div className="program-gallery-diary__topline">
               <span>{photos.length} photos</span>
               <button type="button" onClick={() => setPhotoGalleryOpen(true)}>View All</button>
@@ -306,7 +306,7 @@ export default function EpisodeDetailPage({ publicMode = false }) {
                     if (e.key === "Enter" || e.key === " ") setPhotoGalleryOpen(true);
                   }}
                 >
-                  <ProgressiveImage src={photo.url} alt={photo.caption || episode?.title || "Event photo"} className="program-gallery-diary__image" />
+                  <ProgressiveImage src={photo.url} alt={photo.caption || episode?.title || "Episode photo"} className="program-gallery-diary__image" />
                   {index === 3 && (
                     <span className="program-gallery-diary__label">{episode?.title}</span>
                   )}

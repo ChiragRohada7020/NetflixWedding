@@ -1,5 +1,6 @@
 import mimetypes
 import os
+from datetime import datetime, timezone
 
 import requests
 from flask import Blueprint, Response, jsonify, request, stream_with_context
@@ -13,6 +14,7 @@ from app.models.photo import Photo
 from app.models.program import Program
 from app.models.wedding import Wedding
 from app.models.user import User
+from app.utils.email_otp import generate_otp, hash_otp, otp_expires_at, send_signup_otp
 from app.utils.google_drive import GoogleDriveImportError, download_drive_images
 from app.utils.plans import (
     DEFAULT_PLAN_ID,
@@ -162,22 +164,89 @@ def developer_login():
 
 @api_bp.route("/session/signup", methods=["POST"])
 def session_signup():
+    return jsonify({"error": "Email OTP verification is required. Please request and verify an OTP to create an account."}), 400
+
+
+@api_bp.route("/session/signup/request-otp", methods=["POST"])
+def session_signup_request_otp():
     payload = request.get_json(force=True) or {}
     name = (payload.get("name") or "").strip()
     email = (payload.get("email") or "").strip().lower()
     phone = (payload.get("phone") or "").strip()
     password = payload.get("password") or ""
+    if not name or not email or not phone or not password:
+        return jsonify({"error": "Name, phone, email, and password are required before sending OTP."}), 400
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters."}), 400
+    if User.get_by_email(email):
+        return jsonify({"error": "An account already exists with this email."}), 400
+
+    otp = generate_otp()
+    sent = False
+    try:
+        sent = send_signup_otp(email, otp, name)
+    except Exception:
+        sent = False
+
+    is_debug = os.getenv("FLASK_ENV", "development") != "production"
+    if not sent and not is_debug:
+        return jsonify({"error": "Could not send OTP right now. Please try again later."}), 503
+
+    mongo.db.email_otps.update_one(
+        {"email": email, "purpose": "signup"},
+        {
+            "$set": {
+                "email": email,
+                "purpose": "signup",
+                "otp_hash": hash_otp(email, otp),
+                "expires_at": otp_expires_at(),
+                "attempts": 0,
+                "created_at": datetime.now(timezone.utc),
+            }
+        },
+        upsert=True,
+    )
+
+    response = {"message": "OTP sent to your email.", "expires_in_minutes": int(os.getenv("WEDFLIX_OTP_TTL_MINUTES", "10"))}
+    if not sent and is_debug:
+        response["message"] = "SMTP is not configured. Use this dev OTP to test signup."
+        response["dev_otp"] = otp
+    return jsonify(response)
+
+
+@api_bp.route("/session/signup/verify-otp", methods=["POST"])
+def session_signup_verify_otp():
+    payload = request.get_json(force=True) or {}
+    name = (payload.get("name") or "").strip()
+    email = (payload.get("email") or "").strip().lower()
+    phone = (payload.get("phone") or "").strip()
+    password = payload.get("password") or ""
+    otp = (payload.get("otp") or "").strip()
     details = {
         "business_name": (payload.get("business_name") or "").strip(),
         "city": (payload.get("city") or "").strip(),
         "purpose": (payload.get("purpose") or "").strip(),
     }
-    if not name or not email or not phone or not password:
-        return jsonify({"error": "Name, phone, email, and password are required."}), 400
+    if not name or not email or not phone or not password or not otp:
+        return jsonify({"error": "All signup fields and OTP are required."}), 400
     if len(password) < 6:
         return jsonify({"error": "Password must be at least 6 characters."}), 400
     if User.get_by_email(email):
         return jsonify({"error": "An account already exists with this email."}), 400
+
+    record = mongo.db.email_otps.find_one({"email": email, "purpose": "signup"})
+    now = datetime.now(timezone.utc)
+    expires_at = record.get("expires_at") if record else None
+    if expires_at and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if not record or not expires_at or expires_at < now:
+        return jsonify({"error": "OTP expired. Please request a new code."}), 400
+    if int(record.get("attempts") or 0) >= 5:
+        return jsonify({"error": "Too many wrong attempts. Please request a new OTP."}), 429
+    if record.get("otp_hash") != hash_otp(email, otp):
+        mongo.db.email_otps.update_one({"_id": record["_id"]}, {"$inc": {"attempts": 1}})
+        return jsonify({"error": "Invalid OTP. Please check your email and try again."}), 400
+
     ensure_default_plan()
     created_id = User.create(
         name=name,
@@ -189,6 +258,7 @@ def session_signup():
         phone=phone,
         details=details,
     )
+    mongo.db.email_otps.delete_one({"_id": record["_id"]})
     user = User.get_by_id(created_id)
     login_user(user)
     return jsonify({"authenticated": True, "is_admin": True, "is_developer": False, "name": user.name}), 201

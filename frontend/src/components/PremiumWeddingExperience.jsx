@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { mediaUrl } from "../api";
 
 function placeholder(label) {
-  const text = encodeURIComponent((label || "Wedflix Wedding").trim().slice(0, 28));
+  const text = encodeURIComponent((label || "Wedflix Story").trim().slice(0, 28));
   return `data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'%3E%3Crect width='1280' height='720' fill='%23050505'/%3E%3CradialGradient id='g' cx='62%25' cy='22%25' r='80%25'%3E%3Cstop stop-color='%23e50914' stop-opacity='.36'/%3E%3Cstop offset='1' stop-color='%23e50914' stop-opacity='0'/%3E%3C/radialGradient%3E%3Crect width='1280' height='720' fill='url(%23g)'/%3E%3Ctext x='76' y='374' fill='%23fff' font-size='82' font-family='Georgia,serif'%3E${text}%3C/text%3E%3C/svg%3E`;
 }
 
@@ -25,7 +25,7 @@ function getInvitationText(wedding) {
   const names = wedding?.couple_names || "The Couple";
   const [first, second] = names.split("&").map((part) => part.trim());
   const savedTitle = (wedding?.invitation_title || "").trim();
-  const formalTitle = "Together with their families, we invite you to celebrate the wedding of";
+  const formalTitle = "Welcome to the story of";
   return {
     first: first || names,
     second: second || "",
@@ -36,7 +36,7 @@ function getInvitationText(wedding) {
 function getInvitationDate(value) {
   const date = new Date(value || "");
   if (Number.isNaN(date.getTime())) {
-    return { day: "", month: value || "Wedding Date", year: "", weekday: "" };
+    return { day: "", month: value || "Story Date", year: "", weekday: "" };
   }
   return {
     day: String(date.getDate()).padStart(2, "0"),
@@ -75,11 +75,11 @@ export default function PremiumWeddingExperience({
   const featuredProgram = programs[0] || null;
   const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || "") || placeholder(wedding?.couple_names);
   const venueImage = mediaUrl(wedding?.venue_image || "") || heroImage;
-  const venueName = wedding?.venue_name || featuredProgram?.venue_name || "Wedding Venue";
-  const venueAddress = wedding?.event_address || featuredProgram?.event_address || "Venue address";
+  const venueName = wedding?.venue_name || featuredProgram?.venue_name || "Story Location";
+  const venueAddress = wedding?.event_address || featuredProgram?.event_address || "Location address";
   const venueEyebrow = wedding?.venue_eyebrow || "You're Invited To";
-  const venueScript = wedding?.venue_script || "the wedding of";
-  const venueSectionLabel = wedding?.venue_section_label || "Our Venue";
+  const venueScript = wedding?.venue_script || "the story of";
+  const venueSectionLabel = wedding?.venue_section_label || "Story Location";
   const mapLocation = wedding?.venue_map_location || venueAddress;
   const weddingTime = wedding?.wedding_time || featuredProgram?.event_time || "11:00 AM";
   const musicUrl = mediaUrl(wedding?.music_url || "");
@@ -97,7 +97,7 @@ export default function PremiumWeddingExperience({
     return [
       {
         key: "main_venue",
-        title: "Wedding Venue",
+        title: "Story Location",
         meta: [wedding?.wedding_date, weddingTime].filter(Boolean).join(" | "),
         body: venueName,
         address: venueAddress,
@@ -108,8 +108,8 @@ export default function PremiumWeddingExperience({
   const scheduleCards = useMemo(() => {
     return venueBlocks.map((block, index) => ({
       key: block.key || `venue_${index}`,
-      title: block.title || `Event ${index + 1}`,
-      date: block.meta || wedding?.wedding_date || "Wedding Date",
+      title: block.title || `Moment ${index + 1}`,
+      date: block.meta || wedding?.wedding_date || "Story Date",
       time: block.body || "",
       address: block.address || "",
       source: block,
@@ -145,7 +145,7 @@ export default function PremiumWeddingExperience({
   };
 
   const deleteVenueBlock = async (key) => {
-    if (!window.confirm("Delete this venue schedule item?")) return;
+    if (!window.confirm("Delete this location schedule item?")) return;
     const existing = venueBlocks;
     setIsSavingVenue(true);
     try {
@@ -213,7 +213,7 @@ export default function PremiumWeddingExperience({
     }
   };
 
-  const shareText = `${wedding?.couple_names || "Wedding"} - ${wedding?.wedding_date || ""}`;
+  const shareText = `${wedding?.couple_names || "Wedflix Story"} - ${wedding?.wedding_date || ""}`;
   const shareUrl = window.location.href;
   const shareInvitation = async () => {
     if (navigator.share) {
@@ -239,7 +239,7 @@ export default function PremiumWeddingExperience({
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
       "BEGIN:VEVENT",
-      `SUMMARY:${wedding?.couple_names || "Wedding Celebration"}`,
+      `SUMMARY:${wedding?.couple_names || "Wedflix Story"}`,
       `DTSTART:${toIcsDate(start)}`,
       `DTEND:${toIcsDate(end)}`,
       `LOCATION:${venueName}, ${venueAddress}`,
@@ -262,7 +262,7 @@ export default function PremiumWeddingExperience({
       return;
     }
     await navigator.clipboard.writeText(url);
-    window.alert("Venue location copied.");
+    window.alert("Location copied.");
   };
 
   const findDistance = () => {
@@ -297,13 +297,13 @@ export default function PremiumWeddingExperience({
       <div className="premium-wedding__nav-links">
         {[
           ["Home", "home"],
-          ["Live Events", "venue"],
+          ["Live Moments", "venue"],
           ["Invitation", "invitation"],
         ].map(([label, target]) => (
           <button
             type="button"
             key={label}
-            className={active === target && label === "Live Events" ? "is-active" : ""}
+            className={active === target && label === "Live Moments" ? "is-active" : ""}
             onClick={() => goNav(target)}
           >
             {label}
@@ -332,13 +332,13 @@ export default function PremiumWeddingExperience({
         </button>
         <div className="premium-intro__content">
           <p className="premium-kicker">A WEDFLIX WEDDING ORIGINAL</p>
-          <h1>{wedding.couple_names || "Wedding Celebration"}</h1>
+          <h1>{wedding.couple_names || "Wedflix Story"}</h1>
           <p className="premium-intro__tagline">{wedding.description || "Together Forever"}</p>
           <div className="premium-intro__meta">
-            <span>{wedding.wedding_date || "Wedding Date"}</span>
+            <span>{wedding.wedding_date || "Story Date"}</span>
             <span>{venueAddress}</span>
           </div>
-          <button type="button" className="premium-primary" onClick={() => setScreen("invitation")}>Enter Wedding</button>
+          <button type="button" className="premium-primary" onClick={() => setScreen("invitation")}>Enter Story</button>
         </div>
       </header>,
     );
@@ -352,18 +352,18 @@ export default function PremiumWeddingExperience({
           <strong>WEDFLIX</strong>
           <div className="premium-invitation__couple">
             <img src={heroImage} alt="" />
-            <span>{wedding.couple_names || "Wedding"}</span>
-            <small>{wedding.wedding_date || "Wedding Date"}</small>
+            <span>{wedding.couple_names || "Wedflix Story"}</span>
+            <small>{wedding.wedding_date || "Story Date"}</small>
           </div>
-          <nav aria-label="Wedding journey">
+          <nav aria-label="Story journey">
             <button type="button" onClick={continueToHome}>Home</button>
             <button type="button" className="is-active">Invitation</button>
-            <button type="button" onClick={continueToHome}>Events</button>
+            <button type="button" onClick={continueToHome}>Episodes</button>
             <button type="button" onClick={continueToHome}>Gallery</button>
             <button type="button" onClick={continueToHome}>Videos</button>
             <button type="button" onClick={continueToHome}>Family</button>
             <button type="button" onClick={continueToHome}>Wishes</button>
-            <button type="button" onClick={() => setScreen("venue")}>Venue</button>
+            <button type="button" onClick={() => setScreen("venue")}>Location</button>
           </nav>
         </aside>
         <div className="premium-invitation__top">
@@ -422,14 +422,14 @@ export default function PremiumWeddingExperience({
             </div>
           </div>
           <aside className="premium-invitation__details">
-            <p className="premium-kicker">Wedding Invitation</p>
-            <h1>{wedding.couple_names || "Wedding Celebration"}</h1>
+            <p className="premium-kicker">Story Invitation</p>
+            <h1>{wedding.couple_names || "Wedflix Story"}</h1>
             <div>
               <span>Date</span>
-              <strong>{wedding.wedding_date || "Wedding Date"}</strong>
+              <strong>{wedding.wedding_date || "Story Date"}</strong>
             </div>
             <div>
-              <span>Venue</span>
+              <span>Location</span>
               <strong>{venueName}</strong>
               <small>{venueAddress}</small>
             </div>
@@ -446,8 +446,8 @@ export default function PremiumWeddingExperience({
             <small>Share</small>
           </button>
           <button type="button" onClick={() => setScreen("venue")}>
-            <span aria-hidden="true">Venue</span>
-            <small>View Venue</small>
+            <span aria-hidden="true">Location</span>
+            <small>View Location</small>
           </button>
           <button type="button" className="premium-actionbar__primary" onClick={continueToHome}>
             <span aria-hidden="true">Continue</span>
@@ -475,16 +475,16 @@ export default function PremiumWeddingExperience({
                 {secondName && <span>{secondName}</span>}
               </h1>
               <div className="premium-venue__meta">
-                <span>{wedding?.wedding_date || "Wedding Date"}</span>
+                <span>{wedding?.wedding_date || "Story Date"}</span>
                 <span>{weddingTime}</span>
                 <span>{venueName}</span>
               </div>
               <p className="premium-venue__lead">
-                {wedding.venue_description || wedding.description || "Join us as we begin our forever. Watch our special day live, from anywhere in the world."}
+                {wedding.venue_description || wedding.description || "Follow the places, moments, and memories that shape this story, from anywhere in the world."}
               </p>
               {canEdit && (
                 <button type="button" className="premium-venue__edit" onClick={() => setVenueSettingsOpen((value) => !value)}>
-                  Edit Venue
+                  Edit Location
                 </button>
               )}
             </div>
@@ -494,9 +494,9 @@ export default function PremiumWeddingExperience({
             <div>
               <p>{venueSectionLabel}</p>
               <h2>{venueName}</h2>
-              <span>{wedding.venue_description || "A royal setting for our special day, chosen for beauty, warmth, and unforgettable memories."}</span>
+              <span>{wedding.venue_description || "A meaningful place in this story, chosen for the memories it holds."}</span>
             </div>
-            <a href={mapsUrl(mapQuery)} target="_blank" rel="noreferrer">Explore Venue</a>
+            <a href={mapsUrl(mapQuery)} target="_blank" rel="noreferrer">Explore Location</a>
           </section>
         {canEdit && venueSettingsOpen && (
           <form className="premium-venue__editor premium-venue__settings" onSubmit={saveVenueSettings}>
@@ -506,26 +506,26 @@ export default function PremiumWeddingExperience({
             </label>
             <label>
               <span>Script Heading</span>
-              <input name="venue_script" defaultValue={venueScript} placeholder="the wedding of" disabled={isSavingVenue} />
+              <input name="venue_script" defaultValue={venueScript} placeholder="the story of" disabled={isSavingVenue} />
             </label>
             <label>
-              <span>Couple Names</span>
-              <input name="couple_names" defaultValue={wedding?.couple_names || ""} placeholder="Aarav & Diya" disabled={isSavingVenue} />
+              <span>Story Title</span>
+              <input name="couple_names" defaultValue={wedding?.couple_names || ""} placeholder="My Life Story" disabled={isSavingVenue} />
             </label>
             <label>
-              <span>Wedding Date</span>
+              <span>Story Date</span>
               <input name="wedding_date" defaultValue={wedding?.wedding_date || ""} placeholder="24 May 2025" disabled={isSavingVenue} />
             </label>
             <label>
-              <span>Wedding Time</span>
+              <span>Story Time</span>
               <input name="wedding_time" defaultValue={weddingTime} placeholder="7:00 PM IST" disabled={isSavingVenue} />
             </label>
             <label>
-              <span>Venue Label</span>
-              <input name="venue_section_label" defaultValue={venueSectionLabel} placeholder="Our Venue" disabled={isSavingVenue} />
+              <span>Location Label</span>
+              <input name="venue_section_label" defaultValue={venueSectionLabel} placeholder="Story Location" disabled={isSavingVenue} />
             </label>
             <label>
-              <span>Venue Name</span>
+              <span>Location Name</span>
               <input name="venue_name" defaultValue={venueName} placeholder="Royal Banquet" disabled={isSavingVenue} />
             </label>
             <label>
@@ -537,24 +537,24 @@ export default function PremiumWeddingExperience({
               <input name="venue_map_location" defaultValue={mapLocation} placeholder="Paste Google Maps link, plus code, or exact location" disabled={isSavingVenue} />
             </label>
             <label className="premium-venue__editor-wide">
-              <span>Venue Image URL</span>
+              <span>Location Image URL</span>
               <input name="venue_image" defaultValue={wedding?.venue_image || ""} placeholder="https://..." disabled={isSavingVenue} />
             </label>
             <label className="premium-venue__editor-wide">
-              <span>Upload Venue Image</span>
+              <span>Upload Location Image</span>
               <input name="venue_image_file" type="file" accept="image/*" disabled={isSavingVenue} />
             </label>
             <label className="premium-venue__editor-wide">
-              <span>Venue Description</span>
-              <textarea name="venue_description" defaultValue={wedding?.venue_description || ""} placeholder="Venue note shown below the details" disabled={isSavingVenue} />
+              <span>Location Description</span>
+              <textarea name="venue_description" defaultValue={wedding?.venue_description || ""} placeholder="Location note shown below the details" disabled={isSavingVenue} />
             </label>
             <div className="premium-venue__editor-actions">
               <button type="button" onClick={() => setVenueSettingsOpen(false)} disabled={isSavingVenue}>Cancel</button>
-              <button type="submit" disabled={isSavingVenue}>{isSavingVenue ? "Saving..." : "Save Venue"}</button>
+              <button type="submit" disabled={isSavingVenue}>{isSavingVenue ? "Saving..." : "Save Location"}</button>
             </div>
           </form>
         )}
-        <h2 className="premium-venue__schedule-title">Event Schedule</h2>
+        <h2 className="premium-venue__schedule-title">Moment Schedule</h2>
         <section className="premium-venue__schedule">
           {scheduleCards.map((card, index) => (
             <article className="premium-venue__event" key={card.key}>

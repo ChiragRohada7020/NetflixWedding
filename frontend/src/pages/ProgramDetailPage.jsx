@@ -289,7 +289,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
     const sectionEpisodes = episodes.filter((episode) => (episode.section_key || "main") === sectionKey);
     const confirmed = window.confirm(
       sectionEpisodes.length
-        ? `Delete ${sectionLabel}? ${sectionEpisodes.length} event(s) will move back to Events.`
+        ? `Delete ${sectionLabel}? ${sectionEpisodes.length} episode(s) will move back to Episodes.`
         : `Delete ${sectionLabel}?`
     );
     if (!confirmed) return;
@@ -382,8 +382,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   return (
     <section className="home-page home-page--detail page-program-detail">
       <SeoHead
-        title={program ? `${program.title} | ${wedding?.couple_names || "Wedflix"} | Wedflix` : "Wedflix | Wedding Program"}
-        description={program?.event_date || program?.venue_name || "Watch wedding program highlights and events on Wedflix."}
+        title={program ? `${program.title} | ${wedding?.couple_names || "Wedflix"} | Wedflix` : "Wedflix | Story Section"}
+        description={program?.event_date || program?.venue_name || "Watch story highlights and episodes on Wedflix."}
         canonicalPath={program ? `${weddingBasePath}/programs/${programId}` : weddingBasePath}
         image={program?.thumbnail || wedding?.profile_image || `${window.location.origin}/favicon.svg`}
         type="article"
@@ -409,7 +409,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
           <div className="home-hero__shade" />
         </div>
         <div className="home-hero__content page-program-hero__content">
-          <p className="home-hero__kicker">{wedding?.couple_names || "Wedding Couple"}</p>
+          <p className="home-hero__kicker">{wedding?.couple_names || "Wedflix Story"}</p>
           <InlineEditableText
             as="h1"
             className="home-hero__names page-program-hero__title"
@@ -458,7 +458,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         />
       </div>
       <div className="cms-row-head" id="events">
-        <h2 className="section-title">Events</h2>
+        <h2 className="section-title">Episodes</h2>
       </div>
       {isLoading && <Skeleton count={4} height={34} />}
       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -484,7 +484,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
             {canAddEpisode && (
               <button type="button" className="add-card-tile" onClick={() => setModal({ type: "create", item: {}, sectionKey: "main" })}>
                 <span className="add-card-plus">+</span>
-                <span>Add Event</span>
+                <span>Add Episode</span>
               </button>
             )}
           </div>
@@ -543,7 +543,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
                   {canAddEpisode && (
                     <button type="button" className="add-card-tile" onClick={() => setModal({ type: "create", item: {}, sectionKey: section.key })}>
                       <span className="add-card-plus">+</span>
-                      <span>Add Event</span>
+                      <span>Add Episode</span>
                     </button>
                   )}
                 </div>
@@ -557,7 +557,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         <div className="home-admin-fab-row">
           {canAddEpisode && (
             <button type="button" className="cms-fab" onClick={() => setModal({ type: "create", item: {}, sectionKey: "main" })}>
-              Add Event
+              Add Episode
             </button>
           )}
           <button
@@ -586,7 +586,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
               <select value={photoEpisodeId} onChange={(e) => setPhotoEpisodeId(e.target.value)} disabled={!episodes.length}>
                 {episodes.map((episode) => (
                   <option key={episode._id} value={episode._id}>
-                    {episode.title || "Untitled Event"}
+                    {episode.title || "Untitled Episode"}
                   </option>
                 ))}
               </select>
@@ -635,7 +635,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
                     if (e.key === "Enter" || e.key === " ") setPhotoGalleryOpen(true);
                   }}
                 >
-                  <ProgressiveImage src={photo.url} alt={photo.caption || photo.episode_title || "Event photo"} className="program-gallery-diary__image" />
+                  <ProgressiveImage src={photo.url} alt={photo.caption || photo.episode_title || "Episode photo"} className="program-gallery-diary__image" />
                   {index === 3 && (
                     <span className="program-gallery-diary__label">{photo.episode_title}</span>
                   )}
@@ -658,7 +658,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       <Suspense fallback={null}>
         <VideoModal
           open={openVideo}
-          title={program?.title || "Event Video"}
+          title={program?.title || "Episode Video"}
           url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url}
           downloadUrl={program?.download_url || program?.video_download_url || ordered[0]?.download_url || ordered[0]?.video_download_url || ""}
           onClose={() => setOpenVideo(false)}
@@ -677,7 +677,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       <Suspense fallback={null}>
         <VideoModal
           open={episodeVideoOpen}
-          title={activeEpisode?.title || "Event Video"}
+          title={activeEpisode?.title || "Episode Video"}
           url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
           downloadUrl={activeEpisode?.download_url || activeEpisode?.video_download_url || ""}
           onClose={() => {
@@ -689,7 +689,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       {modal && (
         <div className="cms-modal-backdrop" onClick={() => setModal(null)}>
           <div className="cms-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{modal.type === "create" ? "Add Event" : "Edit Event"}</h3>
+            <h3>{modal.type === "create" ? "Add Episode" : "Edit Episode"}</h3>
             <EpisodeForm
               initial={modal.item}
               onCancel={() => setModal(null)}
@@ -742,7 +742,7 @@ function EpisodeForm({ initial, onSubmit, onCancel }) {
     >
       <div className="cms-form-grid">
         <label className="cms-field">
-          <span>Event Title</span>
+          <span>Episode Title</span>
           <input value={form.title ?? ""} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Sangeet Entry" />
         </label>
         <label className="cms-field">

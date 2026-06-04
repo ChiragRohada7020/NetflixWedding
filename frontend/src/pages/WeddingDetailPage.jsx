@@ -206,8 +206,8 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
 
   const saveWeddingField = async (field, val) => {
     if (!wedding) return;
-    const invitationTitle = field === "invitation_title" ? val : wedding.invitation_title || "Wedding Invitation";
-    const programsSectionTitle = field === "programs_section_title" ? val : wedding.programs_section_title || "Wedding Programs";
+    const invitationTitle = field === "invitation_title" ? val : wedding.invitation_title || "Story Highlight";
+    const programsSectionTitle = field === "programs_section_title" ? val : wedding.programs_section_title || "Story Series";
     const fieldValue = (name, fallback = "") => (field === name ? val : (wedding[name] ?? fallback));
     const customSectionsValue = field === "custom_sections" ? (Array.isArray(val) ? val : []) : customSections;
     const customSectionLabel = customSectionsValue[0]?.label || "";
@@ -221,8 +221,8 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     fd.append("hero_video_url", wedding.hero_video_url || "");
     fd.append("description", wedding.description || "");
     fd.append("venue_eyebrow", venueDetailsValue.venue_eyebrow ?? wedding.venue_eyebrow ?? "You're Invited To");
-    fd.append("venue_script", venueDetailsValue.venue_script ?? wedding.venue_script ?? "the wedding of");
-    fd.append("venue_section_label", venueDetailsValue.venue_section_label ?? wedding.venue_section_label ?? "Our Venue");
+    fd.append("venue_script", venueDetailsValue.venue_script ?? wedding.venue_script ?? "the story of");
+    fd.append("venue_section_label", venueDetailsValue.venue_section_label ?? wedding.venue_section_label ?? "Story Location");
     if (venueDetailsValue.couple_names !== undefined) {
       fd.set("couple_names", venueDetailsValue.couple_names);
     }
@@ -242,7 +242,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     fd.append("access_level", wedding.access_level || "private");
     fd.append("show_on_demo_home", wedding.show_on_demo_home ? "1" : "");
     fd.append("premium_experience_enabled", wedding.premium_experience_enabled ? "1" : "");
-    fd.append("hero_kicker", fieldValue("hero_kicker", "A WEDDING ORIGINAL"));
+    fd.append("hero_kicker", fieldValue("hero_kicker", "A WEDFLIX ORIGINAL"));
     fd.append("hero_badge_top", fieldValue("hero_badge_top", "TOP"));
     fd.append("hero_badge_bottom", fieldValue("hero_badge_bottom", "10"));
     fd.append("hero_meta_one", fieldValue("hero_meta_one", "Celebration"));
@@ -412,8 +412,8 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
   return (
     <section className="home-page home-page--detail">
       <SeoHead
-        title={wedding ? `${wedding.couple_names} | Wedflix` : "Wedflix | Wedding Story"}
-        description={wedding?.description || "Watch wedding programs, stories, and cinematic memories on Wedflix."}
+        title={wedding ? `${wedding.couple_names} | Wedflix` : "Wedflix | Story"}
+        description={wedding?.description || "Watch story sections, episodes, and cinematic memories on Wedflix."}
         canonicalPath={wedding ? weddingBasePath : "/"}
         image={mediaUrl(wedding?.profile_image || heroImage)}
         type="article"
@@ -424,9 +424,9 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
       {error && !wedding && <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />}
 
       {wedding?.premium_experience_enabled && (
-        <div className="wedding-top-actions" aria-label="Wedding quick links">
+        <div className="wedding-top-actions" aria-label="Story quick links">
           <button type="button" onClick={() => setPremiumPanel("invitation")}>Invitation</button>
-          <button type="button" onClick={() => setPremiumPanel("venue")}>Venue</button>
+          <button type="button" onClick={() => setPremiumPanel("venue")}>Location</button>
         </div>
       )}
 
@@ -436,7 +436,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
             {featuredVideoUrl ? (
               <LazyHeroVideo
                 src={featuredVideoUrl}
-                title="Wedding Hero"
+                title="Story Hero"
                 poster={heroImage}
                 alt={wedding.couple_names}
               />
@@ -456,8 +456,8 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
               as="p"
               className="home-hero__kicker"
               enabled={isEditing}
-              value={wedding.hero_kicker ?? "A WEDDING ORIGINAL"}
-              placeholder="A WEDDING ORIGINAL"
+              value={wedding.hero_kicker ?? "A WEDFLIX ORIGINAL"}
+              placeholder="A WEDFLIX ORIGINAL"
               onSave={(v) => saveWeddingField("hero_kicker", v)}
             />
             <InlineEditableText
@@ -465,7 +465,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
               className="home-hero__names"
               enabled={isEditing}
               value={wedding.couple_names}
-              placeholder="Wedding Couple"
+              placeholder="Story Title"
               onSave={(v) => saveWeddingField("couple_names", v)}
             />
             <div className="home-hero__headline">
@@ -552,8 +552,8 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
               type="search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search programs, dates, venues..."
-              aria-label="Search wedding programs"
+              placeholder="Search sections, dates, locations..."
+              aria-label="Search story sections"
             />
           </div>
           <div className="home-rail__header">
@@ -585,7 +585,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
               {canAddProgram && (
                 <button type="button" className="add-card-tile" onClick={() => setModal({ type: "create", item: {}, sectionKey: "main" })}>
                   <span className="add-card-plus">+</span>
-                  <span>Add Program</span>
+                  <span>Add Section</span>
                 </button>
               )}
             </div>
@@ -637,7 +637,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
                 {canAddProgram && (
                   <button className="add-card-tile" onClick={() => setModal({ type: "create", item: {}, sectionKey: section.key })}>
                     <span className="add-card-plus">+</span>
-                    <span>Add Program</span>
+                    <span>Add Section</span>
                   </button>
                 )}
               </div>
@@ -649,7 +649,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
           <div className="home-admin-fab-row">
             {canAddProgram && (
               <button type="button" className="cms-fab" onClick={() => setModal({ type: "create", item: {}, sectionKey: "main" })}>
-                Add Program
+                Add Section
               </button>
             )}
             <button
@@ -672,7 +672,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
       {modal && (
         <div className="cms-modal-backdrop" onClick={() => setModal(null)}>
           <div className="cms-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{modal.type === "create" ? "Add Program" : "Edit Program"}</h3>
+            <h3>{modal.type === "create" ? "Add Section" : "Edit Section"}</h3>
             <ProgramForm
               initial={modal.item}
               onCancel={() => setModal(null)}
@@ -728,7 +728,7 @@ function ProgramForm({ initial, onSubmit, onCancel }) {
     >
       <div className="cms-form-grid">
         <label className="cms-field">
-          <span>Program Title</span>
+          <span>Section Title</span>
           <input value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Haldi Ceremony" disabled={isSaving} />
         </label>
         <label className="cms-field">
@@ -740,23 +740,23 @@ function ProgramForm({ initial, onSubmit, onCancel }) {
           <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, thumbnail_file: e.target.files?.[0] || null }))} disabled={isSaving} />
         </label>
         <label className="cms-field">
-          <span>Hero Video URL</span>
+          <span>Feature Video URL</span>
           <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." disabled={isSaving} />
         </label>
         <label className="cms-field">
-          <span>Event Date</span>
+          <span>Date</span>
           <input value={form.event_date} onChange={(e) => setForm((p) => ({ ...p, event_date: e.target.value }))} placeholder="2026-12-04" disabled={isSaving} />
         </label>
         <label className="cms-field">
-          <span>Event Time</span>
+          <span>Time</span>
           <input value={form.event_time} onChange={(e) => setForm((p) => ({ ...p, event_time: e.target.value }))} placeholder="07:30 PM" disabled={isSaving} />
         </label>
         <label className="cms-field">
-          <span>Venue Name</span>
+          <span>Location Name</span>
           <input value={form.venue_name} onChange={(e) => setForm((p) => ({ ...p, venue_name: e.target.value }))} placeholder="Grand Palace" disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">
-          <span>Event Address</span>
+          <span>Address</span>
           <input value={form.event_address} onChange={(e) => setForm((p) => ({ ...p, event_address: e.target.value }))} placeholder="Full venue address..." disabled={isSaving} />
         </label>
         <label className="cms-field cms-field-wide">

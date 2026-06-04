@@ -190,7 +190,7 @@ export default function HomePage() {
   };
 
   const deleteWedding = async (wedding) => {
-    if (!window.confirm(`Delete ${wedding.couple_names}? This removes programs and events too.`)) return;
+    if (!window.confirm(`Delete ${wedding.couple_names}? This removes sections and episodes too.`)) return;
     await apiPostForm(`/admin/weddings/${wedding._id}/delete`, new FormData());
     await queryClient.invalidateQueries({ queryKey: ["weddings"] });
   };
@@ -202,8 +202,8 @@ export default function HomePage() {
   return (
     <section className="home-page">
       <SeoHead
-        title={featuredWedding ? `${featuredWedding.couple_names} | Wedflix` : "Wedflix | Wedding Stories"}
-        description={featuredWedding?.description || "Wedflix is a cinematic wedding streaming platform for wedding stories, programs, and episode galleries."}
+        title={featuredWedding ? `${featuredWedding.couple_names} | Wedflix` : "Wedflix | Story Streams"}
+        description={featuredWedding?.description || "Wedflix is a cinematic story streaming platform for life stories, sections, and episode galleries."}
         canonicalPath="/weddings"
         image={featuredWedding?.profile_image || featuredWedding?.hero_image || `${window.location.origin}/favicon.svg`}
       />
@@ -219,7 +219,7 @@ export default function HomePage() {
               <iframe
                 className="home-hero__video"
                 src={featuredVideoUrl}
-                title="Featured wedding trailer"
+                title="Featured story trailer"
                 allow="autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
               />
@@ -231,7 +231,7 @@ export default function HomePage() {
           </div>
 
           <div className="home-hero__content">
-            <p className="home-hero__kicker">A WEDDING ORIGINAL</p>
+            <p className="home-hero__kicker">A WEDFLIX ORIGINAL</p>
             <h1 className="home-hero__names">{featuredWedding.couple_names}</h1>
             <div className="home-hero__headline">
               <span className="home-hero__badge">
@@ -241,7 +241,7 @@ export default function HomePage() {
               <h2>#1 Love In Every Frame</h2>
             </div>
             <p className="home-hero__description">
-              {featuredWedding.description || "A simple hello turned into a lifetime together. Through laughter, memories, and countless moments, their story found its way to forever."}
+              {featuredWedding.description || "Turn your life moments into a personal streaming story with sections, episodes, and memories people can revisit anytime."}
             </p>
             <div className="home-hero__meta">
               <span>Celebration</span>
@@ -303,7 +303,7 @@ export default function HomePage() {
       {canEdit && editMode && (
         <div className="home-admin-fab-row">
           <button type="button" className="cms-fab" onClick={() => setModal({ type: "create", item: {} })}>
-            Add Wedding
+            Add Story
           </button>
         </div>
       )}
@@ -311,7 +311,7 @@ export default function HomePage() {
       {modal && (
         <div className="cms-modal-backdrop" onClick={() => setModal(null)}>
           <div className="cms-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{modal.type === "create" ? "Add Wedding" : "Edit Wedding"}</h3>
+            <h3>{modal.type === "create" ? "Add Story" : "Edit Story"}</h3>
             <WeddingForm
               initial={modal.item}
               isDeveloper={!!session?.is_developer}
@@ -349,11 +349,11 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
     >
       <div className="cms-form-grid">
         <label className="cms-field">
-          <span>Couple Names</span>
+          <span>Story Title</span>
           <input value={form.couple_names} onChange={(e) => setForm((p) => ({ ...p, couple_names: e.target.value }))} placeholder="Aarav & Kavya" />
         </label>
         <label className="cms-field">
-          <span>Wedding Date</span>
+          <span>Story Date</span>
           <input value={form.wedding_date} onChange={(e) => setForm((p) => ({ ...p, wedding_date: e.target.value }))} placeholder="2026-12-01" />
         </label>
         <label className="cms-field cms-field-wide">
@@ -365,7 +365,7 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
           <input type="file" accept="image/*" onChange={(e) => setForm((p) => ({ ...p, profile_image_file: e.target.files?.[0] || null }))} />
         </label>
         <label className="cms-field cms-field-wide">
-          <span>Hero Video URL</span>
+          <span>Feature Video URL</span>
           <input value={form.hero_video_url} onChange={(e) => setForm((p) => ({ ...p, hero_video_url: e.target.value }))} placeholder="https://youtube.com/watch?v=..." />
         </label>
         <label className="cms-field">
@@ -395,7 +395,7 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
         </label>
         <label className="cms-field cms-field-wide">
           <span>Description</span>
-          <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Wedding story..." />
+          <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Story details..." />
         </label>
       </div>
       <div className="cms-form-actions">

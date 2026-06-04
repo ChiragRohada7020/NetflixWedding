@@ -143,7 +143,7 @@ export default function PhotoGalleryModal({ open, title = "Gallery", photos = []
               <div className="photo-gallery-modal__filter-panel">
                 <span>Event</span>
                 <button type="button" className={selectedEvent === "all" ? "is-active" : ""} onClick={() => setSelectedEvent("all")}>
-                  All Events
+                  All Episodes
                 </button>
                 {eventOptions.map((eventTitle) => (
                   <button
