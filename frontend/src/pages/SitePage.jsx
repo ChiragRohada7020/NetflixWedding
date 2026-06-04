@@ -6,42 +6,42 @@ const heroVideoUrl = "https://vimeo.com/1017938196";
 
 const featuredFilms = [
   {
-    couple: "Anaya & Rohan",
-    location: "Udaipur, Rajasthan",
-    title: "a wedding story worth replaying",
+    couple: "Life In Episodes",
+    location: "Creator Series",
+    title: "your stories, arranged like a streaming series",
     copy:
-      "A Wedflix page can open with the main film, lead guests into the celebration, and keep every meaningful moment beautifully arranged in one place.",
+      "A Wedflix profile can open with your feature story, then lead viewers into episodes, albums, highlights, and moments that feel easy to watch and share.",
     image:
-      "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1400&q=80",
   },
 ];
 
 const testimonials = [
   {
     quote:
-      "It felt like the whole Sindhi family was sitting together again. From the sehra bandi to the dhol, every chacha, bua, and cousin found a moment that felt like ours.",
-    couple: "Rohit & Neha Ahuja",
+      "I added my travel, family memories, college events, and short films in one place. It finally felt like my life had a home page, not just scattered links.",
+    couple: "A creator using Wedflix",
   },
   {
     quote:
-      "Our Marwadi rituals were shown with so much warmth. The mehendi, bhaat, pithi, pheras, and bidaai all felt emotional without losing the family masti.",
-    couple: "Kritika & Harsh Khandelwal",
+      "We shared one Wedflix link in our Instagram bio and everyone could watch the series, open albums, and revisit the moments without asking for files.",
+    couple: "Instagram bio audience",
   },
   {
     quote:
-      "Our Marathi wedding felt complete on Wedflix. The sakhar puda, antarpat, mangalashtak, varmala, and every family blessing were shown with so much respect.",
-    couple: "Aarohi & Nikhil Deshmukh",
+      "The Netflix-style layout made our brand story feel premium. Each launch, behind-the-scenes clip, and event became a clean episode.",
+    couple: "Small brand showcase",
   },
   {
     quote:
-      "Every community has its own way of making a wedding special. Wedflix gave our rituals, prayers, family entries, and reception moments a premium place to shine.",
-    couple: "Families Across Traditions",
+      "Trips, birthdays, school memories, weddings, business journeys, and personal films can all live together without feeling messy.",
+    couple: "Stories across life",
   },
 ];
 
 const navLinks = [
   { label: "Home", href: "#top" },
-  { label: "Films", href: "#films" },
+  { label: "Stories", href: "#films" },
   { label: "About", href: "#about" },
   { label: "Blog", href: "/site/blog" },
   { label: "Contact", href: "#contact" },
@@ -102,8 +102,8 @@ export default function SitePage() {
   return (
     <div className="site-lux" id="top">
       <SeoHead
-        title="Wedflix | Luxury Wedding Films"
-        description="Luxury wedding films and photography presented through a refined, cinematic Wedflix landing experience."
+        title="Wedflix | Your Life As A Series"
+        description="Create a Netflix-style page for your stories, videos, albums, events, and memories. Share one link in your bio with anyone."
         canonicalPath="/site"
       />
 
@@ -140,17 +140,17 @@ export default function SitePage() {
 
       <section className="site-lux__hero">
         <div className="site-lux__hero-copy" data-reveal>
-          <p className="site-lux__eyebrow">Wedflix Wedding Experience</p>
-          <h1>wedding films, memories, and moments in one beautiful place</h1>
+          <p className="site-lux__eyebrow">Wedflix Story Experience</p>
+          <h1>turn your life, brand, or event into a shareable series</h1>
           <p className="site-lux__lede">
-            Wedflix helps couples present their wedding story through cinematic films, elegant galleries, event pages, and a premium digital experience guests will love to revisit.
+            Wedflix lets anyone upload stories, arrange videos like episodes, add albums, and share one beautiful Netflix-style link with friends, clients, followers, or family.
           </p>
           <p className="site-lux__trust">
             Trusted by <strong>1K+ reviews</strong>
           </p>
           <div className="site-lux__actions">
             <a href={wedflixStoryUrl} target="_blank" rel="noreferrer" className="site-lux__button site-lux__button--primary">
-              View Films
+              View Stories
             </a>
           </div>
         </div>
@@ -192,15 +192,15 @@ export default function SitePage() {
           </div>
           <div className="site-lux__hero-note">
             <strong>what wedflix provides</strong>
-            <span>Films, photos, wedding pages, and a polished space to relive every celebration.</span>
+            <span>Videos, albums, episodes, profile pages, and one polished link for your Instagram bio.</span>
           </div>
         </div>
       </section>
 
       <section className="site-lux__section" id="films">
         <div className="site-lux__section-head" data-reveal>
-          <p className="site-lux__eyebrow">What We Showcase</p>
-          <h2>featured wedding stories on wedflix</h2>
+          <p className="site-lux__eyebrow">What You Can Showcase</p>
+          <h2>personal stories, creator journeys, events, and memories</h2>
         </div>
 
         <div className="site-lux__story-list">
@@ -212,7 +212,7 @@ export default function SitePage() {
               style={{ transitionDelay: `${index * 70}ms` }}
             >
               <div className="site-lux__story-media">
-                <img src={film.image} alt={`${film.couple} wedding film`} />
+                <img src={film.image} alt={`${film.couple} Wedflix story`} />
               </div>
               <div className="site-lux__story-copy">
                 <p className="site-lux__story-kicker">{film.location}</p>
@@ -232,20 +232,20 @@ export default function SitePage() {
         <div className="site-lux__about-media" data-reveal>
           <img
             src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1400&q=80"
-            alt="Bride and groom portrait"
+            alt="People celebrating a memorable story"
           />
         </div>
 
         <div className="site-lux__about-copy" data-reveal>
           <p className="site-lux__eyebrow">What We Do</p>
-          <h2>wedflix turns your wedding into a cinematic digital experience</h2>
+          <h2>wedflix turns your content into a cinematic digital experience</h2>
           <p>
-            We bring together wedding films, photographs, program highlights, and emotional
-            moments into one refined destination that feels personal, premium, and easy to share.
+            Bring together videos, photos, event pages, behind-the-scenes clips, launch stories,
+            travel diaries, family memories, and personal milestones in one refined destination.
           </p>
           <p>
-            From the main love story to haldi, mehendi, sangeet, pithi, bhaat, sehra bandi, baraat, sakhar puda, antarpat, mangalashtak, nikaah, anand karaj, church vows, varmala, pheras, bidaai, and reception,
-            Wedflix gives every part of the celebration a beautiful place to live online.
+            Use Wedflix like a premium link-in-bio for your life: one profile, many stories,
+            organized like seasons and episodes, ready to share with anyone.
           </p>
         </div>
       </section>
@@ -253,7 +253,7 @@ export default function SitePage() {
       <section className="site-lux__section" id="testimonials">
         <div className="site-lux__section-head" data-reveal>
           <p className="site-lux__eyebrow">Testimonials</p>
-          <h2>why couples love the wedflix experience</h2>
+          <h2>why people love the wedflix experience</h2>
         </div>
 
         <div className="site-lux__testimonial-grid">
@@ -274,8 +274,8 @@ export default function SitePage() {
 
       <section className="site-lux__section site-lux__blog-strip" id="blog" data-reveal>
         <div>
-          <p className="site-lux__eyebrow">Wedding Planning Blog</p>
-          <h2>guides for wedding websites, digital albums, captions, songs, and sharing memories</h2>
+          <p className="site-lux__eyebrow">Stories & Sharing Blog</p>
+          <h2>guides for digital albums, story pages, captions, videos, and bio links</h2>
         </div>
         <a href="/site/blog" className="site-lux__button site-lux__button--secondary">
           Read Blog
@@ -287,7 +287,7 @@ export default function SitePage() {
           <p className="site-lux__eyebrow">Contact</p>
           <h2>message wedflix on instagram</h2>
           <p>
-            If you want your wedding story presented beautifully on Wedflix, send us a message on Instagram and tell us about your date, venue, and vision.
+            If you want your stories, event, brand, or memories presented beautifully on Wedflix, send us a message on Instagram and tell us what you want to share.
           </p>
           <a
             href={instagramUrl}

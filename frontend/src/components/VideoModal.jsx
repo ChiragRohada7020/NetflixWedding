@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import WedflixPlayer from "./WedflixPlayer";
 import { useEffect } from "react";
 
-export default function VideoModal({ open, url, title, onClose }) {
+export default function VideoModal({ open, url, downloadUrl = "", title, onClose }) {
   useEffect(() => {
     if (!open) return;
     window.dispatchEvent(new Event("wedflix-video-playing"));
@@ -35,6 +35,7 @@ export default function VideoModal({ open, url, title, onClose }) {
             </button>
             <WedflixPlayer
               url={url}
+              downloadUrl={downloadUrl}
               className="player-wrap"
               autoPlay
               onPlay={() => {

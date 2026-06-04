@@ -207,6 +207,7 @@ export default function EpisodeDetailPage({ publicMode = false }) {
           <Suspense fallback={<AsyncState mode="loading" />}>
             <WedflixPlayer
               url={episode.embed_url || episode.video_url || episode.youtube_url}
+              downloadUrl={episode.download_url || episode.video_download_url || ""}
               className="video-wrap video-watch-stage"
               onPlay={() => window.dispatchEvent(new Event("wedflix-video-playing"))}
             />
@@ -221,6 +222,7 @@ export default function EpisodeDetailPage({ publicMode = false }) {
           open={episodeVideoOpen}
           title={activeEpisode?.title || "Event Video"}
           url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
+          downloadUrl={activeEpisode?.download_url || activeEpisode?.video_download_url || ""}
           onClose={() => {
             setEpisodeVideoOpen(false);
             setActiveEpisode(null);

@@ -2,6 +2,17 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 import { apiUrl } from "../api";
 
+const BLOCKED_DOWNLOAD_HOSTS = [
+  "youtube.com",
+  "youtu.be",
+  "youtube-nocookie.com",
+  "instagram.com",
+  "tiktok.com",
+  "facebook.com",
+  "x.com",
+  "twitter.com",
+];
+
 function formatTime(seconds) {
   const total = Math.max(0, Math.floor(seconds || 0));
   const mins = Math.floor(total / 60);
@@ -9,23 +20,23 @@ function formatTime(seconds) {
   return `${mins}:${String(secs).padStart(2, "0")}`;
 }
 
-function isYouTubeUrl(url = "") {
-  return /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i.test(url);
-}
-
-function publicYouTubeUrl(url = "") {
-  const match = String(url).match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return match ? `https://www.youtube.com/watch?v=${match[1]}` : url;
+function canDownloadUrl(url = "") {
+  const value = String(url || "").trim().toLowerCase();
+  if (!value) return false;
+  return !BLOCKED_DOWNLOAD_HOSTS.some((host) => value.includes(host));
 }
 
 export default function WedflixPlayer({
   url,
+  downloadUrl = "",
   autoPlay = true,
   onPlay,
   onPause,
   className = "",
 }) {
   const playerUrl = apiUrl(url);
+  const resolvedDownloadUrl = apiUrl(downloadUrl);
+  const canDownload = canDownloadUrl(downloadUrl);
   const playerRef = useRef(null);
   const [playing, setPlaying] = useState(autoPlay);
   const [duration, setDuration] = useState(0);
@@ -53,30 +64,11 @@ export default function WedflixPlayer({
     setPlayedSeconds(next);
   };
   const progressPercent = duration ? Math.min(100, Math.max(0, (playedSeconds / duration) * 100)) : 0;
-  const shareUrl = isYouTubeUrl(url) ? publicYouTubeUrl(url) : playerUrl;
-  const canDownload = Boolean(playerUrl && !isYouTubeUrl(url));
-
-  const shareVideoLink = async () => {
-    if (!shareUrl) return;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Wedflix video", text: "Watch this video on Wedflix.", url: shareUrl });
-        return;
-      } catch {}
-    }
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      window.alert("Video link copied.");
-    } catch {
-      window.prompt("Copy this video link", shareUrl);
-    }
-  };
-
   const downloadVideo = () => {
-    if (!canDownload) return;
-    const separator = playerUrl.includes("?") ? "&" : "?";
+    if (!canDownload || !resolvedDownloadUrl) return;
+    const separator = resolvedDownloadUrl.includes("?") ? "&" : "?";
     const link = document.createElement("a");
-    link.href = `${playerUrl}${separator}download=1`;
+    link.href = `${resolvedDownloadUrl}${separator}download=1`;
     link.download = "wedflix-video";
     link.rel = "noreferrer";
     document.body.appendChild(link);
@@ -136,20 +128,11 @@ export default function WedflixPlayer({
         <div className="wedflix-player-chrome-mask" aria-hidden="true" />
       </div>
       <div className="wedflix-player-controls">
-        <div className="wedflix-player-actions">
-          <button type="button" onClick={shareVideoLink} disabled={!shareUrl}>
-            Share Link
+        {canDownload && (
+          <button type="button" className="wedflix-player-download" onClick={downloadVideo}>
+            Download
           </button>
-          {isYouTubeUrl(url) ? (
-            <a href={shareUrl} target="_blank" rel="noreferrer">
-              Open YouTube
-            </a>
-          ) : (
-            <button type="button" onClick={downloadVideo} disabled={!canDownload}>
-              Download
-            </button>
-          )}
-        </div>
+        )}
         <div className="wedflix-player-progress">
           <input
             type="range"

@@ -656,7 +656,13 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       </div>
 
       <Suspense fallback={null}>
-        <VideoModal open={openVideo} title={program?.title || "Event Video"} url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url} onClose={() => setOpenVideo(false)} />
+        <VideoModal
+          open={openVideo}
+          title={program?.title || "Event Video"}
+          url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url}
+          downloadUrl={program?.download_url || program?.video_download_url || ordered[0]?.download_url || ordered[0]?.video_download_url || ""}
+          onClose={() => setOpenVideo(false)}
+        />
       </Suspense>
       <PhotoGalleryModal
         open={photoGalleryOpen}
@@ -673,6 +679,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
           open={episodeVideoOpen}
           title={activeEpisode?.title || "Event Video"}
           url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
+          downloadUrl={activeEpisode?.download_url || activeEpisode?.video_download_url || ""}
           onClose={() => {
             setEpisodeVideoOpen(false);
             setActiveEpisode(null);

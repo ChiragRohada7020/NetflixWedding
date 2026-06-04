@@ -3119,15 +3119,7 @@ body.photo-gallery-open {
   flex: 1;
   min-width: 0;
 }
-.wedflix-player-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-}
-
-.wedflix-player-actions button,
-.wedflix-player-actions a {
+.wedflix-player-download {
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
@@ -3136,18 +3128,11 @@ body.photo-gallery-open {
   font-size: 0.74rem;
   font-weight: 800;
   line-height: 1;
-  text-decoration: none;
   cursor: pointer;
 }
 
-.wedflix-player-actions button:hover,
-.wedflix-player-actions a:hover {
+.wedflix-player-download:hover {
   background: rgba(229, 9, 20, 0.86);
-}
-
-.wedflix-player-actions button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 .wedflix-player-progress input[type="range"] {
   width: 100%;
@@ -3819,10 +3804,6 @@ body.card-size-large {
   }
   .wedflix-player-progress {
     min-width: 100%;
-  }
-  .wedflix-player-actions {
-    width: 100%;
-    justify-content: center;
   }
   .wedflix-player-chrome-mask {
     display: none;
