@@ -16,7 +16,7 @@ from app.models.user import User
 from app.utils.google_drive import GoogleDriveImportError, download_drive_images
 from app.utils.plans import (
     DEFAULT_PLAN_ID,
-    can_manage_wedding,
+    can_edit_wedding,
     can_view_wedding,
     drive_import_allowed,
     ensure_default_plan,
@@ -97,6 +97,7 @@ def session_info():
             "is_developer": bool(getattr(current_user, "is_developer", False) and is_active) if current_user.is_authenticated else False,
             "is_partner": bool(getattr(current_user, "is_partner", False) and is_active) if current_user.is_authenticated else False,
             "name": getattr(current_user, "name", "") if current_user.is_authenticated else "",
+            "user_id": str(getattr(current_user, "id", "") or "") if current_user.is_authenticated else "",
             "email": getattr(current_user, "email", "") if current_user.is_authenticated else "",
             "role": getattr(current_user, "role", "") if current_user.is_authenticated else "",
             "partner_profile": current_user_doc.get("partner_profile", {}) if current_user_doc else {},
@@ -262,6 +263,34 @@ def public_wedding_detail(public_slug):
     return jsonify(_to_jsonable(wedding))
 
 
+@api_bp.route("/public-users/<user_id>/weddings", methods=["GET"])
+def public_user_weddings(user_id):
+    if not ObjectId.is_valid(user_id):
+        return jsonify({"error": "Public Wedflix not found"}), 404
+    user = mongo.db.users.find_one({"_id": ObjectId(user_id), "status": {"$ne": "inactive"}})
+    if not user:
+        return jsonify({"error": "Public Wedflix not found"}), 404
+    weddings = list(
+        mongo.db.weddings.find(
+            {
+                "owner_user_id": str(user["_id"]),
+                "access_level": "public",
+            }
+        ).sort("wedding_date", 1)
+    )
+    return jsonify(
+        _to_jsonable(
+            {
+                "user": {
+                    "_id": str(user["_id"]),
+                    "name": user.get("name") or "Wedflix",
+                },
+                "weddings": weddings,
+            }
+        )
+    )
+
+
 @api_bp.route("/weddings/<wedding_id>/programs", methods=["GET"])
 def wedding_programs(wedding_id):
     wedding = Wedding.get(wedding_id)
@@ -348,7 +377,7 @@ def episode_photos(episode_id):
     if request.method == "POST":
         if not current_user.is_authenticated:
             return jsonify({"error": "Login required"}), 401
-        if not can_manage_wedding(wedding):
+        if not can_edit_wedding(wedding):
             return jsonify({"error": "Unauthorized"}), 401
 
         files = request.files.getlist("photos")
@@ -405,7 +434,7 @@ def import_episode_drive_photos(episode_id):
     wedding = Wedding.get(str(program.get("wedding_id"))) if program else None
     if not _can_view_wedding(wedding):
         return jsonify({"error": "Unauthorized"}), 401
-    if not can_manage_wedding(wedding):
+    if not can_edit_wedding(wedding):
         return jsonify({"error": "Unauthorized"}), 401
     if not drive_import_allowed():
         return jsonify({"error": "Your plan does not include Google Drive import."}), 403
@@ -468,6 +497,11 @@ def photo_detail(photo_id):
     episode = Episode.get(str(photo.get("episode_id")))
     if not episode:
         return jsonify({"error": "Episode not found"}), 404
+
+    program = Program.get(str(episode.get("program_id")))
+    wedding = Wedding.get(str(program.get("wedding_id"))) if program else None
+    if not can_edit_wedding(wedding):
+        return jsonify({"error": "Unauthorized"}), 401
 
     if request.method == "DELETE":
         mongo.db.photos.delete_one({"_id": photo_object_id})

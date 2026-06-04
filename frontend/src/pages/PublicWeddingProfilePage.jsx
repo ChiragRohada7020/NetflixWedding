@@ -1,18 +1,19 @@
-import React from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { apiGetPublic } from "../api";
 import AsyncState from "../components/AsyncState";
 import ProgressiveImage from "../components/ProgressiveImage";
 import SeoHead from "../components/SeoHead";
+import { isFavouriteWedding, removeFavouriteWedding, saveFavouriteWedding } from "../utils/favourites";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
-function PublicWeddingPoster({ wedding }) {
+function PublicWeddingPoster({ wedding, href }) {
   return (
     <motion.div whileHover={{ scale: 1.04 }} className="profile-wrap">
-      <Link to={`/weddings/${wedding._id}`} className="home-poster profile-card profile-card--watching">
+      <Link to={href} className="home-poster profile-card profile-card--watching">
         <ProgressiveImage src={wedding.profile_image} alt={wedding.couple_names} className="profile-card__image" />
         <div className="home-poster__fade" />
         <div className="home-poster__content">
@@ -27,9 +28,10 @@ function PublicWeddingPoster({ wedding }) {
   );
 }
 
-export default function PublicWeddingProfilePage() {
+export default function PublicWeddingProfilePage({ openHome = false }) {
   const { publicSlug, weddingId } = useParams();
   const publicPath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}`;
+  const [saved, setSaved] = useState(() => isFavouriteWedding(publicPath));
   const { data: wedding, isLoading, error, refetch } = useQuery({
     queryKey: ["public-wedding-profile", publicSlug || weddingId],
     queryFn: () => (
@@ -56,6 +58,11 @@ export default function PublicWeddingProfilePage() {
     );
   }
 
+  const publicHomePath = wedding?._id ? `/share/${wedding._id}/home` : `${publicPath}/home`;
+  if (openHome && wedding?._id) {
+    return <Navigate to={publicHomePath} replace />;
+  }
+
   return (
     <section className="home-shell home-profiles-netflix public-profile-home">
       <SeoHead
@@ -66,9 +73,28 @@ export default function PublicWeddingProfilePage() {
       />
       <div className="home-center">
         <h1 className="home-title">Who&apos;s Watching?</h1>
+        {wedding && (
+          <button
+            type="button"
+            className={`favourite-heart-btn ${saved ? "is-saved" : ""}`}
+            onClick={() => {
+              if (saved) {
+                removeFavouriteWedding(publicPath);
+                setSaved(false);
+                return;
+              }
+              saveFavouriteWedding({ ...wedding, path: publicHomePath });
+              setSaved(true);
+            }}
+            aria-label={saved ? "Remove from favourites" : "Save to favourites"}
+            title={saved ? "Remove from favourites" : "Save to favourites"}
+          >
+            <span aria-hidden="true">{saved ? "♥" : "♡"}</span>
+          </button>
+        )}
       </div>
       <div className="profiles-grid">
-        {wedding && <PublicWeddingPoster wedding={wedding} />}
+        {wedding && <PublicWeddingPoster wedding={wedding} href={publicHomePath} />}
       </div>
     </section>
   );

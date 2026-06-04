@@ -19,6 +19,7 @@ const DeveloperAdminPage = React.lazy(() => import("./pages/DeveloperAdminPage")
 const DeveloperLoginPage = React.lazy(() => import("./pages/DeveloperLoginPage"));
 const ShareHomePage = React.lazy(() => import("./pages/ShareHomePage"));
 const PublicWeddingProfilePage = React.lazy(() => import("./pages/PublicWeddingProfilePage"));
+const PublicUserWedflixPage = React.lazy(() => import("./pages/PublicUserWedflixPage"));
 
 function ScrollToTop({ containerRef }) {
   const { pathname } = useLocation();
@@ -36,7 +37,6 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
   const location = useLocation();
   const isSiteRoute = location.pathname.startsWith("/site");
   const isDeveloperRoute = location.pathname.startsWith("/developer");
-  const isShareRoute = location.pathname.startsWith("/share/");
 
   return (
     <>
@@ -46,7 +46,7 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
           <p className="intro-logo">WEDFLIX</p>
         </div>
       )}
-      {!isSiteRoute && !isDeveloperRoute && !isShareRoute && <Navbar musicUrl={musicUrl} />}
+      {!isSiteRoute && !isDeveloperRoute && <Navbar musicUrl={musicUrl} />}
       <main className={`container ${isSiteRoute ? "container--site" : ""}`} ref={containerRef}>
         <Suspense fallback={<AsyncState mode="loading" />}>
           <Routes>
@@ -58,10 +58,12 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
             <Route path="/weddings/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} />} />
             <Route path="/weddings/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage />} />
             <Route path="/share/:weddingId" element={<PublicWeddingProfilePage />} />
-            <Route path="/share/:weddingId/home" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} />} />
+            <Route path="/share/:weddingId/home" element={<WeddingDetailPage onMusicUrlChange={setMusicUrl} publicMode />} />
             <Route path="/share/:weddingId/programs/:programId" element={<ProgramDetailPage onMusicUrlChange={setMusicUrl} publicMode />} />
             <Route path="/share/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage publicMode />} />
             <Route path="/p/:publicSlug" element={<PublicWeddingProfilePage />} />
+            <Route path="/p/:publicSlug/home" element={<PublicWeddingProfilePage openHome />} />
+            <Route path="/u/:userId" element={<PublicUserWedflixPage />} />
             <Route path="/developer" element={<DeveloperAdminPage />} />
             <Route path="/developer-login" element={<DeveloperLoginPage />} />
           </Routes>

@@ -73,6 +73,15 @@ def can_manage_wedding(wedding, user=None):
     return owner_id == uid or str(wedding.get("_id")) in [str(x) for x in getattr(user, "wedding_ids", [])]
 
 
+def can_edit_wedding(wedding, user=None):
+    user = user or current_user
+    if not wedding or not getattr(user, "is_authenticated", False):
+        return False
+    if is_developer(user):
+        return True
+    return str(wedding.get("owner_user_id") or "") == user_id(user)
+
+
 def can_view_wedding(wedding, user=None):
     user = user or current_user
     if not wedding:

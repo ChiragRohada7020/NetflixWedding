@@ -10,7 +10,7 @@ from app.models.program import Program
 from app.models.wedding import Wedding
 from app.utils.decorators import admin_required
 from app.utils.media import normalize_image_url
-from app.utils.plans import can_manage_wedding, is_developer, limit_error, public_access_allowed
+from app.utils.plans import can_edit_wedding, can_manage_wedding, is_developer, limit_error, public_access_allowed
 from app.utils.telegram_media import TelegramMediaError, upload_file_to_telegram, upload_photo_to_telegram
 from app.utils.video import youtube_embed_url
 
@@ -288,7 +288,7 @@ def create_wedding():
 @admin_required
 def update_wedding(wedding_id):
     current = Wedding.get(wedding_id) or {}
-    if not can_manage_wedding(current):
+    if not can_edit_wedding(current):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     access_level = (request.form.get("access_level") or current.get("access_level") or "private").strip().lower()
     if access_level not in {"public", "private"}:
@@ -365,7 +365,7 @@ def update_wedding(wedding_id):
 @login_required
 @admin_required
 def delete_wedding(wedding_id):
-    if not can_manage_wedding(Wedding.get(wedding_id)):
+    if not can_edit_wedding(Wedding.get(wedding_id)):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     wid = ObjectId(wedding_id)
     program_ids = [p["_id"] for p in mongo.db.programs.find({"wedding_id": wid}, {"_id": 1})]
@@ -392,7 +392,7 @@ def delete_wedding(wedding_id):
 @admin_required
 def create_program():
     wedding_id = request.form.get("wedding_id")
-    if not can_manage_wedding(Wedding.get(wedding_id)):
+    if not can_edit_wedding(Wedding.get(wedding_id)):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     plan_error = limit_error("program")
     if plan_error:
@@ -424,7 +424,7 @@ def create_program():
 def update_program(program_id):
     program = Program.get(program_id)
     wedding_id = str(program.get("wedding_id")) if program else ""
-    if not can_manage_wedding(Wedding.get(wedding_id)):
+    if not can_edit_wedding(Wedding.get(wedding_id)):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     section_key = _clean_section_key(request.form.get("section_key") or (program or {}).get("section_key"), "main")
     payload = {
@@ -457,7 +457,7 @@ def update_program(program_id):
 def delete_program(program_id):
     program = Program.get(program_id)
     wedding_id = str(program.get("wedding_id")) if program else ""
-    if not can_manage_wedding(Wedding.get(wedding_id)):
+    if not can_edit_wedding(Wedding.get(wedding_id)):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     pid = ObjectId(program_id)
     episode_ids = [e["_id"] for e in mongo.db.episodes.find({"program_id": pid}, {"_id": 1})]
@@ -478,7 +478,7 @@ def create_episode():
 
     program = Program.get(program_id)
     wedding_id = str(program.get("wedding_id")) if program else ""
-    if not can_manage_wedding(Wedding.get(wedding_id)):
+    if not can_edit_wedding(Wedding.get(wedding_id)):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     plan_error = limit_error("episode", program_id=program_id)
     if plan_error:
@@ -519,7 +519,7 @@ def update_episode(episode_id):
         program = Program.get(program_id)
         if program:
             wedding_id = str(program.get("wedding_id"))
-    if not can_manage_wedding(Wedding.get(wedding_id)):
+    if not can_edit_wedding(Wedding.get(wedding_id)):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
 
     payload = {
@@ -557,7 +557,7 @@ def delete_episode(episode_id):
         program = Program.get(program_id)
         if program:
             wedding_id = str(program.get("wedding_id"))
-    if not can_manage_wedding(Wedding.get(wedding_id)):
+    if not can_edit_wedding(Wedding.get(wedding_id)):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
 
     mongo.db.episodes.delete_one({"_id": ObjectId(episode_id)})

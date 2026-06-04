@@ -8,6 +8,7 @@ import AsyncState from "../components/AsyncState";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import SeoHead from "../components/SeoHead";
 import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
+import { isFavouriteWedding, removeFavouriteWedding, saveFavouriteWedding } from "../utils/favourites";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -74,6 +75,8 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   const premiumSeenKey = `wedflix_premium_seen_${weddingId || publicSlug}`;
   const [premiumSeen, setPremiumSeen] = useState(() => localStorage.getItem(premiumSeenKey) === "1");
   const [premiumPanel, setPremiumPanel] = useState("");
+  const sharePath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}`;
+  const [savedFavourite, setSavedFavourite] = useState(() => isFavouriteWedding(sharePath));
   const audioRef = useRef(null);
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -90,6 +93,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   const wedding = data?.wedding;
   const programs = data?.programs || [];
   const shareBasePath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}/home`;
+  const favouritePath = wedding?._id ? `/share/${wedding._id}/home` : sharePath;
   const nestedBasePath = wedding?._id ? `/share/${wedding._id}` : shareBasePath;
   const featuredProgram = programs[0] || null;
   const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names));
@@ -188,13 +192,32 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
       <audio ref={audioRef} src={pageMusicUrl} loop preload="metadata" />
 
       <nav className="share-home-nav" aria-label="Wedding home">
-        <Link to={shareBasePath} className="share-home-nav__brand">WEDFLIX</Link>
+        <Link to="/" className="share-home-nav__brand">WEDFLIX</Link>
         <a href="#celebration-series" className="share-home-nav__link">Home</a>
         {wedding?.premium_experience_enabled && (
           <>
             <button type="button" className="share-home-nav__link share-home-nav__button" onClick={() => setPremiumPanel("invitation")}>Invitation</button>
             <button type="button" className="share-home-nav__link share-home-nav__button" onClick={() => setPremiumPanel("venue")}>Venue</button>
           </>
+        )}
+        {wedding && (
+          <button
+            type="button"
+            className={`share-home-nav__link share-home-nav__button share-home-nav__favourite share-home-nav__heart ${savedFavourite ? "is-saved" : ""}`}
+            onClick={() => {
+              if (savedFavourite) {
+                removeFavouriteWedding(favouritePath);
+                setSavedFavourite(false);
+                return;
+              }
+              saveFavouriteWedding({ ...wedding, path: favouritePath });
+              setSavedFavourite(true);
+            }}
+            aria-label={savedFavourite ? "Remove from favourites" : "Save to favourites"}
+            title={savedFavourite ? "Remove from favourites" : "Save to favourites"}
+          >
+            <span aria-hidden="true">{savedFavourite ? "♥" : "♡"}</span>
+          </button>
         )}
       </nav>
 

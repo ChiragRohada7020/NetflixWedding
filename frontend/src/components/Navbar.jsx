@@ -7,7 +7,11 @@ import { apiAuthPost, apiGet, apiPost, mediaUrl } from "../api";
 export default function Navbar({ musicUrl }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const publicShareMatch = location.pathname.match(/^\/share\/([^/]+)/);
+  const publicSlugMatch = location.pathname.match(/^\/p\/([^/]+)/);
+  const isPublicRoute = Boolean(publicShareMatch || publicSlugMatch);
   const homeHref = "/";
+  const isHomePage = location.pathname === "/";
   const { canEdit, editMode, toggleEditMode, cardSize, setCardSize } = useEditMode();
   const audioRef = useRef(null);
   const pausedForVideoRef = useRef(false);
@@ -165,6 +169,10 @@ export default function Navbar({ musicUrl }) {
     navigate(-1);
   };
 
+  const openFavourites = () => {
+    document.getElementById("favourites")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const submitLogin = async (e) => {
     e.preventDefault();
     if (!authForm.email.trim() || !authForm.password.trim()) {
@@ -210,6 +218,15 @@ export default function Navbar({ musicUrl }) {
           <Link to={homeHref} className="nav-home__brand nav-home__brand--desktop">WEDFLIX</Link>
           <Link to={homeHref} className="nav-home__brand nav-home__brand--mobile" aria-label="Wedflix home">W</Link>
 
+          {!isPublicRoute && isHomePage && (
+            <div className="nav-home__links">
+              <button type="button" className="nav-home__link-button" onClick={openFavourites}>
+                Favourites
+              </button>
+            </div>
+          )}
+
+          {!isPublicRoute && (
           <div className="nav-home__profile">
             <button
               type="button"
@@ -263,6 +280,7 @@ export default function Navbar({ musicUrl }) {
               </div>
             )}
           </div>
+          )}
         </div>
       </nav>
 
