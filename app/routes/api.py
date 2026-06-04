@@ -238,8 +238,8 @@ def session_signup_request_otp():
 
     response = {"message": "OTP sent to your email.", "expires_in_minutes": _otp_ttl_minutes()}
     if not sent and is_debug:
-        response["message"] = "SMTP is not configured. Use this dev OTP to test signup."
-        response["dev_otp"] = otp
+        print(f"[DEV OTP] signup email={email} otp={otp}")
+        response["message"] = "SMTP is not configured. Check the server console for the dev OTP."
     return jsonify(response)
 
 
@@ -312,8 +312,8 @@ def session_password_request_otp():
 
     _store_email_otp(email, "password_reset", otp)
     if not sent and is_debug:
-        response["message"] = "SMTP is not configured. Use this dev OTP to reset password."
-        response["dev_otp"] = otp
+        print(f"[DEV OTP] password_reset email={email} otp={otp}")
+        response["message"] = "SMTP is not configured. Check the server console for the dev OTP."
     return jsonify(response)
 
 

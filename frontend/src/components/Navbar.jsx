@@ -227,7 +227,7 @@ export default function Navbar({ musicUrl }) {
         if (!resetOtpSent) {
           const otpRes = await apiAuthPost("/api/session/password/request-otp", { email: authForm.email.trim() });
           setResetOtpSent(true);
-          setAuthNotice(otpRes?.dev_otp ? `OTP sent. Dev OTP: ${otpRes.dev_otp}` : otpRes?.message || "OTP sent to your email.");
+          setAuthNotice(otpRes?.message || "OTP sent to your email.");
           return;
         }
         const res = await apiAuthPost("/api/session/password/reset", {
@@ -274,7 +274,7 @@ export default function Navbar({ musicUrl }) {
       if (authMode === "signup" && !signupOtpSent) {
         const otpRes = await apiAuthPost("/api/session/signup/request-otp", signupPayload);
         setSignupOtpSent(true);
-        setAuthNotice(otpRes?.dev_otp ? `OTP sent. Dev OTP: ${otpRes.dev_otp}` : otpRes?.message || "OTP sent to your email.");
+        setAuthNotice(otpRes?.message || "OTP sent to your email.");
         return;
       }
       const endpoint = authMode === "signup" ? "/api/session/signup/verify-otp" : "/api/session/login";

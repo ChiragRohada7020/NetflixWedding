@@ -1,5 +1,6 @@
 ﻿from flask import Blueprint, flash, make_response, redirect, render_template_string, request, url_for
 from flask_login import login_required, login_user, logout_user
+import os
 
 from app.models.user import User
 
@@ -43,18 +44,35 @@ LOGIN_PAGE_HTML = """
 """
 
 
+def _frontend_home_url():
+    configured = (
+        os.getenv("FRONTEND_URL")
+        or os.getenv("PUBLIC_FRONTEND_URL")
+        or os.getenv("VITE_FRONTEND_URL")
+        or ""
+    ).strip().rstrip("/")
+    if configured:
+        return configured or "/"
+    host = request.host or ""
+    if host.startswith(("localhost:", "127.0.0.1:")) and not host.endswith(":5173"):
+        return "http://localhost:5173"
+    return "/"
+
+
 def _next_url(default_endpoint="public.landing"):
     nxt = (request.values.get("next") or "").strip()
     if nxt.startswith("http://localhost:") or nxt.startswith("http://127.0.0.1:"):
         return nxt
-    return url_for(default_endpoint)
+    if nxt.startswith("/") and not nxt.startswith("//"):
+        return nxt
+    return _frontend_home_url()
 
 
 def _render_login(message=""):
     html = render_template_string(
         LOGIN_PAGE_HTML,
         next_url=_next_url("public.landing"),
-        home_url=url_for("public.landing"),
+        home_url=_frontend_home_url(),
         message=message,
     )
     resp = make_response(html)
