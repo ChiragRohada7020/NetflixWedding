@@ -8,6 +8,7 @@ import { useEditMode } from "../components/EditModeContext";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
+import useModalHistory from "../utils/useModalHistory";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -80,6 +81,7 @@ export default function HomePage() {
   const queryClient = useQueryClient();
   const { canEdit, editMode } = useEditMode();
   const [modal, setModal] = useState(null);
+  useModalHistory(Boolean(modal), () => setModal(null));
   const [isMusicOn, setIsMusicOn] = useState(false);
   const audioRef = useRef(null);
 

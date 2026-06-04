@@ -10,6 +10,7 @@ import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import { mediaUrl } from "../api";
+import useModalHistory from "../utils/useModalHistory";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
@@ -61,6 +62,7 @@ export default function WeddingsPage() {
   const queryClient = useQueryClient();
   const { canEdit, editMode } = useEditMode();
   const [modal, setModal] = useState(null);
+  useModalHistory(Boolean(modal), () => setModal(null));
   const { data: weddings = [], isLoading, error, refetch } = useQuery({
     queryKey: ["weddings"],
     queryFn: () => apiGet("/api/weddings"),

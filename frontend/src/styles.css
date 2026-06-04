@@ -3289,17 +3289,27 @@ body.photo-gallery-open {
 .cms-modal {
   width: min(760px, 100%);
   background:
-    radial-gradient(circle at 8% 8%, rgba(229, 9, 20, 0.28), transparent 32%),
-    radial-gradient(circle at 92% 0%, rgba(127, 29, 29, 0.24), transparent 40%),
-    linear-gradient(160deg, rgba(14, 14, 14, 0.98), rgba(3, 3, 3, 0.96));
-  border: 1px solid rgba(229, 9, 20, 0.35);
-  border-radius: 20px;
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(229, 9, 20, 0.16) inset;
-  backdrop-filter: blur(8px);
-  padding: 1.2rem;
+    radial-gradient(circle at 12% 0%, rgba(229, 9, 20, 0.34), transparent 34%),
+    radial-gradient(circle at 96% 4%, rgba(139, 92, 246, 0.22), transparent 34%),
+    linear-gradient(160deg, rgba(20, 20, 24, 0.98), rgba(5, 5, 7, 0.97));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.74), 0 0 0 1px rgba(229, 9, 20, 0.16) inset;
+  backdrop-filter: blur(12px);
+  padding: 1.35rem;
   max-height: calc(100vh - 8rem);
   overflow-y: auto;
   min-height: 0;
+  position: relative;
+}
+.cms-modal::before {
+  content: "";
+  display: block;
+  height: 5px;
+  border-radius: 999px;
+  margin: -2px 0 18px;
+  background: linear-gradient(90deg, #e50914, #ff6b6b 38%, #8b5cf6);
+  box-shadow: 0 0 22px rgba(229, 9, 20, 0.32);
 }
 .cms-modal::-webkit-scrollbar {
   width: 8px;
@@ -3309,33 +3319,47 @@ body.photo-gallery-open {
   border-radius: 999px;
 }
 .cms-modal h3 {
-  margin: 0 0 1rem;
-  font-size: 1.5rem;
+  margin: 0 0 .4rem;
+  font-size: clamp(1.35rem, 2.6vw, 1.85rem);
   letter-spacing: 0.02em;
   color: #ffffff;
   text-shadow: 0 2px 18px rgba(229, 9, 20, 0.35);
 }
+.cms-modal h3::after {
+  content: "Build the moment, add the media, and make it feel ready to watch.";
+  display: block;
+  margin-top: 8px;
+  max-width: 48ch;
+  color: #aab2c4;
+  font-size: .86rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.5;
+  text-shadow: none;
+}
 .cms-form {
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 .cms-form input,
 .cms-form textarea,
 .cms-form select {
   width: 100%;
   min-height: 46px;
-  background: rgba(16, 16, 16, 0.88);
+  background: rgba(7, 8, 12, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #f8fafc;
-  border-radius: 12px;
-  padding: 12px 13px;
-  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  border-radius: 14px;
+  padding: 13px 14px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24) inset;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease, background .18s ease;
 }
 .cms-form input:focus,
 .cms-form textarea:focus,
 .cms-form select:focus {
   border-color: rgba(229, 9, 20, 0.96);
-  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.22), 0 10px 24px rgba(0, 0, 0, 0.45);
+  background: rgba(12, 13, 18, 0.96);
+  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.2), 0 12px 28px rgba(0, 0, 0, 0.44);
   outline: none;
   transform: translateY(-1px);
 }
@@ -3347,20 +3371,83 @@ body.photo-gallery-open {
 .cms-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 13px;
 }
 .cms-field {
   display: grid;
-  gap: 6px;
+  gap: 7px;
+  padding: 12px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.025));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
 }
 .cms-field span {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   letter-spacing: 0.04em;
-  color: #e5e7eb;
+  color: #cbd5e1;
   text-transform: uppercase;
+  font-weight: 800;
 }
 .cms-field-wide {
   grid-column: 1 / -1;
+}
+.cms-check-field {
+  min-height: 70px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 12px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(229, 9, 20, 0.18), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.03));
+}
+.cms-check-field input[type="checkbox"] {
+  width: 44px;
+  height: 26px;
+  min-height: 26px;
+  appearance: none;
+  border-radius: 999px;
+  padding: 0;
+  background: #222631;
+  border-color: rgba(255, 255, 255, 0.18);
+  position: relative;
+  cursor: pointer;
+  box-shadow: none;
+}
+.cms-check-field input[type="checkbox"]::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #f8fafc;
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  transition: transform .18s ease;
+}
+.cms-check-field input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #e50914, #8b5cf6);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.cms-check-field input[type="checkbox"]:checked::after {
+  transform: translateX(17px);
+}
+.cms-form input[type="file"] {
+  background:
+    linear-gradient(135deg, rgba(229, 9, 20, 0.12), rgba(139, 92, 246, 0.1)),
+    rgba(7, 8, 12, 0.82);
+  border-style: dashed;
+  cursor: pointer;
+}
+.cms-form input[type="file"]::file-selector-button {
+  border: 0;
+  border-radius: 999px;
+  margin-right: 10px;
+  padding: 8px 12px;
+  background: #ffffff;
+  color: #0b0b0f;
+  font-weight: 800;
+  cursor: pointer;
 }
 .cms-form-actions {
   display: flex;

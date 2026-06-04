@@ -11,6 +11,7 @@ import SeoHead from "../components/SeoHead";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
+import useModalHistory from "../utils/useModalHistory";
 
 function toEmbed(url) {
   if (!url) return "";
@@ -123,6 +124,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
   const isEditing = canManage && editMode;
   const weddingBasePath = publicMode ? `/share/${weddingId}` : `/weddings/${weddingId}`;
   const [modal, setModal] = useState(null);
+  useModalHistory(Boolean(modal), () => setModal(null));
   const [ordered, setOrdered] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [premiumSeen, setPremiumSeen] = useState(() => localStorage.getItem(`wedflix_premium_seen_${weddingId}`) === "1");

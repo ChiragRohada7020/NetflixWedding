@@ -14,6 +14,7 @@ import SeoHead from "../components/SeoHead";
 import PhotoGalleryModal from "../components/PhotoGalleryModal";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import { prepareAudioForUpload, preparePhotoForUpload, preparePhotosForUpload } from "../utils/imageUpload";
+import useModalHistory from "../utils/useModalHistory";
 
 const noop = () => {};
 const VideoModal = React.lazy(() => import("../components/VideoModal"));
@@ -89,6 +90,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   const [activeEpisode, setActiveEpisode] = useState(null);
   const [episodeVideoOpen, setEpisodeVideoOpen] = useState(false);
   const [modal, setModal] = useState(null);
+  useModalHistory(Boolean(modal), () => setModal(null));
   const [searchTerm, setSearchTerm] = useState("");
   const [photoFiles, setPhotoFiles] = useState([]);
   const [photoEpisodeId, setPhotoEpisodeId] = useState("");

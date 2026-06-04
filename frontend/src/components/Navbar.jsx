@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEditMode } from "./EditModeContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiAuthPost, apiGet, apiPost, mediaUrl } from "../api";
+import useModalHistory from "../utils/useModalHistory";
 
 export default function Navbar({ musicUrl }) {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function Navbar({ musicUrl }) {
   const { data: session } = useQuery({ queryKey: ["session"], queryFn: () => apiGet("/api/session"), retry: false });
   const [backendAuthOk, setBackendAuthOk] = useState(() => localStorage.getItem("wedflix_backend_auth_ok") === "1");
   const isAuthenticated = !!session?.authenticated;
+  useModalHistory(showLogin, () => setShowLogin(false));
 
   useEffect(() => {
     if (session && !session.authenticated && backendAuthOk) {
