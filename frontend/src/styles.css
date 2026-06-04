@@ -4309,9 +4309,11 @@ body.premium-flow-open .wedflix-footer {
   z-index: 9999;
   background: rgba(0, 0, 0, 0.97);
   display: grid;
-  place-items: center;
+  align-items: start;
+  justify-items: center;
   padding: 16px;
-  overflow: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .cms-modal-backdrop.auth-backdrop .cms-modal.auth-modal {
@@ -4329,17 +4331,20 @@ body.premium-flow-open .wedflix-footer {
 
 .cms-modal.auth-modal.netflix-login {
   width: min(440px, calc(100% - 24px));
+  max-height: calc(100svh - 32px);
+  overflow-y: auto;
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(2px);
-  padding: 42px 38px 28px;
+  padding: clamp(22px, 4svh, 42px) 38px 28px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+  scrollbar-color: rgba(255,255,255,0.28) transparent;
 }
 
 .netflix-login h3 {
-  font-size: 2rem;
-  margin-bottom: 22px;
+  font-size: clamp(1.55rem, 3svh, 2rem);
+  margin-bottom: clamp(12px, 2.4svh, 22px);
   text-shadow: none;
 }
 
@@ -4352,7 +4357,7 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .netflix-login .cms-form {
-  gap: 14px;
+  gap: clamp(8px, 1.8svh, 14px);
 }
 
 .netflix-login .cms-form input {
@@ -4360,7 +4365,8 @@ body.premium-flow-open .wedflix-footer {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 4px;
   color: #fff;
-  padding: 14px 14px;
+  min-height: 48px;
+  padding: 12px 14px;
 }
 
 .netflix-login .cms-form input::placeholder {
@@ -4661,19 +4667,19 @@ body.premium-flow-open .wedflix-footer {
 
 @media (max-width: 640px) {
   .cms-modal-backdrop.auth-backdrop {
-    align-items: center;
+    align-items: start;
     justify-items: center;
     padding: 10px;
-    overflow: hidden;
+    overflow-y: auto;
   }
 
   .cms-modal.auth-modal.netflix-login {
     width: min(360px, calc(100% - 12px));
-    margin: 0 auto;
+    margin: 0 auto 10px;
     padding: 18px 14px 14px;
     border-radius: 10px;
     max-height: 92svh;
-    overflow: hidden;
+    overflow-y: auto;
   }
 
   .netflix-login h3 {
