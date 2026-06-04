@@ -169,10 +169,6 @@ export default function Navbar({ musicUrl }) {
     navigate(-1);
   };
 
-  const openFavourites = () => {
-    document.getElementById("favourites")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const submitLogin = async (e) => {
     e.preventDefault();
     if (!authForm.email.trim() || !authForm.password.trim()) {
@@ -220,9 +216,9 @@ export default function Navbar({ musicUrl }) {
 
           {!isPublicRoute && isHomePage && (
             <div className="nav-home__links">
-              <button type="button" className="nav-home__link-button" onClick={openFavourites}>
+              <Link to="/favourites">
                 Favourites
-              </button>
+              </Link>
             </div>
           )}
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Blurhash } from "react-blurhash";
 import { mediaUrl } from "../api";
 
@@ -19,12 +19,22 @@ export default function ProgressiveImage({
   const resolvedSrc = mediaUrl(src) || fallbackSrc;
   const resolvedFallback = mediaUrl(fallbackSrc);
   const [currentSrc, setCurrentSrc] = useState(resolvedSrc);
+  const imgRef = useRef(null);
 
   useEffect(() => {
     setLoaded(false);
     setFailed(false);
     setCurrentSrc(resolvedSrc);
   }, [resolvedSrc]);
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img || !currentSrc) return;
+    if (img.complete && img.naturalWidth > 0) {
+      setLoaded(true);
+      setFailed(false);
+    }
+  }, [currentSrc]);
 
   return (
     <div className={`progressive ${className || ""} ${failed ? "is-failed" : ""}`}>
@@ -34,12 +44,13 @@ export default function ProgressiveImage({
         </div>
       )}
       <img
+        ref={imgRef}
         src={currentSrc}
         alt={alt}
         className={`progressive-img ${loaded ? "is-loaded" : ""}`}
         loading={loading}
         decoding="async"
-        fetchPriority={fetchPriority || (loading === "eager" ? "high" : "auto")}
+        fetchpriority={fetchPriority || (loading === "eager" ? "high" : "auto")}
         sizes={sizes}
         onLoad={() => setLoaded(true)}
         onError={() => {

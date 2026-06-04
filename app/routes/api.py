@@ -46,6 +46,15 @@ def _can_view_wedding(wedding):
     return can_view_wedding(wedding)
 
 
+def _with_owner_names(weddings):
+    owner_ids = {wedding.get("owner_user_id") for wedding in weddings if wedding.get("owner_user_id") and ObjectId.is_valid(str(wedding.get("owner_user_id")))}
+    owners = {
+        str(user["_id"]): user.get("name") or user.get("email") or "Wedflix"
+        for user in mongo.db.users.find({"_id": {"$in": [ObjectId(owner_id) for owner_id in owner_ids]}})
+    }
+    return [{**wedding, "owner_name": owners.get(str(wedding.get("owner_user_id")), "")} for wedding in weddings]
+
+
 def _json_user(doc):
     if not doc:
         return None
@@ -239,7 +248,7 @@ def weddings():
     elif not is_developer():
         owned_ids = {str(item) for item in owned_wedding_ids()}
         docs = [w for w in docs if str(w.get("_id")) in owned_ids]
-    return jsonify(_to_jsonable(docs))
+    return jsonify(_to_jsonable(_with_owner_names(docs)))
 
 
 @api_bp.route("/weddings/<wedding_id>", methods=["GET"])
@@ -249,7 +258,7 @@ def wedding_detail(wedding_id):
         return jsonify({"error": "Wedding not found"}), 404
     if not _can_view_wedding(wedding):
         return jsonify({"error": "Unauthorized"}), 401
-    return jsonify(_to_jsonable(wedding))
+    return jsonify(_to_jsonable(_with_owner_names([wedding])[0]))
 
 
 @api_bp.route("/public-weddings/<public_slug>", methods=["GET"])
@@ -260,7 +269,7 @@ def public_wedding_detail(public_slug):
         return jsonify({"error": "Wedding not found"}), 404
     if (wedding.get("access_level") or "private") != "public" and not _can_view_wedding(wedding):
         return jsonify({"error": "Unauthorized"}), 401
-    return jsonify(_to_jsonable(wedding))
+    return jsonify(_to_jsonable(_with_owner_names([wedding])[0]))
 
 
 @api_bp.route("/public-users/<user_id>/weddings", methods=["GET"])
@@ -285,7 +294,7 @@ def public_user_weddings(user_id):
                     "_id": str(user["_id"]),
                     "name": user.get("name") or "Wedflix",
                 },
-                "weddings": weddings,
+                "weddings": _with_owner_names(weddings),
             }
         )
     )

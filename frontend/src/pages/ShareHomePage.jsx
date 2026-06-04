@@ -8,6 +8,7 @@ import AsyncState from "../components/AsyncState";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import SeoHead from "../components/SeoHead";
 import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
+import FavouriteLoginToast, { useFavouriteLoginToast } from "../components/FavouriteLoginToast";
 import { isFavouriteWedding, removeFavouriteWedding, saveFavouriteWedding } from "../utils/favourites";
 
 function toEmbed(url) {
@@ -76,8 +77,11 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   const [premiumSeen, setPremiumSeen] = useState(() => localStorage.getItem(premiumSeenKey) === "1");
   const [premiumPanel, setPremiumPanel] = useState("");
   const sharePath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}`;
-  const [savedFavourite, setSavedFavourite] = useState(() => isFavouriteWedding(sharePath));
+  const [savedFavourite, setSavedFavourite] = useState(false);
   const audioRef = useRef(null);
+  const favouriteToast = useFavouriteLoginToast();
+  const { data: session } = useQuery({ queryKey: ["session"], queryFn: () => apiGet("/api/session"), retry: false });
+  const favouriteUserId = session?.authenticated ? session.user_id : "";
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["share-home", weddingId || publicSlug],
@@ -121,6 +125,10 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   useEffect(() => {
     onMusicUrlChange(pageMusicUrl);
   }, [pageMusicUrl, onMusicUrlChange]);
+
+  useEffect(() => {
+    setSavedFavourite(isFavouriteWedding(favouritePath, favouriteUserId) || isFavouriteWedding(sharePath, favouriteUserId));
+  }, [favouritePath, favouriteUserId, sharePath]);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -206,15 +214,19 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
             className={`share-home-nav__link share-home-nav__button share-home-nav__favourite share-home-nav__heart ${savedFavourite ? "is-saved" : ""}`}
             onClick={() => {
               if (savedFavourite) {
-                removeFavouriteWedding(favouritePath);
+                removeFavouriteWedding(favouritePath, favouriteUserId);
                 setSavedFavourite(false);
                 return;
               }
-              saveFavouriteWedding({ ...wedding, path: favouritePath });
+              if (!favouriteUserId) {
+                favouriteToast.show();
+                return;
+              }
+              saveFavouriteWedding({ ...wedding, path: favouritePath }, favouriteUserId);
               setSavedFavourite(true);
             }}
-            aria-label={savedFavourite ? "Remove from favourites" : "Save to favourites"}
-            title={savedFavourite ? "Remove from favourites" : "Save to favourites"}
+            aria-label={favouriteUserId ? (savedFavourite ? "Remove from favourites" : "Save to favourites") : "Login to save favourites"}
+            title={favouriteUserId ? (savedFavourite ? "Remove from favourites" : "Save to favourites") : "Login to save favourites"}
           >
             <span aria-hidden="true">{savedFavourite ? "♥" : "♡"}</span>
           </button>
@@ -274,6 +286,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
           </button>
         </header>
       )}
+      <FavouriteLoginToast visible={favouriteToast.visible} onClose={favouriteToast.hide} />
 
       <div className="home-rails">
         {rows.map((row) => (

@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { apiGetPublic } from "../api";
+import { apiGet, apiGetPublic } from "../api";
 import AsyncState from "../components/AsyncState";
 import ProgressiveImage from "../components/ProgressiveImage";
 import SeoHead from "../components/SeoHead";
+import FavouriteLoginToast, { useFavouriteLoginToast } from "../components/FavouriteLoginToast";
 import { isFavouriteWedding, removeFavouriteWedding, saveFavouriteWedding } from "../utils/favourites";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
@@ -15,9 +16,12 @@ function getProfilePlaceholder(label = "Wedflix") {
   return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 780'%3E%3Crect width='600' height='780' fill='%23141414'/%3E%3Crect x='38' y='38' width='524' height='704' rx='34' fill='%23090909' stroke='%23e50914' stroke-width='8'/%3E%3Ctext x='300' y='372' text-anchor='middle' fill='%23e50914' font-size='84' font-family='Arial,sans-serif' font-weight='900'%3EW%3C/text%3E%3Ctext x='300' y='452' text-anchor='middle' fill='%23f5f5f5' font-size='34' font-family='Arial,sans-serif' font-weight='700'%3E${text}%3C/text%3E%3C/svg%3E`;
 }
 
-function PublicWedflixCard({ wedding, priority }) {
+function PublicWedflixCard({ wedding, priority, userId, onLoginRequired }) {
   const favouritePath = `/share/${wedding._id}/home`;
-  const [saved, setSaved] = useState(() => isFavouriteWedding(favouritePath) || isFavouriteWedding(wedding._id));
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    setSaved(isFavouriteWedding(favouritePath, userId) || isFavouriteWedding(wedding._id, userId));
+  }, [favouritePath, userId, wedding._id]);
   return (
     <motion.div whileHover={{ scale: 1.04 }} className="profile-wrap">
       <Link to={favouritePath} className="home-poster profile-card profile-card--watching">
@@ -45,15 +49,19 @@ function PublicWedflixCard({ wedding, priority }) {
           event.preventDefault();
           event.stopPropagation();
           if (saved) {
-            removeFavouriteWedding(favouritePath);
+            removeFavouriteWedding(favouritePath, userId);
             setSaved(false);
             return;
           }
-          saveFavouriteWedding({ ...wedding, path: favouritePath });
+          if (!userId) {
+            onLoginRequired();
+            return;
+          }
+          saveFavouriteWedding({ ...wedding, path: favouritePath }, userId);
           setSaved(true);
         }}
-        aria-label={saved ? "Remove from favourites" : "Save to favourites"}
-        title={saved ? "Remove from favourites" : "Save to favourites"}
+        aria-label={userId ? (saved ? "Remove from favourites" : "Save to favourites") : "Login to save favourites"}
+        title={userId ? (saved ? "Remove from favourites" : "Save to favourites") : "Login to save favourites"}
       >
         <span aria-hidden="true">{saved ? "♥" : "♡"}</span>
       </button>
@@ -63,6 +71,9 @@ function PublicWedflixCard({ wedding, priority }) {
 
 export default function PublicUserWedflixPage() {
   const { userId } = useParams();
+  const favouriteToast = useFavouriteLoginToast();
+  const { data: session } = useQuery({ queryKey: ["session"], queryFn: () => apiGet("/api/session"), retry: false });
+  const favouriteUserId = session?.authenticated ? session.user_id : "";
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["public-user-wedflix", userId],
     queryFn: () => apiGetPublic(`/api/public-users/${userId}/weddings`),
@@ -86,10 +97,17 @@ export default function PublicUserWedflixPage() {
       </div>
       <div className="profiles-grid">
         {weddings.map((wedding, index) => (
-          <PublicWedflixCard key={wedding._id} wedding={wedding} priority={index < 2} />
+          <PublicWedflixCard
+            key={wedding._id}
+            wedding={wedding}
+            priority={index < 2}
+            userId={favouriteUserId}
+            onLoginRequired={favouriteToast.show}
+          />
         ))}
       </div>
       {!weddings.length && <p className="favourites-empty public-wedflix-empty">No public weddings are available yet.</p>}
+      <FavouriteLoginToast visible={favouriteToast.visible} onClose={favouriteToast.hide} />
     </section>
   );
 }

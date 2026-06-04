@@ -20,6 +20,7 @@ const DeveloperLoginPage = React.lazy(() => import("./pages/DeveloperLoginPage")
 const ShareHomePage = React.lazy(() => import("./pages/ShareHomePage"));
 const PublicWeddingProfilePage = React.lazy(() => import("./pages/PublicWeddingProfilePage"));
 const PublicUserWedflixPage = React.lazy(() => import("./pages/PublicUserWedflixPage"));
+const FavouritesPage = React.lazy(() => import("./pages/FavouritesPage"));
 
 function ScrollToTop({ containerRef }) {
   const { pathname } = useLocation();
@@ -51,6 +52,7 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
         <Suspense fallback={<AsyncState mode="loading" />}>
           <Routes>
             <Route path="/" element={<WeddingsPage />} />
+            <Route path="/favourites" element={<FavouritesPage />} />
             <Route path="/site" element={<SitePage />} />
             <Route path="/site/blog" element={<BlogPage />} />
             <Route path="/site/blog/:slug" element={<BlogPage />} />

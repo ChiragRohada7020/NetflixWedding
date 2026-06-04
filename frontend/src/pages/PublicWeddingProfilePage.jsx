@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { apiGetPublic } from "../api";
+import { apiGet, apiGetPublic } from "../api";
 import AsyncState from "../components/AsyncState";
 import ProgressiveImage from "../components/ProgressiveImage";
 import SeoHead from "../components/SeoHead";
+import FavouriteLoginToast, { useFavouriteLoginToast } from "../components/FavouriteLoginToast";
 import { isFavouriteWedding, removeFavouriteWedding, saveFavouriteWedding } from "../utils/favourites";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
@@ -31,7 +32,10 @@ function PublicWeddingPoster({ wedding, href }) {
 export default function PublicWeddingProfilePage({ openHome = false }) {
   const { publicSlug, weddingId } = useParams();
   const publicPath = publicSlug ? `/p/${publicSlug}` : `/share/${weddingId}`;
-  const [saved, setSaved] = useState(() => isFavouriteWedding(publicPath));
+  const [saved, setSaved] = useState(false);
+  const favouriteToast = useFavouriteLoginToast();
+  const { data: session } = useQuery({ queryKey: ["session"], queryFn: () => apiGet("/api/session"), retry: false });
+  const userId = session?.authenticated ? session.user_id : "";
   const { data: wedding, isLoading, error, refetch } = useQuery({
     queryKey: ["public-wedding-profile", publicSlug || weddingId],
     queryFn: () => (
@@ -40,6 +44,9 @@ export default function PublicWeddingProfilePage({ openHome = false }) {
         : apiGetPublic(`/api/weddings/${weddingId}`)
     ),
   });
+  useEffect(() => {
+    setSaved(isFavouriteWedding(publicPath, userId) || (wedding?._id ? isFavouriteWedding(`/share/${wedding._id}/home`, userId) : false));
+  }, [publicPath, userId, wedding?._id]);
 
   if (isLoading && !wedding) return <AsyncState mode="loading" />;
   if (error && !wedding) {
@@ -79,15 +86,19 @@ export default function PublicWeddingProfilePage({ openHome = false }) {
             className={`favourite-heart-btn ${saved ? "is-saved" : ""}`}
             onClick={() => {
               if (saved) {
-                removeFavouriteWedding(publicPath);
+                removeFavouriteWedding(publicHomePath, userId);
                 setSaved(false);
                 return;
               }
-              saveFavouriteWedding({ ...wedding, path: publicHomePath });
+              if (!userId) {
+                favouriteToast.show();
+                return;
+              }
+              saveFavouriteWedding({ ...wedding, path: publicHomePath }, userId);
               setSaved(true);
             }}
-            aria-label={saved ? "Remove from favourites" : "Save to favourites"}
-            title={saved ? "Remove from favourites" : "Save to favourites"}
+            aria-label={userId ? (saved ? "Remove from favourites" : "Save to favourites") : "Login to save favourites"}
+            title={userId ? (saved ? "Remove from favourites" : "Save to favourites") : "Login to save favourites"}
           >
             <span aria-hidden="true">{saved ? "♥" : "♡"}</span>
           </button>
@@ -96,6 +107,7 @@ export default function PublicWeddingProfilePage({ openHome = false }) {
       <div className="profiles-grid">
         {wedding && <PublicWeddingPoster wedding={wedding} href={publicHomePath} />}
       </div>
+      <FavouriteLoginToast visible={favouriteToast.visible} onClose={favouriteToast.hide} />
     </section>
   );
 }

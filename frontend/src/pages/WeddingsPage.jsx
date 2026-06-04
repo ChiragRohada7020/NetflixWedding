@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
@@ -10,7 +10,6 @@ import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import { mediaUrl } from "../api";
-import { FAVOURITES_CHANGED_EVENT, getFavouriteWeddings, removeFavouriteWedding } from "../utils/favourites";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
@@ -58,38 +57,10 @@ function WeddingPosterCard({ wedding, editMode, priority = false }) {
   );
 }
 
-function FavouritePosterCard({ favourite, isAuthenticated, onRemove }) {
-  const href = isAuthenticated && favourite.id ? `/weddings/${favourite.id}` : favourite.path;
-  return (
-    <motion.div whileHover={{ scale: 1.04 }} className="profile-wrap favourite-profile-wrap">
-      <Link to={href} className="home-poster profile-card profile-card--watching">
-        <ProgressiveImage
-          src={favourite.image}
-          alt={favourite.title}
-          className="profile-card__image"
-          fallbackSrc={getProfilePlaceholder(favourite.title)}
-        />
-        <div className="home-poster__fade" />
-        <div className="home-poster__content">
-          <img src={netflixLogoUrl} alt="" aria-hidden="true" className="home-poster__logo" />
-          <div className="home-poster__text">
-            <p className="home-poster__title">{favourite.title}</p>
-            <p className="home-poster__subtitle">{favourite.subtitle || "Saved Wedding"}</p>
-          </div>
-        </div>
-      </Link>
-      <button type="button" className="favourite-remove-btn" onClick={() => onRemove(favourite)}>
-        Remove
-      </button>
-    </motion.div>
-  );
-}
-
 export default function WeddingsPage() {
   const queryClient = useQueryClient();
   const { canEdit, editMode } = useEditMode();
   const [modal, setModal] = useState(null);
-  const [favourites, setFavourites] = useState(() => getFavouriteWeddings());
   const { data: weddings = [], isLoading, error, refetch } = useQuery({
     queryKey: ["weddings"],
     queryFn: () => apiGet("/api/weddings"),
@@ -103,25 +74,7 @@ export default function WeddingsPage() {
   const weddingUsage = Number(session?.usage?.weddings ?? weddings.length);
   const canAddWedding = Boolean(session && (session.is_developer || !weddingLimit || weddingUsage < weddingLimit));
   const partnerProfile = { ...defaultPartnerProfile, ...(session?.partner_profile || {}) };
-  const isAuthenticated = Boolean(session?.authenticated);
-
-  useEffect(() => {
-    const refreshFavourites = () => setFavourites(getFavouriteWeddings());
-    window.addEventListener(FAVOURITES_CHANGED_EVENT, refreshFavourites);
-    window.addEventListener("storage", refreshFavourites);
-    return () => {
-      window.removeEventListener(FAVOURITES_CHANGED_EVENT, refreshFavourites);
-      window.removeEventListener("storage", refreshFavourites);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (window.location.hash === "#favourites") {
-      window.setTimeout(() => {
-        document.getElementById("favourites")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 80);
-    }
-  }, []);
+  const canManageWedding = (wedding) => Boolean(canEdit && (session?.is_developer || String(wedding.owner_user_id || "") === String(session?.user_id || "")));
 
   const savePartnerProfile = async (payload) => {
     const fd = new FormData();
@@ -238,7 +191,7 @@ export default function WeddingsPage() {
           weddings.map((w, index) => (
             <div key={w._id} className="profile-wrap">
               <WeddingPosterCard wedding={w} editMode={editMode} priority={index < 2} />
-              {canEdit && editMode && (
+              {canManageWedding(w) && editMode && (
                 <div className="cms-overlay-actions" onClick={(e) => e.stopPropagation()}>
                   <button type="button" className="cms-fab" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setModal({ type: "edit", item: w }); }}>Edit</button>
                   <button type="button" className="cms-fab" onClick={(e) => { e.preventDefault(); e.stopPropagation(); copyShareLink(w); }}>Copy Link</button>
@@ -248,28 +201,6 @@ export default function WeddingsPage() {
             </div>
           ))}
       </div>
-      <section className="favourites-section" id="favourites">
-        <div className="favourites-section__head">
-          <h2>Favourites</h2>
-        </div>
-        {favourites.length ? (
-          <div className="profiles-grid profiles-grid--favourites">
-            {favourites.map((favourite) => (
-              <FavouritePosterCard
-                key={`${favourite.id}-${favourite.path}`}
-                favourite={favourite}
-                isAuthenticated={isAuthenticated}
-                onRemove={(item) => {
-                  removeFavouriteWedding(item.path);
-                  setFavourites(getFavouriteWeddings());
-                }}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="favourites-empty">Saved public wedding cards will appear here.</p>
-        )}
-      </section>
       {session?.is_partner && (
         <PartnerCard
           profile={partnerProfile}
