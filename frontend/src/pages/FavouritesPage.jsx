@@ -17,6 +17,21 @@ function getProfilePlaceholder(label = "Wedflix") {
 
 function FavouritePosterCard({ favourite, isAuthenticated, onRemove }) {
   const href = isAuthenticated && favourite.id ? `/weddings/${favourite.id}` : favourite.path;
+  const shareFavourite = async () => {
+    const url = `${window.location.origin}${favourite.path || href}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: favourite.title || "Wedflix favourite", text: "Watch this wedding on Wedflix.", url });
+        return;
+      } catch {}
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      window.alert("Favourite link copied.");
+    } catch {
+      window.prompt("Copy this favourite link", url);
+    }
+  };
   return (
     <motion.div whileHover={{ scale: 1.04 }} className="profile-wrap favourite-profile-wrap">
       <Link to={href} className="home-poster profile-card profile-card--watching">
@@ -38,6 +53,9 @@ function FavouritePosterCard({ favourite, isAuthenticated, onRemove }) {
       </Link>
       <button type="button" className="favourite-remove-btn" onClick={() => onRemove(favourite)}>
         Remove
+      </button>
+      <button type="button" className="favourite-share-btn" onClick={shareFavourite}>
+        Share
       </button>
     </motion.div>
   );

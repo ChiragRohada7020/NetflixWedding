@@ -3119,6 +3119,36 @@ body.photo-gallery-open {
   flex: 1;
   min-width: 0;
 }
+.wedflix-player-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.wedflix-player-actions button,
+.wedflix-player-actions a {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 7px 10px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.wedflix-player-actions button:hover,
+.wedflix-player-actions a:hover {
+  background: rgba(229, 9, 20, 0.86);
+}
+
+.wedflix-player-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 .wedflix-player-progress input[type="range"] {
   width: 100%;
   height: 16px;
@@ -3789,6 +3819,10 @@ body.card-size-large {
   }
   .wedflix-player-progress {
     min-width: 100%;
+  }
+  .wedflix-player-actions {
+    width: 100%;
+    justify-content: center;
   }
   .wedflix-player-chrome-mask {
     display: none;
@@ -5233,7 +5267,7 @@ body.premium-flow-open .wedflix-footer {
   display: flex;
   align-items: center;
   gap: 32px;
-  margin-left: 10px;
+  margin-left: 34px;
   flex: 1 1 auto;
 }
 
@@ -5502,6 +5536,25 @@ body.premium-flow-open .wedflix-footer {
 
 .favourite-remove-btn:hover {
   background: rgba(229, 9, 20, 0.9);
+}
+
+.favourite-share-btn {
+  position: absolute;
+  top: 48px;
+  right: 10px;
+  z-index: 4;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #080808;
+  padding: 7px 11px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.favourite-share-btn:hover {
+  background: #fff;
 }
 
 .home-poster__owner {
@@ -6179,7 +6232,7 @@ body.premium-flow-open .wedflix-footer {
     display: flex;
     flex: 1 1 auto;
     gap: 12px;
-    margin-left: 14px;
+    margin-left: 24px;
   }
 
   .nav-home__links a {
