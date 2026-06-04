@@ -312,7 +312,7 @@ function WeddingForm({ initial, onSubmit, onCancel, isDeveloper = false }) {
             onChange={(e) => setForm((p) => ({ ...p, premium_experience_enabled: e.target.checked ? "1" : "" }))}
             disabled={isSaving}
           />
-          <span>Show Premium Story Experience First</span>
+          <span>Wedding Story</span>
         </label>
         <label className="cms-field cms-field-wide">
           <span>Music URL</span>

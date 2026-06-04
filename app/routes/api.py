@@ -6,6 +6,7 @@ import requests
 from flask import Blueprint, Response, jsonify, request, stream_with_context
 from flask_login import current_user, login_required, login_user, logout_user
 from bson import ObjectId
+from werkzeug.security import generate_password_hash
 
 from app import mongo
 from app.models.comment import Comment
@@ -14,7 +15,7 @@ from app.models.photo import Photo
 from app.models.program import Program
 from app.models.wedding import Wedding
 from app.models.user import User
-from app.utils.email_otp import generate_otp, hash_otp, otp_expires_at, send_signup_otp
+from app.utils.email_otp import generate_otp, hash_otp, otp_expires_at, send_password_reset_otp, send_signup_otp
 from app.utils.google_drive import GoogleDriveImportError, download_drive_images
 from app.utils.plans import (
     DEFAULT_PLAN_ID,
@@ -32,6 +33,47 @@ from app.utils.plans import (
 from app.utils.telegram_media import TelegramMediaError, upload_bytes_to_telegram, upload_photo_to_telegram
 
 api_bp = Blueprint("api", __name__)
+
+
+def _is_debug_env():
+    return os.getenv("FLASK_ENV", "development") != "production"
+
+
+def _otp_ttl_minutes():
+    return int(os.getenv("WEDFLIX_OTP_TTL_MINUTES", "10"))
+
+
+def _store_email_otp(email, purpose, otp):
+    mongo.db.email_otps.update_one(
+        {"email": email, "purpose": purpose},
+        {
+            "$set": {
+                "email": email,
+                "purpose": purpose,
+                "otp_hash": hash_otp(email, otp),
+                "expires_at": otp_expires_at(),
+                "attempts": 0,
+                "created_at": datetime.now(timezone.utc),
+            }
+        },
+        upsert=True,
+    )
+
+
+def _verify_email_otp(email, purpose, otp):
+    record = mongo.db.email_otps.find_one({"email": email, "purpose": purpose})
+    now = datetime.now(timezone.utc)
+    expires_at = record.get("expires_at") if record else None
+    if expires_at and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if not record or not expires_at or expires_at < now:
+        return None, ("OTP expired. Please request a new code.", 400)
+    if int(record.get("attempts") or 0) >= 5:
+        return None, ("Too many wrong attempts. Please request a new OTP.", 429)
+    if record.get("otp_hash") != hash_otp(email, otp):
+        mongo.db.email_otps.update_one({"_id": record["_id"]}, {"$inc": {"attempts": 1}})
+        return None, ("Invalid OTP. Please check your email and try again.", 400)
+    return record, None
 
 
 def _to_jsonable(value):
@@ -188,26 +230,13 @@ def session_signup_request_otp():
     except Exception:
         sent = False
 
-    is_debug = os.getenv("FLASK_ENV", "development") != "production"
+    is_debug = _is_debug_env()
     if not sent and not is_debug:
         return jsonify({"error": "Could not send OTP right now. Please try again later."}), 503
 
-    mongo.db.email_otps.update_one(
-        {"email": email, "purpose": "signup"},
-        {
-            "$set": {
-                "email": email,
-                "purpose": "signup",
-                "otp_hash": hash_otp(email, otp),
-                "expires_at": otp_expires_at(),
-                "attempts": 0,
-                "created_at": datetime.now(timezone.utc),
-            }
-        },
-        upsert=True,
-    )
+    _store_email_otp(email, "signup", otp)
 
-    response = {"message": "OTP sent to your email.", "expires_in_minutes": int(os.getenv("WEDFLIX_OTP_TTL_MINUTES", "10"))}
+    response = {"message": "OTP sent to your email.", "expires_in_minutes": _otp_ttl_minutes()}
     if not sent and is_debug:
         response["message"] = "SMTP is not configured. Use this dev OTP to test signup."
         response["dev_otp"] = otp
@@ -234,18 +263,10 @@ def session_signup_verify_otp():
     if User.get_by_email(email):
         return jsonify({"error": "An account already exists with this email."}), 400
 
-    record = mongo.db.email_otps.find_one({"email": email, "purpose": "signup"})
-    now = datetime.now(timezone.utc)
-    expires_at = record.get("expires_at") if record else None
-    if expires_at and expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if not record or not expires_at or expires_at < now:
-        return jsonify({"error": "OTP expired. Please request a new code."}), 400
-    if int(record.get("attempts") or 0) >= 5:
-        return jsonify({"error": "Too many wrong attempts. Please request a new OTP."}), 429
-    if record.get("otp_hash") != hash_otp(email, otp):
-        mongo.db.email_otps.update_one({"_id": record["_id"]}, {"$inc": {"attempts": 1}})
-        return jsonify({"error": "Invalid OTP. Please check your email and try again."}), 400
+    record, otp_error = _verify_email_otp(email, "signup", otp)
+    if otp_error:
+        message, status = otp_error
+        return jsonify({"error": message}), status
 
     ensure_default_plan()
     created_id = User.create(
@@ -262,6 +283,85 @@ def session_signup_verify_otp():
     user = User.get_by_id(created_id)
     login_user(user)
     return jsonify({"authenticated": True, "is_admin": True, "is_developer": False, "name": user.name}), 201
+
+
+@api_bp.route("/session/password/request-otp", methods=["POST"])
+def session_password_request_otp():
+    payload = request.get_json(force=True) or {}
+    email = (payload.get("email") or "").strip().lower()
+    if not email:
+        return jsonify({"error": "Email is required."}), 400
+
+    user_doc = User.get_by_email(email)
+    response = {"message": "If an account exists, a password reset OTP has been sent.", "expires_in_minutes": _otp_ttl_minutes()}
+    if not user_doc:
+        return jsonify(response)
+    if (user_doc.get("status") or "active") != "active":
+        return jsonify({"error": "This account is not active"}), 403
+
+    otp = generate_otp()
+    sent = False
+    try:
+        sent = send_password_reset_otp(email, otp, user_doc.get("name") or "")
+    except Exception:
+        sent = False
+
+    is_debug = _is_debug_env()
+    if not sent and not is_debug:
+        return jsonify({"error": "Could not send OTP right now. Please try again later."}), 503
+
+    _store_email_otp(email, "password_reset", otp)
+    if not sent and is_debug:
+        response["message"] = "SMTP is not configured. Use this dev OTP to reset password."
+        response["dev_otp"] = otp
+    return jsonify(response)
+
+
+@api_bp.route("/session/password/reset", methods=["POST"])
+def session_password_reset():
+    payload = request.get_json(force=True) or {}
+    email = (payload.get("email") or "").strip().lower()
+    otp = (payload.get("otp") or "").strip()
+    password = payload.get("password") or ""
+    if not email or not otp or not password:
+        return jsonify({"error": "Email, OTP, and new password are required."}), 400
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters."}), 400
+
+    user_doc = User.get_by_email(email)
+    if not user_doc:
+        return jsonify({"error": "Invalid reset request. Please request a new OTP."}), 400
+    if (user_doc.get("status") or "active") != "active":
+        return jsonify({"error": "This account is not active"}), 403
+
+    record, otp_error = _verify_email_otp(email, "password_reset", otp)
+    if otp_error:
+        message, status = otp_error
+        return jsonify({"error": message}), status
+
+    mongo.db.users.update_one({"_id": user_doc["_id"]}, {"$set": {"password_hash": generate_password_hash(password)}})
+    mongo.db.email_otps.delete_one({"_id": record["_id"]})
+    return jsonify({"message": "Password updated. You can sign in now."})
+
+
+@api_bp.route("/session/password/change", methods=["POST"])
+def session_password_change():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Login required"}), 401
+    payload = request.get_json(force=True) or {}
+    current_password = payload.get("current_password") or ""
+    new_password = payload.get("new_password") or ""
+    if not current_password or not new_password:
+        return jsonify({"error": "Current password and new password are required."}), 400
+    if len(new_password) < 6:
+        return jsonify({"error": "New password must be at least 6 characters."}), 400
+
+    user_doc = User.get_by_email(getattr(current_user, "email", ""))
+    user = User.get_by_id(str(user_doc["_id"])) if user_doc else None
+    if not user or not user.check_password(current_password):
+        return jsonify({"error": "Current password is incorrect."}), 400
+    mongo.db.users.update_one({"_id": user_doc["_id"]}, {"$set": {"password_hash": generate_password_hash(new_password)}})
+    return jsonify({"message": "Password changed successfully."})
 
 @api_bp.route("/session/logout", methods=["POST"])
 def session_logout():

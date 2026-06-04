@@ -3283,7 +3283,7 @@ body.photo-gallery-open {
   display: grid;
   place-items: start center;
   z-index: 95;
-  padding: 6.2rem 1rem 2rem;
+  padding: 6.2rem clamp(1rem, 4vw, 2rem) 2rem;
   overflow-y: auto;
 }
 .cms-modal {
@@ -3301,6 +3301,13 @@ body.photo-gallery-open {
   overflow-y: auto;
   min-height: 0;
 }
+.cms-modal::-webkit-scrollbar {
+  width: 8px;
+}
+.cms-modal::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
 .cms-modal h3 {
   margin: 0 0 1rem;
   font-size: 1.5rem;
@@ -3316,6 +3323,7 @@ body.photo-gallery-open {
 .cms-form textarea,
 .cms-form select {
   width: 100%;
+  min-height: 46px;
   background: rgba(16, 16, 16, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #f8fafc;
@@ -3360,8 +3368,9 @@ body.photo-gallery-open {
   gap: 8px;
   position: sticky;
   bottom: 0;
-  padding-top: 10px;
-  background: linear-gradient(to top, rgba(8, 8, 8, 0.98), rgba(8, 8, 8, 0));
+  margin: 2px -2px -2px;
+  padding: 14px 2px 2px;
+  background: linear-gradient(to top, rgba(8, 8, 8, 0.98) 72%, rgba(8, 8, 8, 0));
 }
 .cms-form-actions .cms-fab {
   border-color: rgba(255, 255, 255, 0.22);
@@ -4133,15 +4142,63 @@ body.card-size-large {
     z-index: 2;
   }
   .cms-modal-backdrop {
-    padding: 5.4rem .6rem 1rem;
+    align-items: start;
+    padding: 5rem 1.05rem calc(1.15rem + env(safe-area-inset-bottom));
   }
   .cms-modal {
-    max-height: calc(100vh - 6.2rem);
-    border-radius: 14px;
-    padding: .9rem;
+    width: 100%;
+    max-height: calc(100vh - 6.25rem);
+    border-radius: 18px;
+    padding: 1rem;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(229, 9, 20, 0.24), transparent 34%),
+      linear-gradient(180deg, rgba(18, 18, 20, 0.98), rgba(5, 5, 7, 0.98));
+    box-shadow: 0 18px 56px rgba(0, 0, 0, 0.78);
+  }
+  .cms-modal h3 {
+    margin-bottom: .85rem;
+    font-size: clamp(1.12rem, 6vw, 1.35rem);
+    line-height: 1.2;
   }
   .cms-form-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .cms-field {
+    gap: 5px;
+  }
+  .cms-field span {
+    font-size: .72rem;
+    letter-spacing: .035em;
+  }
+  .cms-form {
+    gap: 12px;
+  }
+  .cms-form input,
+  .cms-form textarea,
+  .cms-form select {
+    min-height: 48px;
+    border-radius: 11px;
+    padding: 13px 12px;
+    font-size: 16px;
+  }
+  .cms-form textarea {
+    min-height: 104px;
+  }
+  .cms-form-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 4px -1rem -1rem;
+    padding: 14px 1rem calc(1rem + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(to top, rgba(5, 5, 6, 0.99) 84%, rgba(5, 5, 6, 0));
+  }
+  .cms-form-actions .cms-fab {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+    padding-inline: 10px;
   }
 }
 

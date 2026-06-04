@@ -19,11 +19,13 @@ export default function Navbar({ musicUrl }) {
   const [showLogin, setShowLogin] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
-  const [authForm, setAuthForm] = useState({ name: "", phone: "", business_name: "", city: "", purpose: "", email: "", password: "", otp: "" });
+  const emptyAuthForm = { name: "", phone: "", business_name: "", city: "", purpose: "", email: "", password: "", otp: "", current_password: "", new_password: "" };
+  const [authForm, setAuthForm] = useState(emptyAuthForm);
   const [authError, setAuthError] = useState("");
   const [authNotice, setAuthNotice] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [signupOtpSent, setSignupOtpSent] = useState(false);
+  const [resetOtpSent, setResetOtpSent] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement);
   const queryClient = useQueryClient();
   const navRef = useRef(null);
@@ -165,6 +167,18 @@ export default function Navbar({ musicUrl }) {
     setAuthNotice("");
     setAuthMode("login");
     setSignupOtpSent(false);
+    setResetOtpSent(false);
+    setShowLogin(true);
+  };
+
+  const openAuthModal = (mode) => {
+    setProfileMenuOpen(false);
+    setAuthMode(mode);
+    setAuthError("");
+    setAuthNotice("");
+    setSignupOtpSent(false);
+    setResetOtpSent(false);
+    setAuthForm(emptyAuthForm);
     setShowLogin(true);
   };
 
@@ -175,6 +189,63 @@ export default function Navbar({ musicUrl }) {
 
   const submitLogin = async (e) => {
     e.preventDefault();
+    if (authMode === "change") {
+      if (!authForm.current_password.trim() || !authForm.new_password.trim()) {
+        setAuthError("Current password and new password are required.");
+        return;
+      }
+      setAuthLoading(true);
+      setAuthError("");
+      setAuthNotice("");
+      try {
+        const res = await apiAuthPost("/api/session/password/change", {
+          current_password: authForm.current_password,
+          new_password: authForm.new_password,
+        });
+        setAuthNotice(res?.message || "Password changed successfully.");
+        setAuthForm(emptyAuthForm);
+      } catch (err) {
+        setAuthError(err.message || "Could not change password.");
+      } finally {
+        setAuthLoading(false);
+      }
+      return;
+    }
+    if (authMode === "forgot") {
+      if (!authForm.email.trim()) {
+        setAuthError("Email is required.");
+        return;
+      }
+      if (resetOtpSent && (!authForm.otp.trim() || !authForm.password.trim())) {
+        setAuthError("OTP and new password are required.");
+        return;
+      }
+      setAuthLoading(true);
+      setAuthError("");
+      setAuthNotice("");
+      try {
+        if (!resetOtpSent) {
+          const otpRes = await apiAuthPost("/api/session/password/request-otp", { email: authForm.email.trim() });
+          setResetOtpSent(true);
+          setAuthNotice(otpRes?.dev_otp ? `OTP sent. Dev OTP: ${otpRes.dev_otp}` : otpRes?.message || "OTP sent to your email.");
+          return;
+        }
+        const res = await apiAuthPost("/api/session/password/reset", {
+          email: authForm.email.trim(),
+          otp: authForm.otp.trim(),
+          password: authForm.password,
+        });
+        setAuthNotice(res?.message || "Password updated. You can sign in now.");
+        setAuthMode("login");
+        setResetOtpSent(false);
+        setAuthForm((p) => ({ ...emptyAuthForm, email: p.email }));
+      } catch (err) {
+        setAuthError(err.message || "Could not reset password.");
+      } finally {
+        setAuthLoading(false);
+      }
+      return;
+    }
     if (!authForm.email.trim() || !authForm.password.trim()) {
       setAuthError("Email and password are required.");
       return;
@@ -224,7 +295,7 @@ export default function Navbar({ musicUrl }) {
       setShowLogin(false);
       setSignupOtpSent(false);
       setAuthNotice("");
-      setAuthForm({ name: "", phone: "", business_name: "", city: "", purpose: "", email: "", password: "", otp: "" });
+      setAuthForm(emptyAuthForm);
     } catch (err) {
       setAuthError(err.message || "Login failed");
     } finally {
@@ -287,6 +358,16 @@ export default function Navbar({ musicUrl }) {
                   <span aria-hidden="true">✎</span>
                   {editMode ? "Edit Mode On" : "Edit"}
                 </button>
+                {isAuthenticated && (
+                  <button
+                    type="button"
+                    className="nav-home__profile-item"
+                    onClick={() => openAuthModal("change")}
+                  >
+                    <span aria-hidden="true">⌁</span>
+                    Change Password
+                  </button>
+                )}
                 <button
                   type="button"
                   className="nav-home__profile-item"
@@ -309,7 +390,15 @@ export default function Navbar({ musicUrl }) {
         <div className="cms-modal-backdrop auth-backdrop" onClick={() => setShowLogin(false)}>
           <div className="cms-modal auth-modal netflix-login" onClick={(e) => e.stopPropagation()}>
             <p className="netflix-login-brand">WEDFLIX</p>
-            <h3>{authMode === "signup" ? (signupOtpSent ? "Verify Email OTP" : "Create Client Account") : "Sign In"}</h3>
+            <h3>
+              {authMode === "signup"
+                ? (signupOtpSent ? "Verify Email OTP" : "Create Your Own Wedflix")
+                : authMode === "forgot"
+                  ? (resetOtpSent ? "Reset Password" : "Forgot Password")
+                  : authMode === "change"
+                    ? "Change Password"
+                    : "Sign In"}
+            </h3>
             <form className="cms-form" onSubmit={submitLogin}>
               {authMode === "signup" && (
                 <>
@@ -320,15 +409,36 @@ export default function Navbar({ musicUrl }) {
                   <input type="text" value={authForm.purpose} onChange={(e) => setAuthForm((p) => ({ ...p, purpose: e.target.value }))} placeholder="Story / business use" />
                 </>
               )}
-              <input type="email" value={authForm.email} onChange={(e) => setAuthForm((p) => ({ ...p, email: e.target.value }))} placeholder="Email or phone number" />
-              <input type="password" value={authForm.password} onChange={(e) => setAuthForm((p) => ({ ...p, password: e.target.value }))} placeholder="Password" />
+              {authMode !== "change" && (
+                <input type="email" value={authForm.email} onChange={(e) => setAuthForm((p) => ({ ...p, email: e.target.value }))} placeholder="Email address" />
+              )}
+              {authMode === "change" && (
+                <>
+                  <input type="password" value={authForm.current_password} onChange={(e) => setAuthForm((p) => ({ ...p, current_password: e.target.value }))} placeholder="Current password" />
+                  <input type="password" value={authForm.new_password} onChange={(e) => setAuthForm((p) => ({ ...p, new_password: e.target.value }))} placeholder="New password" />
+                </>
+              )}
+              {authMode !== "change" && (authMode !== "forgot" || resetOtpSent) && (
+                <input type="password" value={authForm.password} onChange={(e) => setAuthForm((p) => ({ ...p, password: e.target.value }))} placeholder={authMode === "forgot" ? "New password" : "Password"} />
+              )}
               {authMode === "signup" && signupOtpSent && (
+                <input type="text" inputMode="numeric" maxLength="6" value={authForm.otp} onChange={(e) => setAuthForm((p) => ({ ...p, otp: e.target.value.replace(/\D/g, "").slice(0, 6) }))} placeholder="Enter 6-digit email OTP" />
+              )}
+              {authMode === "forgot" && resetOtpSent && (
                 <input type="text" inputMode="numeric" maxLength="6" value={authForm.otp} onChange={(e) => setAuthForm((p) => ({ ...p, otp: e.target.value.replace(/\D/g, "").slice(0, 6) }))} placeholder="Enter 6-digit email OTP" />
               )}
               {!!authNotice && <p className="auth-subtitle">{authNotice}</p>}
               {!!authError && <p className="auth-error">{authError}</p>}
               <button type="submit" className="netflix-login-btn" disabled={authLoading}>
-                {authLoading ? "Please wait..." : authMode === "signup" ? (signupOtpSent ? "Verify & Create Account" : "Send Email OTP") : "Sign In"}
+                {authLoading
+                  ? "Please wait..."
+                  : authMode === "signup"
+                    ? (signupOtpSent ? "Verify & Create Account" : "Send Email OTP")
+                    : authMode === "forgot"
+                      ? (resetOtpSent ? "Reset Password" : "Send Reset OTP")
+                      : authMode === "change"
+                        ? "Change Password"
+                        : "Sign In"}
               </button>
               {authMode === "signup" && signupOtpSent && (
                 <button
@@ -346,7 +456,12 @@ export default function Navbar({ musicUrl }) {
                 </button>
               )}
               <div className="netflix-login-meta">
-                <label><input type="checkbox" defaultChecked /> Remember me</label>
+                {authMode === "login" ? <label><input type="checkbox" defaultChecked /> Remember me</label> : <span />}
+                {authMode === "login" && (
+                  <button type="button" className="netflix-help-btn" onClick={() => openAuthModal("forgot")}>
+                    Forgot password?
+                  </button>
+                )}
                 <button
                   type="button"
                   className="netflix-help-btn"
@@ -354,11 +469,12 @@ export default function Navbar({ musicUrl }) {
                     setAuthError("");
                     setAuthNotice("");
                     setSignupOtpSent(false);
+                    setResetOtpSent(false);
                     setAuthForm((p) => ({ ...p, otp: "" }));
-                    setAuthMode((mode) => (mode === "signup" ? "login" : "signup"));
+                    setAuthMode((mode) => (mode === "signup" || mode === "forgot" || mode === "change" ? "login" : "signup"));
                   }}
                 >
-                  {authMode === "signup" ? "Already have login?" : "Create free client"}
+                  {authMode === "signup" || authMode === "forgot" || authMode === "change" ? "Back to login" : "Create free client"}
                 </button>
               </div>
             </form>

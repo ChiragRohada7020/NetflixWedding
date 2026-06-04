@@ -25,6 +25,14 @@ def otp_expires_at():
 
 
 def send_signup_otp(email, otp, name=""):
+    return send_otp_email(email, otp, name=name, purpose="signup")
+
+
+def send_password_reset_otp(email, otp, name=""):
+    return send_otp_email(email, otp, name=name, purpose="password_reset")
+
+
+def send_otp_email(email, otp, name="", purpose="signup"):
     host = os.getenv("SMTP_HOST", "").strip()
     port = int(os.getenv("SMTP_PORT", "587"))
     username = os.getenv("SMTP_USER", "").strip()
@@ -36,22 +44,77 @@ def send_signup_otp(email, otp, name=""):
     if not host or not from_email:
         return False
 
+    heading = "Confirm your Wedflix signup" if purpose == "signup" else "Reset your Wedflix password"
+    subheading = (
+        "Your personal streaming space is almost ready."
+        if purpose == "signup"
+        else "Use this code to set a new password for your account."
+    )
+    preview = f"Your Wedflix OTP is {otp}. It expires in {OTP_TTL_MINUTES} minutes."
     greeting = f"Hi {name}," if name else "Hi,"
     message = EmailMessage()
-    message["Subject"] = "Your Wedflix signup code"
+    message["Subject"] = "Your Wedflix verification code"
     message["From"] = f"{from_name} <{from_email}>"
     message["To"] = email
+    message["X-Priority"] = "1"
     message.set_content(
         "\n".join(
             [
                 greeting,
                 "",
-                f"Your Wedflix signup OTP is {otp}.",
-                f"It expires in {OTP_TTL_MINUTES} minutes.",
+                heading,
                 "",
-                "If you did not request this, you can ignore this email.",
+                preview,
+                "",
+                subheading,
+                "",
+                "Wedflix turns your stories into a Netflix-like experience for the people you choose.",
+                "",
+                "Keep this code private. Wedflix will never ask for it outside the login screen.",
             ]
         )
+    )
+    message.add_alternative(
+        f"""\
+<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background:#080808;font-family:Arial,Helvetica,sans-serif;color:#ffffff;">
+    <div style="display:none;max-height:0;overflow:hidden;">{preview}</div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#080808;padding:32px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#111111;border:1px solid #2a2a2a;border-radius:18px;overflow:hidden;">
+            <tr>
+              <td style="padding:28px 28px 18px;background:linear-gradient(135deg,#120708,#26090c 52%,#080808);">
+                <div style="font-size:34px;line-height:1;font-weight:900;letter-spacing:1px;color:#e50914;">WEDFLIX</div>
+                <p style="margin:14px 0 0;color:#f4f4f4;font-size:15px;">{subheading}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:30px 28px;">
+                <p style="margin:0 0 10px;color:#cfcfcf;font-size:15px;">{greeting}</p>
+                <h1 style="margin:0 0 18px;color:#ffffff;font-size:26px;line-height:1.2;">{heading}</h1>
+                <p style="margin:0 0 18px;color:#d8d8d8;font-size:15px;line-height:1.6;">Enter this verification code in Wedflix to continue.</p>
+                <div style="margin:24px 0;padding:18px 20px;background:#000000;border:1px solid #3a3a3a;border-radius:14px;text-align:center;">
+                  <div style="font-size:38px;letter-spacing:10px;font-weight:800;color:#ffffff;">{otp}</div>
+                </div>
+                <p style="margin:0 0 18px;color:#b8b8b8;font-size:14px;line-height:1.6;">This code expires in <strong style="color:#ffffff;">{OTP_TTL_MINUTES} minutes</strong>. Keep it private; Wedflix will never ask for it outside the login screen.</p>
+                <p style="margin:0;color:#777;font-size:13px;line-height:1.5;">If you did not request this, you can safely ignore this email.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 28px;background:#0b0b0b;border-top:1px solid #242424;color:#777;font-size:12px;">
+                Wedflix - your life, stories, and memories in a private streaming experience.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+""",
+        subtype="html",
     )
 
     if use_ssl:
