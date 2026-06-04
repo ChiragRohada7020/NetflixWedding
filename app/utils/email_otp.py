@@ -6,6 +6,8 @@ import ssl
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 
+import requests
+
 
 OTP_TTL_MINUTES = int(os.getenv("WEDFLIX_OTP_TTL_MINUTES", "10"))
 
@@ -32,16 +34,46 @@ def send_password_reset_otp(email, otp, name=""):
     return send_otp_email(email, otp, name=name, purpose="password_reset")
 
 
+def email_delivery_configured():
+    return bool(_resend_configured() or _smtp_configured())
+
+
+def email_delivery_summary():
+    resend_from = os.getenv("RESEND_FROM_EMAIL", "").strip()
+    smtp_user = os.getenv("SMTP_USER", "").strip()
+    smtp_from = os.getenv("SMTP_FROM_EMAIL", smtp_user).strip()
+    return {
+        "configured": email_delivery_configured(),
+        "provider": "resend" if _resend_configured() else "smtp" if _smtp_configured() else "none",
+        "resend_configured": _resend_configured(),
+        "smtp_configured": _smtp_configured(),
+        "smtp_host": os.getenv("SMTP_HOST", "").strip() or "(missing)",
+        "smtp_port": os.getenv("SMTP_PORT", "587").strip(),
+        "from_email": resend_from or smtp_from or "(missing)",
+    }
+
+
+def _resend_configured():
+    return bool(os.getenv("RESEND_API_KEY", "").strip() and os.getenv("RESEND_FROM_EMAIL", "").strip())
+
+
+def _smtp_configured():
+    username = os.getenv("SMTP_USER", "").strip()
+    return bool(os.getenv("SMTP_HOST", "").strip() and os.getenv("SMTP_FROM_EMAIL", username).strip())
+
+
 def send_otp_email(email, otp, name="", purpose="signup"):
     host = os.getenv("SMTP_HOST", "").strip()
     port = int(os.getenv("SMTP_PORT", "587"))
     username = os.getenv("SMTP_USER", "").strip()
     password = os.getenv("SMTP_PASSWORD", "")
-    from_email = os.getenv("SMTP_FROM_EMAIL", username).strip()
-    from_name = os.getenv("SMTP_FROM_NAME", "Wedflix").strip()
+    resend_api_key = os.getenv("RESEND_API_KEY", "").strip()
+    resend_from_email = os.getenv("RESEND_FROM_EMAIL", "").strip()
+    from_email = resend_from_email or os.getenv("SMTP_FROM_EMAIL", username).strip()
+    from_name = os.getenv("RESEND_FROM_NAME", os.getenv("SMTP_FROM_NAME", "Wedflix")).strip()
     use_ssl = os.getenv("SMTP_USE_SSL", "0") == "1"
 
-    if not host or not from_email:
+    if not _resend_configured() and not _smtp_configured():
         return False
 
     heading = "Confirm your Wedflix signup" if purpose == "signup" else "Reset your Wedflix password"
@@ -116,6 +148,24 @@ def send_otp_email(email, otp, name="", purpose="signup"):
 """,
         subtype="html",
     )
+
+    if resend_api_key and resend_from_email:
+        html_body = message.get_body(("html",)).get_content()
+        text_body = message.get_body(("plain",)).get_content()
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {resend_api_key}", "Content-Type": "application/json"},
+            json={
+                "from": f"{from_name} <{resend_from_email}>",
+                "to": [email],
+                "subject": message["Subject"],
+                "text": text_body,
+                "html": html_body,
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
+        return True
 
     if use_ssl:
         with smtplib.SMTP_SSL(host, port, context=ssl.create_default_context(), timeout=20) as server:
