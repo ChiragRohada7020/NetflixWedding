@@ -166,16 +166,22 @@ def _download_episode_video_file(episode):
     cache_dir.mkdir(parents=True, exist_ok=True)
     existing = sorted(cache_dir.glob("*.*"), key=lambda item: item.stat().st_mtime, reverse=True)
     for item in existing:
-        if item.is_file() and item.suffix.lower() in {".mp4", ".mkv", ".webm", ".mov", ".mp3", ".m4a"}:
+        if (
+            item.is_file()
+            and item.stat().st_size > 0
+            and item.suffix.lower() in {".mp4", ".mkv", ".webm", ".mov", ".mp3", ".m4a"}
+            and ".temp" not in item.name
+            and not re.search(r"\.f\d+$", item.with_suffix("").name)
+        ):
             return item
 
     outtmpl = str(cache_dir / "%(title).80s.%(ext)s")
     ydl_opts = {
-        "format": "bestvideo[height<=720]+bestaudio/best[height<=720]/best",
+        "format": "best[height<=720][ext=mp4]/best[height<=720]/best",
         "outtmpl": outtmpl,
-        "merge_output_format": "mp4",
         "quiet": True,
         "no_warnings": True,
+        "noplaylist": True,
     }
 
     try:
@@ -190,7 +196,15 @@ def _download_episode_video_file(episode):
         if downloaded.exists():
             return downloaded
 
-    existing = sorted(cache_dir.glob("*.*"), key=lambda item: item.stat().st_mtime, reverse=True)
+    existing = [
+        item for item in sorted(cache_dir.glob("*.*"), key=lambda item: item.stat().st_mtime, reverse=True)
+        if (
+            item.is_file()
+            and item.stat().st_size > 0
+            and ".temp" not in item.name
+            and not re.search(r"\.f\d+$", item.with_suffix("").name)
+        )
+    ]
     if not existing:
         raise RuntimeError("Could not download this event video.")
     return existing[0]
