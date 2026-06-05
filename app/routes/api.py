@@ -184,6 +184,15 @@ def _download_episode_video_file(episode):
         "noplaylist": True,
     }
 
+    cookies_file = os.getenv("YTDLP_COOKIES_FILE", "").strip()
+    cookies_content = os.getenv("YTDLP_COOKIES_CONTENT", "").strip()
+    if cookies_file:
+        ydl_opts["cookiefile"] = cookies_file
+    elif cookies_content:
+        cookie_path = Path(tempfile.gettempdir()) / "wedflix_ytdlp_cookies.txt"
+        cookie_path.write_text(cookies_content.replace("\\n", "\n"), encoding="utf-8")
+        ydl_opts["cookiefile"] = str(cookie_path)
+
     try:
         import imageio_ffmpeg
         ydl_opts["ffmpeg_location"] = imageio_ffmpeg.get_ffmpeg_exe()
@@ -700,8 +709,11 @@ def episode_video_download(episode_id):
     except RuntimeError as exc:
         current_app.logger.exception("Could not download event video %s", episode_id)
         return jsonify({"error": str(exc)}), 503
-    except Exception:
+    except Exception as exc:
         current_app.logger.exception("Could not download event video %s", episode_id)
+        message = str(exc)
+        if "Sign in to confirm" in message or "not a bot" in message or "cookies" in message:
+            return jsonify({"error": "YouTube blocked this server. Add YTDLP_COOKIES_CONTENT in Render and try again."}), 503
         return jsonify({"error": "Could not download this event video right now."}), 503
 
     filename = f"{_safe_download_name(episode.get('title'))}{video_file.suffix or '.mp4'}"
