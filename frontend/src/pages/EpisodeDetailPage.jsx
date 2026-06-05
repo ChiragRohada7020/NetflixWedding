@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Skeleton from "react-loading-skeleton";
 import { Link, useParams } from "react-router-dom";
-import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm, apiUrl } from "../api";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
@@ -17,42 +17,26 @@ const VideoModal = React.lazy(() => import("../components/VideoModal"));
 
 function NextEventCard({ item, weddingId, programId, publicMode, onPlay }) {
   const weddingBasePath = publicMode ? `/share/${weddingId}` : `/weddings/${weddingId}`;
-  const hasVideo = Boolean(item.youtube_url || item.video_url || item.embed_url);
-  const downloadUrl = apiUrl(`/api/episodes/${item._id}/download`);
   return (
-    <div className="next-event-card-wrap">
-      <Link
-        to={`${weddingBasePath}/programs/${programId}/episodes/${item._id}`}
-        className="home-poster next-event-card"
-        onClick={(e) => {
-          e.preventDefault();
-          onPlay?.(item);
-        }}
-      >
-        <ProgressiveImage src={item.thumbnail || "https://picsum.photos/seed/next-event/800/450"} alt={item.title || "Next event"} className="next-event-card__image" />
-        <div className="home-poster__fade" />
-        <div className="home-poster__content">
-          <img src={netflixLogoUrl} alt="" aria-hidden="true" className="home-poster__logo" />
-          <div className="home-poster__text next-event-copy">
-            <span className="next-event-kicker">Next Event</span>
-            <h3>{item.title || "Untitled Episode"}</h3>
-            {item.description && <p>{item.description}</p>}
-          </div>
+    <Link
+      to={`${weddingBasePath}/programs/${programId}/episodes/${item._id}`}
+      className="home-poster next-event-card"
+      onClick={(e) => {
+        e.preventDefault();
+        onPlay?.(item);
+      }}
+    >
+      <ProgressiveImage src={item.thumbnail || "https://picsum.photos/seed/next-event/800/450"} alt={item.title || "Next event"} className="next-event-card__image" />
+      <div className="home-poster__fade" />
+      <div className="home-poster__content">
+        <img src={netflixLogoUrl} alt="" aria-hidden="true" className="home-poster__logo" />
+        <div className="home-poster__text next-event-copy">
+          <span className="next-event-kicker">Next Event</span>
+          <h3>{item.title || "Untitled Episode"}</h3>
+          {item.description && <p>{item.description}</p>}
         </div>
-      </Link>
-      {hasVideo && (
-        <a
-          className="event-download-btn"
-          href={downloadUrl}
-          download
-          title="Download event"
-          aria-label={`Download ${item.title || "event"}`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <span aria-hidden="true">↓</span>
-        </a>
-      )}
-    </div>
+      </div>
+    </Link>
   );
 }
 
@@ -223,7 +207,7 @@ export default function EpisodeDetailPage({ publicMode = false }) {
           <Suspense fallback={<AsyncState mode="loading" />}>
             <WedflixPlayer
               url={episode.embed_url || episode.video_url || episode.youtube_url}
-              downloadUrl={episode?._id ? `/api/episodes/${episode._id}/download` : ""}
+              downloadUrl={episode.download_url || episode.video_download_url || ""}
               className="video-wrap video-watch-stage"
               onPlay={() => window.dispatchEvent(new Event("wedflix-video-playing"))}
             />
@@ -238,7 +222,7 @@ export default function EpisodeDetailPage({ publicMode = false }) {
           open={episodeVideoOpen}
           title={activeEpisode?.title || "Episode Video"}
           url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
-          downloadUrl={activeEpisode?._id ? `/api/episodes/${activeEpisode._id}/download` : ""}
+          downloadUrl={activeEpisode?.download_url || activeEpisode?.video_download_url || ""}
           onClose={() => {
             setEpisodeVideoOpen(false);
             setActiveEpisode(null);

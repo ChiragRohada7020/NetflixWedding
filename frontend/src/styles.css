@@ -3212,39 +3212,6 @@ body.photo-gallery-open {
 .cms-card-wrap {
   position: relative;
 }
-.next-event-card-wrap {
-  position: relative;
-}
-.event-download-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 8;
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.62);
-  color: #fff;
-  font-size: 1.2rem;
-  font-weight: 900;
-  line-height: 1;
-  text-decoration: none;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(10px);
-  transition: transform .2s ease, background .2s ease, border-color .2s ease;
-}
-.event-download-btn:hover {
-  transform: translateY(-2px) scale(1.04);
-  border-color: rgba(255, 255, 255, 0.72);
-  background: rgba(229, 9, 20, 0.86);
-}
-.event-download-btn:active {
-  transform: scale(0.96);
-}
 .cms-overlay-actions {
   position: absolute;
   left: 8px;
