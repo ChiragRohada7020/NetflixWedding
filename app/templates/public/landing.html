@@ -32,7 +32,7 @@
     </div>
 
     <div class="home-hero__content">
-      <p class="home-hero__kicker">A WEDDING ORIGINAL</p>
+      <p class="home-hero__kicker">{{ featured.hero_kicker or 'A WEDFLIX ORIGINAL' }}</p>
       <h1 class="home-hero__names">{{ featured.couple_names }}</h1>
 
       <div class="home-hero__headline">
@@ -40,7 +40,7 @@
           <strong>TOP</strong>
           <strong>10</strong>
         </span>
-        <h2>#1 Love In Every Frame</h2>
+        <h2>{{ featured.invitation_title or '#1 Love In Every Frame' }}</h2>
       </div>
 
       <p class="home-hero__description">
@@ -48,9 +48,9 @@
       </p>
 
       <div class="home-hero__meta">
-        <span>Celebration</span>
-        <span>Family</span>
-        <span>Romance</span>
+        <span>{{ featured.hero_meta_one or 'Memories' }}</span>
+        <span>{{ featured.hero_meta_two or 'People' }}</span>
+        <span>{{ featured.hero_meta_three or 'Moments' }}</span>
       </div>
 
       <div class="home-hero__actions">

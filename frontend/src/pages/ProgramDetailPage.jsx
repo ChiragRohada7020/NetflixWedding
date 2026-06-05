@@ -5,7 +5,7 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Skeleton from "react-loading-skeleton";
-import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm, mediaUrl } from "../api";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPostForm, apiUrl, mediaUrl } from "../api";
 import ProgressiveImage from "../components/ProgressiveImage";
 import { useEditMode } from "../components/EditModeContext";
 import InlineEditableText from "../components/InlineEditableText";
@@ -44,6 +44,8 @@ const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_
 function EpisodeCard({ item, weddingId, programId, editMode, publicMode, onEdit, onDelete, onPlay }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item._id });
   const weddingBasePath = publicMode ? `/share/${weddingId}` : `/weddings/${weddingId}`;
+  const hasVideo = Boolean(item.youtube_url || item.video_url || item.embed_url);
+  const downloadUrl = apiUrl(`/api/episodes/${item._id}/download`);
   return (
     <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className="cms-card-wrap">
       <Link
@@ -68,6 +70,18 @@ function EpisodeCard({ item, weddingId, programId, editMode, publicMode, onEdit,
           </div>
         </div>
       </Link>
+      {hasVideo && (
+        <a
+          className="event-download-btn"
+          href={downloadUrl}
+          download
+          title="Download event"
+          aria-label={`Download ${item.title || "event"}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span aria-hidden="true">↓</span>
+        </a>
+      )}
       {editMode && (
         <div className="cms-overlay-actions" onClick={(e) => e.stopPropagation()}>
           <button type="button" className="cms-fab" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(item); }}>Edit</button>
@@ -662,7 +676,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
           open={openVideo}
           title={program?.title || "Episode Video"}
           url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url}
-          downloadUrl={program?.download_url || program?.video_download_url || ordered[0]?.download_url || ordered[0]?.video_download_url || ""}
+          downloadUrl={program?.download_url || program?.video_download_url || (ordered[0]?._id ? `/api/episodes/${ordered[0]._id}/download` : "")}
           onClose={() => setOpenVideo(false)}
         />
       </Suspense>
@@ -681,7 +695,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
           open={episodeVideoOpen}
           title={activeEpisode?.title || "Episode Video"}
           url={activeEpisode?.embed_url || activeEpisode?.youtube_url || activeEpisode?.video_url || ""}
-          downloadUrl={activeEpisode?.download_url || activeEpisode?.video_download_url || ""}
+          downloadUrl={activeEpisode?._id ? `/api/episodes/${activeEpisode._id}/download` : ""}
           onClose={() => {
             setEpisodeVideoOpen(false);
             setActiveEpisode(null);

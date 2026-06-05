@@ -9,6 +9,7 @@ from app.models.episode import Episode
 from app.models.program import Program
 from app.models.wedding import Wedding
 from app.utils.decorators import admin_required
+from app.utils.groq_copy import enrich_wedding_copy
 from app.utils.media import normalize_image_url
 from app.utils.plans import can_edit_wedding, can_manage_wedding, is_developer, limit_error, public_access_allowed
 from app.utils.telegram_media import TelegramMediaError, upload_file_to_telegram, upload_photo_to_telegram
@@ -270,6 +271,7 @@ def create_wedding():
         "custom_section_label": (request.form.get("custom_section_label") or "").strip(),
         "owner_user_id": str(current_user.id),
     }
+    payload = enrich_wedding_copy(payload)
     payload["public_slug"] = Wedding.unique_public_slug(payload.get("couple_names") or "wedding")
     wedding_id = Wedding.create(payload)
     success_response = _form_success(
@@ -348,6 +350,7 @@ def update_wedding(wedding_id):
             else (current.get("custom_section_label") or "").strip()
         ),
     }
+    payload = enrich_wedding_copy(payload, current)
     payload["public_slug"] = current.get("public_slug") or Wedding.unique_public_slug(payload.get("couple_names") or "wedding", exclude_id=wedding_id)
     mongo.db.weddings.update_one({"_id": ObjectId(wedding_id)}, {"$set": payload})
     success_response = _form_success(

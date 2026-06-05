@@ -233,22 +233,22 @@ export default function HomePage() {
           </div>
 
           <div className="home-hero__content">
-            <p className="home-hero__kicker">A WEDFLIX ORIGINAL</p>
+            <p className="home-hero__kicker">{featuredWedding.hero_kicker || "A WEDFLIX ORIGINAL"}</p>
             <h1 className="home-hero__names">{featuredWedding.couple_names}</h1>
             <div className="home-hero__headline">
               <span className="home-hero__badge">
                 <strong>TOP</strong>
                 <strong>10</strong>
               </span>
-              <h2>#1 Love In Every Frame</h2>
+              <h2>{featuredWedding.invitation_title || "#1 Love In Every Frame"}</h2>
             </div>
             <p className="home-hero__description">
               {featuredWedding.description || "Turn your life moments into a personal streaming story with sections, episodes, and memories people can revisit anytime."}
             </p>
             <div className="home-hero__meta">
-              <span>Celebration</span>
-              <span>Family</span>
-              <span>Romance</span>
+              <span>{featuredWedding.hero_meta_one || "Memories"}</span>
+              <span>{featuredWedding.hero_meta_two || "People"}</span>
+              <span>{featuredWedding.hero_meta_three || "Moments"}</span>
             </div>
             <div className="home-hero__actions">
               <button type="button" className="home-btn home-btn--primary" onClick={scrollToFunctions}>

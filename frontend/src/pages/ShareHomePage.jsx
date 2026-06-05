@@ -246,7 +246,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
           </div>
 
           <div className="home-hero__content">
-            <p className="home-hero__kicker">A WEDFLIX ORIGINAL</p>
+            <p className="home-hero__kicker">{wedding.hero_kicker || "A WEDFLIX ORIGINAL"}</p>
             <h1 className="home-hero__names">{wedding.couple_names}</h1>
             <div className="home-hero__headline">
               <span className="home-hero__badge">
@@ -259,9 +259,9 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
               {wedding.description || "A celebration of love, family, and every moment worth watching again."}
             </p>
             <div className="home-hero__meta">
-              <span>Celebration</span>
-              <span>Family</span>
-              <span>Romance</span>
+              <span>{wedding.hero_meta_one || "Memories"}</span>
+              <span>{wedding.hero_meta_two || "People"}</span>
+              <span>{wedding.hero_meta_three || "Moments"}</span>
             </div>
             <div className="home-hero__actions">
               <button type="button" className="home-btn home-btn--primary" onClick={scrollToFunctions}>

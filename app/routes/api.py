@@ -1,9 +1,12 @@
 import mimetypes
 import os
+import re
+import tempfile
 from datetime import datetime, timezone
+from pathlib import Path
 
 import requests
-from flask import Blueprint, Response, current_app, jsonify, request, stream_with_context
+from flask import Blueprint, Response, current_app, jsonify, request, send_file, stream_with_context
 from flask_login import current_user, login_required, login_user, logout_user
 from bson import ObjectId
 from werkzeug.security import generate_password_hash
@@ -129,6 +132,68 @@ def _to_jsonable(value):
 
 def _can_view_wedding(wedding):
     return can_view_wedding(wedding)
+
+
+def _safe_download_name(value, fallback="wedflix-event"):
+    text = re.sub(r"[<>:\"/\\|?*\x00-\x1f]+", "-", str(value or "").strip())
+    text = re.sub(r"\s+", " ", text).strip(" .-")
+    return (text[:90] or fallback)
+
+
+def _episode_source_url(episode):
+    for key in ("youtube_url", "video_url", "embed_url"):
+        url = str((episode or {}).get(key) or "").strip()
+        if not url:
+            continue
+        match = re.search(r"youtube\.com/embed/([a-zA-Z0-9_-]{11})", url)
+        if match:
+            return f"https://www.youtube.com/watch?v={match.group(1)}"
+        return url
+    return ""
+
+
+def _download_episode_video_file(episode):
+    try:
+        import yt_dlp
+    except ImportError as exc:
+        raise RuntimeError("Video downloader is not installed. Run pip install -r requirements.txt.") from exc
+
+    source_url = _episode_source_url(episode)
+    if not source_url:
+        raise ValueError("This event does not have a video link.")
+
+    cache_dir = Path(tempfile.gettempdir()) / "wedflix_event_downloads" / str(episode["_id"])
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    existing = sorted(cache_dir.glob("*.*"), key=lambda item: item.stat().st_mtime, reverse=True)
+    for item in existing:
+        if item.is_file() and item.suffix.lower() in {".mp4", ".mkv", ".webm", ".mov", ".mp3", ".m4a"}:
+            return item
+
+    outtmpl = str(cache_dir / "%(title).80s.%(ext)s")
+    ydl_opts = {
+        "format": "bestvideo[height<=720]+bestaudio/best[height<=720]/best",
+        "outtmpl": outtmpl,
+        "merge_output_format": "mp4",
+        "quiet": True,
+        "no_warnings": True,
+    }
+
+    try:
+        import imageio_ffmpeg
+        ydl_opts["ffmpeg_location"] = imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        pass
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(source_url, download=True)
+        downloaded = Path(ydl.prepare_filename(info))
+        if downloaded.exists():
+            return downloaded
+
+    existing = sorted(cache_dir.glob("*.*"), key=lambda item: item.stat().st_mtime, reverse=True)
+    if not existing:
+        raise RuntimeError("Could not download this event video.")
+    return existing[0]
 
 
 def _with_owner_names(weddings):
@@ -599,6 +664,34 @@ def episode_detail(episode_id):
         return jsonify({"error": "Unauthorized"}), 401
 
     return jsonify(_to_jsonable(episode))
+
+
+@api_bp.route("/episodes/<episode_id>/download", methods=["GET"])
+def episode_video_download(episode_id):
+    episode = Episode.get(episode_id)
+    if not episode:
+        return jsonify({"error": "Episode not found"}), 404
+
+    program = Program.get(str(episode.get("program_id")))
+    wedding = Wedding.get(str(program.get("wedding_id"))) if program else None
+    if not wedding:
+        return jsonify({"error": "Wedding not found"}), 404
+    if not _can_view_wedding(wedding):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        video_file = _download_episode_video_file(episode)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except RuntimeError as exc:
+        current_app.logger.exception("Could not download event video %s", episode_id)
+        return jsonify({"error": str(exc)}), 503
+    except Exception:
+        current_app.logger.exception("Could not download event video %s", episode_id)
+        return jsonify({"error": "Could not download this event video right now."}), 503
+
+    filename = f"{_safe_download_name(episode.get('title'))}{video_file.suffix or '.mp4'}"
+    return send_file(video_file, as_attachment=True, download_name=filename)
 
 
 @api_bp.route("/episodes/<episode_id>/photos", methods=["GET", "POST"])
