@@ -249,6 +249,8 @@ def _download_episode_video_file(episode):
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
+        "remote_components": os.getenv("YTDLP_REMOTE_COMPONENTS", "ejs:github").split(","),
+        "js_runtimes": {os.getenv("YTDLP_JS_RUNTIME", "node"): {}},
     }
 
     _apply_ytdlp_cookies(ydl_opts)
