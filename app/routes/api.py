@@ -1,5 +1,6 @@
 import mimetypes
 import os
+import base64
 import re
 import tempfile
 from datetime import datetime, timezone
@@ -152,6 +153,41 @@ def _episode_source_url(episode):
     return ""
 
 
+def _youtube_cookie_error_message():
+    return (
+        "YouTube blocked this server. Add YTDLP_COOKIES_B64 or "
+        "YTDLP_COOKIES_CONTENT in Render and redeploy."
+    )
+
+
+def _is_youtube_cookie_error(message):
+    text = str(message or "").lower()
+    return (
+        "sign in to confirm" in text
+        or "not a bot" in text
+        or "use --cookies" in text
+        or "cookies-from-browser" in text
+    )
+
+
+def _apply_ytdlp_cookies(ydl_opts):
+    cookies_file = os.getenv("YTDLP_COOKIES_FILE", "").strip()
+    cookies_b64 = os.getenv("YTDLP_COOKIES_B64", "").strip()
+    cookies_content = os.getenv("YTDLP_COOKIES_CONTENT", "").strip()
+    if cookies_file:
+        ydl_opts["cookiefile"] = cookies_file
+        return
+    if cookies_b64:
+        cookies_text = base64.b64decode(cookies_b64).decode("utf-8")
+    elif cookies_content:
+        cookies_text = cookies_content.replace("\\n", "\n")
+    else:
+        return
+    cookie_path = Path(tempfile.gettempdir()) / "wedflix_ytdlp_cookies.txt"
+    cookie_path.write_text(cookies_text, encoding="utf-8")
+    ydl_opts["cookiefile"] = str(cookie_path)
+
+
 def _download_episode_video_file(episode):
     try:
         import yt_dlp
@@ -184,14 +220,7 @@ def _download_episode_video_file(episode):
         "noplaylist": True,
     }
 
-    cookies_file = os.getenv("YTDLP_COOKIES_FILE", "").strip()
-    cookies_content = os.getenv("YTDLP_COOKIES_CONTENT", "").strip()
-    if cookies_file:
-        ydl_opts["cookiefile"] = cookies_file
-    elif cookies_content:
-        cookie_path = Path(tempfile.gettempdir()) / "wedflix_ytdlp_cookies.txt"
-        cookie_path.write_text(cookies_content.replace("\\n", "\n"), encoding="utf-8")
-        ydl_opts["cookiefile"] = str(cookie_path)
+    _apply_ytdlp_cookies(ydl_opts)
 
     try:
         import imageio_ffmpeg
@@ -199,11 +228,16 @@ def _download_episode_video_file(episode):
     except Exception:
         pass
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(source_url, download=True)
-        downloaded = Path(ydl.prepare_filename(info))
-        if downloaded.exists():
-            return downloaded
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(source_url, download=True)
+            downloaded = Path(ydl.prepare_filename(info))
+            if downloaded.exists():
+                return downloaded
+    except Exception as exc:
+        if _is_youtube_cookie_error(exc):
+            raise RuntimeError(_youtube_cookie_error_message()) from exc
+        raise
 
     existing = [
         item for item in sorted(cache_dir.glob("*.*"), key=lambda item: item.stat().st_mtime, reverse=True)
@@ -671,6 +705,8 @@ def program_photos(program_id):
 
 @api_bp.route("/episodes/<episode_id>", methods=["GET"])
 def episode_detail(episode_id):
+    if not ObjectId.is_valid(episode_id):
+        return jsonify({"error": "Episode not found"}), 404
     episode = Episode.get(episode_id)
     if not episode:
         return jsonify({"error": "Episode not found"}), 404
@@ -691,6 +727,8 @@ def episode_detail(episode_id):
 
 @api_bp.route("/episodes/<episode_id>/download", methods=["GET"])
 def episode_video_download(episode_id):
+    if not ObjectId.is_valid(episode_id):
+        return jsonify({"error": "Episode not found"}), 404
     episode = Episode.get(episode_id)
     if not episode:
         return jsonify({"error": "Episode not found"}), 404
@@ -711,9 +749,8 @@ def episode_video_download(episode_id):
         return jsonify({"error": str(exc)}), 503
     except Exception as exc:
         current_app.logger.exception("Could not download event video %s", episode_id)
-        message = str(exc)
-        if "Sign in to confirm" in message or "not a bot" in message or "cookies" in message:
-            return jsonify({"error": "YouTube blocked this server. Add YTDLP_COOKIES_CONTENT in Render and try again."}), 503
+        if _is_youtube_cookie_error(exc):
+            return jsonify({"error": _youtube_cookie_error_message()}), 503
         return jsonify({"error": "Could not download this event video right now."}), 503
 
     filename = f"{_safe_download_name(episode.get('title'))}{video_file.suffix or '.mp4'}"
