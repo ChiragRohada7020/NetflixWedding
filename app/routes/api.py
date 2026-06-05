@@ -213,7 +213,12 @@ def _download_episode_video_file(episode):
 
     outtmpl = str(cache_dir / "%(title).80s.%(ext)s")
     ydl_opts = {
-        "format": "best[height<=720][ext=mp4]/best[height<=720]/best",
+        "format": (
+            "best[height<=720][vcodec!=none][acodec!=none]/"
+            "best[height<=1080][vcodec!=none][acodec!=none]/"
+            "best[vcodec!=none][acodec!=none]/"
+            "best[height<=720]/best"
+        ),
         "outtmpl": outtmpl,
         "quiet": True,
         "no_warnings": True,
@@ -237,6 +242,13 @@ def _download_episode_video_file(episode):
     except Exception as exc:
         if _is_youtube_cookie_error(exc):
             raise RuntimeError(_youtube_cookie_error_message()) from exc
+        if "requested format is not available" in str(exc).lower():
+            fallback_opts = {**ydl_opts, "format": "best"}
+            with yt_dlp.YoutubeDL(fallback_opts) as ydl:
+                info = ydl.extract_info(source_url, download=True)
+                downloaded = Path(ydl.prepare_filename(info))
+                if downloaded.exists():
+                    return downloaded
         raise
 
     existing = [
