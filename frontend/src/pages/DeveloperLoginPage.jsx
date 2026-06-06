@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "../api";
+import { clearAuthScopedCache, refreshAuthState } from "../utils/authCache";
 
 export default function DeveloperLoginPage() {
   const navigate = useNavigate();
@@ -20,11 +21,10 @@ export default function DeveloperLoginPage() {
         setError("Developer access required.");
         return;
       }
+      clearAuthScopedCache(queryClient);
       localStorage.setItem("wedflix_backend_auth_ok", "1");
       window.dispatchEvent(new Event("wedflix-auth-changed"));
-      await queryClient.invalidateQueries({ queryKey: ["session"] });
-      await queryClient.invalidateQueries({ queryKey: ["weddings"] });
-      await queryClient.invalidateQueries({ queryKey: ["wedding-programs"] });
+      await refreshAuthState(queryClient);
       navigate("/developer");
     } catch (err) {
       setError(err?.message || "Developer login failed.");

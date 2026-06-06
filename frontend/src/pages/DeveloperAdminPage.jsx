@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import AsyncState from "../components/AsyncState";
 import { apiGet, apiPost } from "../api";
+import { clearAuthScopedCache, refreshAuthState } from "../utils/authCache";
 
 const defaultLimits = {
   wedding_limit: 1,
@@ -224,9 +225,10 @@ export default function DeveloperAdminPage() {
 
   const logout = async () => {
     await apiPost("/api/session/logout", {});
+    clearAuthScopedCache(queryClient);
     localStorage.setItem("wedflix_backend_auth_ok", "0");
     window.dispatchEvent(new Event("wedflix-auth-changed"));
-    await queryClient.invalidateQueries({ queryKey: ["session"] });
+    await refreshAuthState(queryClient);
     navigate("/developer-login");
   };
 

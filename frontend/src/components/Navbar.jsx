@@ -4,6 +4,7 @@ import { useEditMode } from "./EditModeContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiAuthPost, apiGet, apiPost, mediaUrl } from "../api";
 import useModalHistory from "../utils/useModalHistory";
+import { clearAuthScopedCache, refreshAuthState } from "../utils/authCache";
 
 export default function Navbar({ musicUrl }) {
   const navigate = useNavigate();
@@ -157,12 +158,11 @@ export default function Navbar({ musicUrl }) {
     setProfileMenuOpen(false);
     if (isAuthenticated) {
       await apiPost("/api/session/logout", {});
+      clearAuthScopedCache(queryClient);
       localStorage.setItem("wedflix_backend_auth_ok", "0");
       setBackendAuthOk(false);
       window.dispatchEvent(new Event("wedflix-auth-changed"));
-      await queryClient.invalidateQueries({ queryKey: ["session"] });
-      await queryClient.invalidateQueries({ queryKey: ["weddings"] });
-      await queryClient.invalidateQueries({ queryKey: ["wedding-programs"] });
+      await refreshAuthState(queryClient);
       return;
     }
     setAuthError("");
@@ -288,12 +288,11 @@ export default function Navbar({ musicUrl }) {
         setAuthError("Login failed. Check credentials.");
         return;
       }
+      clearAuthScopedCache(queryClient);
       localStorage.setItem("wedflix_backend_auth_ok", "1");
       setBackendAuthOk(true);
       window.dispatchEvent(new Event("wedflix-auth-changed"));
-      await queryClient.invalidateQueries({ queryKey: ["session"] });
-      await queryClient.invalidateQueries({ queryKey: ["weddings"] });
-      await queryClient.invalidateQueries({ queryKey: ["wedding-programs"] });
+      await refreshAuthState(queryClient);
       setShowLogin(false);
       setSignupOtpSent(false);
       setAuthNotice("");

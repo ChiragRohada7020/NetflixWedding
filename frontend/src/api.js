@@ -125,13 +125,18 @@ export async function apiDelete(path) {
 }
 
 export async function apiPostForm(path, formData) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "POST",
-    headers: { "X-Wedflix-Fetch": "1" },
-    credentials: "include",
-    body: formData,
-    redirect: "manual",
-  });
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      headers: { "X-Wedflix-Fetch": "1" },
+      credentials: "include",
+      body: formData,
+      redirect: "manual",
+    });
+  } catch (err) {
+    throw new Error("Upload connection failed. Please try again with fewer or smaller files.");
+  }
   if (res.type === "opaqueredirect" || res.status === 0 || res.status === 302) {
     markAuthExpired();
     throw new Error("Your admin session expired. Please login again, then save.");

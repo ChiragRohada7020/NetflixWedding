@@ -13,7 +13,7 @@ import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import PhotoGalleryModal from "../components/PhotoGalleryModal";
 import LazyHeroVideo from "../components/LazyHeroVideo";
-import { prepareAudioForUpload, preparePhotoForUpload, preparePhotosForUpload } from "../utils/imageUpload";
+import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import useModalHistory from "../utils/useModalHistory";
 
 const noop = () => {};
@@ -96,6 +96,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   const [photoEpisodeId, setPhotoEpisodeId] = useState("");
   const [driveLink, setDriveLink] = useState("");
   const [photoUploadError, setPhotoUploadError] = useState("");
+  const [photoUploadStatus, setPhotoUploadStatus] = useState("");
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
   const [isImportingDrivePhotos, setIsImportingDrivePhotos] = useState(false);
   const [photoGalleryOpen, setPhotoGalleryOpen] = useState(false);
@@ -313,18 +314,25 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
       return;
     }
     setPhotoUploadError("");
+    setPhotoUploadStatus("");
     setIsUploadingPhotos(true);
     try {
-      const preparedPhotos = await preparePhotosForUpload(photoFiles);
-      const fd = new FormData();
-      preparedPhotos.forEach((file) => fd.append("photos", file));
-      await apiPostForm(`/api/episodes/${photoEpisodeId}/photos`, fd);
+      for (let index = 0; index < photoFiles.length; index += 1) {
+        const file = photoFiles[index];
+        setPhotoUploadStatus(`Uploading ${index + 1} of ${photoFiles.length} photos...`);
+        const preparedPhoto = await preparePhotoForUpload(file);
+        const fd = new FormData();
+        fd.append("photo", preparedPhoto);
+        await apiPostForm(`/api/episodes/${photoEpisodeId}/photos`, fd);
+      }
       setPhotoFiles([]);
       formEl?.reset();
       await queryClient.invalidateQueries({ queryKey: ["program-photos", programId] });
+      setPhotoUploadStatus(`Uploaded ${photoFiles.length} photo${photoFiles.length === 1 ? "" : "s"}.`);
     } catch (err) {
       const message = err?.message || "Photo upload failed. Please try again.";
       setPhotoUploadError(message);
+      setPhotoUploadStatus("");
     } finally {
       setIsUploadingPhotos(false);
     }
@@ -334,6 +342,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
     ev.preventDefault();
     if (!photoEpisodeId || !driveLink.trim()) return;
     setPhotoUploadError("");
+    setPhotoUploadStatus("");
     setIsImportingDrivePhotos(true);
     try {
       const result = await apiPost(`/api/episodes/${photoEpisodeId}/photos/import-drive`, { drive_url: driveLink.trim() });
@@ -615,6 +624,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
               </button>
             </form>
             {photoUploadError && <p className="error">{photoUploadError}</p>}
+            {photoUploadStatus && <p className="photo-gallery-modal__status">{photoUploadStatus}</p>}
           </>
         )}
         {isLoadingProgramPhotos ? (
