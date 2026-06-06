@@ -714,7 +714,39 @@ def program_episodes(program_id):
     return jsonify(_to_jsonable(Episode.by_program(program_id)))
 
 
-@api_bp.route("/programs/<program_id>/photos", methods=["GET"])
+def _photo_upload_files():
+    files = request.files.getlist("photos")
+    if not files:
+        files = request.files.getlist("photos[]")
+    if not files:
+        single_photo = request.files.get("photo")
+        files = [single_photo] if single_photo else []
+    return [file_storage for file_storage in files if file_storage and file_storage.filename]
+
+
+def _insert_uploaded_photos(files, owner_filter, base_doc, caption):
+    existing_count = mongo.db.photos.count_documents(owner_filter)
+    inserted = []
+    for index, file_storage in enumerate(files):
+        try:
+            image_url = upload_photo_to_telegram(file_storage, caption=caption)
+        except TelegramMediaError as exc:
+            return None, f"Could not upload {file_storage.filename}: {exc}"
+
+        doc = {
+            **base_doc,
+            "url": image_url,
+            "caption": "",
+            "order": existing_count + index + 1,
+            "uploaded_by": getattr(current_user, "name", "") or "",
+        }
+        result = mongo.db.photos.insert_one(doc)
+        doc["_id"] = result.inserted_id
+        inserted.append(Photo.serialize(doc))
+    return inserted, ""
+
+
+@api_bp.route("/programs/<program_id>/photos", methods=["GET", "POST"])
 def program_photos(program_id):
     program = Program.get(program_id)
     if not program:
@@ -726,19 +758,43 @@ def program_photos(program_id):
     if not _can_view_wedding(wedding):
         return jsonify({"error": "Unauthorized"}), 401
 
-    episodes = Episode.by_program(program_id)
-    if not episodes:
-        return jsonify([])
+    if request.method == "POST":
+        if not current_user.is_authenticated:
+            return jsonify({"error": "Login required"}), 401
+        if not can_edit_wedding(wedding):
+            return jsonify({"error": "Unauthorized"}), 401
 
+        files = _photo_upload_files()
+        if not files:
+            return jsonify({"error": "Please choose at least one photo"}), 400
+        plan_error = limit_error("photo", add=len(files))
+        if plan_error:
+            return jsonify({"error": plan_error}), 403
+
+        inserted, upload_error = _insert_uploaded_photos(
+            files,
+            {"program_id": ObjectId(program_id), "episode_id": {"$exists": False}},
+            {"program_id": ObjectId(program_id)},
+            f"{program.get('title') or 'Wedflix gallery'} photo",
+        )
+        if upload_error:
+            return jsonify({"error": upload_error}), 400
+        return jsonify(_to_jsonable(inserted)), 201
+
+    episodes = Episode.by_program(program_id)
     episode_title_by_id = {str(episode.get("_id")): episode.get("title") or "Event" for episode in episodes}
     episode_ids = [ObjectId(episode_id) for episode_id in episode_title_by_id.keys()]
-    photos = list(
-        mongo.db.photos.find({"episode_id": {"$in": episode_ids}}).sort([("order", 1), ("_id", 1)])
-    )
+    photo_filter = {
+        "$or": [
+            {"program_id": ObjectId(program_id), "episode_id": {"$exists": False}},
+            {"episode_id": {"$in": episode_ids}},
+        ]
+    } if episode_ids else {"program_id": ObjectId(program_id), "episode_id": {"$exists": False}}
+    photos = list(mongo.db.photos.find(photo_filter).sort([("order", 1), ("_id", 1)]))
     serialized = []
     for photo in photos:
         item = Photo.serialize(photo)
-        item["episode_title"] = episode_title_by_id.get(str(photo.get("episode_id")), "Event")
+        item["episode_title"] = episode_title_by_id.get(str(photo.get("episode_id")), "Gallery")
         serialized.append(item)
     return jsonify(_to_jsonable(serialized))
 
@@ -814,41 +870,24 @@ def episode_photos(episode_id):
         if not can_edit_wedding(wedding):
             return jsonify({"error": "Unauthorized"}), 401
 
-        files = request.files.getlist("photos")
-        if not files:
-            files = request.files.getlist("photos[]")
-        if not files:
-            single_photo = request.files.get("photo")
-            files = [single_photo] if single_photo else []
+        files = _photo_upload_files()
         if not files:
             return jsonify({"error": "Please choose at least one photo"}), 400
         plan_error = limit_error("photo", add=len(files))
         if plan_error:
             return jsonify({"error": plan_error}), 403
 
-        existing_count = mongo.db.photos.count_documents({"episode_id": ObjectId(episode_id)})
-        inserted = []
-        for index, file_storage in enumerate(files):
-            if not file_storage or not file_storage.filename:
-                continue
-            try:
-                image_url = upload_photo_to_telegram(
-                    file_storage,
-                    caption=f"{episode.get('title') or 'Wedflix event'} photo",
-                )
-            except TelegramMediaError as exc:
-                return jsonify({"error": f"Could not upload {file_storage.filename}: {exc}"}), 400
-
-            doc = {
+        inserted, upload_error = _insert_uploaded_photos(
+            files,
+            {"episode_id": ObjectId(episode_id)},
+            {
                 "episode_id": ObjectId(episode_id),
-                "url": image_url,
-                "caption": "",
-                "order": existing_count + index + 1,
-                "uploaded_by": getattr(current_user, "name", "") or "",
-            }
-            result = mongo.db.photos.insert_one(doc)
-            doc["_id"] = result.inserted_id
-            inserted.append(Photo.serialize(doc))
+                "program_id": ObjectId(str(episode.get("program_id"))),
+            },
+            f"{episode.get('title') or 'Wedflix event'} photo",
+        )
+        if upload_error:
+            return jsonify({"error": upload_error}), 400
 
         return jsonify(_to_jsonable(inserted)), 201
 
@@ -928,11 +967,14 @@ def photo_detail(photo_id):
     if not photo:
         return jsonify({"error": "Photo not found"}), 404
 
-    episode = Episode.get(str(photo.get("episode_id")))
-    if not episode:
-        return jsonify({"error": "Episode not found"}), 404
+    program_id = photo.get("program_id")
+    if not program_id and photo.get("episode_id"):
+        episode = Episode.get(str(photo.get("episode_id")))
+        if not episode:
+            return jsonify({"error": "Episode not found"}), 404
+        program_id = episode.get("program_id")
 
-    program = Program.get(str(episode.get("program_id")))
+    program = Program.get(str(program_id)) if program_id else None
     wedding = Wedding.get(str(program.get("wedding_id"))) if program else None
     if not can_edit_wedding(wedding):
         return jsonify({"error": "Unauthorized"}), 401

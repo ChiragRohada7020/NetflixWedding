@@ -307,7 +307,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   const uploadProgramPhotos = async (ev) => {
     ev.preventDefault();
     const formEl = ev.currentTarget;
-    if (!photoEpisodeId || !photoFiles.length) return;
+    if (!photoFiles.length) return;
     const oversized = photoFiles.find((file) => file.size > 50 * 1024 * 1024);
     if (oversized) {
       setPhotoUploadError(`${oversized.name} is ${(oversized.size / (1024 * 1024)).toFixed(1)} MB. Please choose photos under 50 MB.`);
@@ -323,7 +323,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         const preparedPhoto = await preparePhotoForUpload(file);
         const fd = new FormData();
         fd.append("photo", preparedPhoto);
-        await apiPostForm(`/api/episodes/${photoEpisodeId}/photos`, fd);
+        const endpoint = photoEpisodeId ? `/api/episodes/${photoEpisodeId}/photos` : `/api/programs/${programId}/photos`;
+        await apiPostForm(endpoint, fd);
       }
       setPhotoFiles([]);
       formEl?.reset();
@@ -594,7 +595,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         {isEditing && (
           <>
             <form onSubmit={uploadProgramPhotos} className="photo-upload-row">
-              <select value={photoEpisodeId} onChange={(e) => setPhotoEpisodeId(e.target.value)} disabled={!episodes.length}>
+              <select value={photoEpisodeId} onChange={(e) => setPhotoEpisodeId(e.target.value)}>
+                <option value="">Gallery</option>
                 {episodes.map((episode) => (
                   <option key={episode._id} value={episode._id}>
                     {episode.title || "Untitled Episode"}
@@ -607,7 +609,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
                 multiple
                 onChange={(e) => setPhotoFiles(Array.from(e.target.files || []))}
               />
-              <button type="submit" disabled={!photoEpisodeId || !photoFiles.length || isUploadingPhotos}>
+              <button type="submit" disabled={!photoFiles.length || isUploadingPhotos}>
                 {isUploadingPhotos ? "Uploading..." : `Upload${photoFiles.length ? ` ${photoFiles.length}` : ""} Photos`}
               </button>
             </form>

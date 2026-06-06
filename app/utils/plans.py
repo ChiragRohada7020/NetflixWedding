@@ -130,9 +130,10 @@ def count_photos(user=None):
     if not program_ids:
         return 0
     episode_ids = [doc["_id"] for doc in mongo.db.episodes.find({"program_id": {"$in": program_ids}}, {"_id": 1})]
-    if not episode_ids:
-        return 0
-    return mongo.db.photos.count_documents({"episode_id": {"$in": episode_ids}})
+    filters = [{"program_id": {"$in": program_ids}}]
+    if episode_ids:
+        filters.append({"episode_id": {"$in": episode_ids}})
+    return mongo.db.photos.count_documents({"$or": filters})
 
 
 def usage_for_user(user_doc):
@@ -156,7 +157,7 @@ def usage_for_user(user_doc):
         "weddings": len(wedding_ids),
         "programs": len(program_ids),
         "episodes": len(episode_ids),
-        "photos": mongo.db.photos.count_documents({"episode_id": {"$in": episode_ids}}) if episode_ids else 0,
+        "photos": mongo.db.photos.count_documents({"$or": [{"program_id": {"$in": program_ids}}, {"episode_id": {"$in": episode_ids}}]}) if program_ids else 0,
     }
 
 

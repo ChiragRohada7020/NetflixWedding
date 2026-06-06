@@ -381,6 +381,7 @@ def delete_wedding(wedding_id):
         mongo.db.photos.delete_many({"episode_id": {"$in": episode_ids}})
         mongo.db.episodes.delete_many({"_id": {"$in": episode_ids}})
     if program_ids:
+        mongo.db.photos.delete_many({"program_id": {"$in": program_ids}})
         mongo.db.programs.delete_many({"_id": {"$in": program_ids}})
     mongo.db.weddings.delete_one({"_id": wid})
 
@@ -467,6 +468,7 @@ def delete_program(program_id):
     if episode_ids:
         mongo.db.comments.delete_many({"episode_id": {"$in": episode_ids}})
         mongo.db.photos.delete_many({"episode_id": {"$in": episode_ids}})
+    mongo.db.photos.delete_many({"program_id": pid})
     mongo.db.episodes.delete_many({"program_id": pid})
     mongo.db.programs.delete_one({"_id": pid})
     flash("Program deleted", "success")
