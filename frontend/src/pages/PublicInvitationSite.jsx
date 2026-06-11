@@ -103,8 +103,7 @@ export default function PublicInvitationSite() {
   const initials = `${(firstName || "W").charAt(0)}${(secondName || "F").charAt(0)}`;
   const inviteTitle = wedding?.invitation_title || "Wedding Invitation";
   const countdown = countdownParts(wedding?.wedding_date);
-  const galleryImages = [heroImage, ...programs.map((program) => mediaUrl(program.thumbnail || "")).filter(Boolean)].slice(0, 4);
-  const schedule = useMemo(() => venueBlocks(wedding, programs, venueName, venueAddress), [wedding, programs, venueName, venueAddress]);
+  const galleryImages = [heroImage, ...programs.map((program) => mediaUrl(program.thumbnail || "")).filter(Boolean)].slice(0, 8);
   const inviteEvents = useMemo(() => {
     if (programs.length) return programs.slice(0, 6);
     return [{ _id: "wedding", title: "Wedding Celebration", event_date: wedding?.wedding_date, venue_name: venueName, thumbnail: heroImage }];
@@ -146,15 +145,16 @@ export default function PublicInvitationSite() {
       {!revealed && (
         <section className={`invite-reveal ${bursting ? "is-bursting" : ""}`} style={{ backgroundImage: `url(${heroImage})` }}>
           <div className="invite-reveal__shade" />
-          <div className="invite-reveal__couple">
-            <img src={heroImage} alt={wedding?.couple_names || "Couple"} />
-          </div>
-          <div className="invite-reveal__card">
-            <p className="invite-reveal__brand">Wedding Invitation</p>
-            <div className="invite-reveal__monogram">{initials}</div>
-            <p>You are invited to celebrate</p>
-            <h1>{firstName}{secondName ? ` & ${secondName}` : ""}</h1>
-            <strong>{inviteHash(wedding?.couple_names)}</strong>
+          <div className="invite-envelope">
+            <div className="invite-envelope__back" />
+            <div className="invite-envelope__letter">
+              <p>Wedding Invitation</p>
+              <strong>{firstName}{secondName ? ` & ${secondName}` : ""}</strong>
+              <span>{date.day || ""} {date.month || ""} {date.year || ""}</span>
+            </div>
+            <div className="invite-envelope__pocket" />
+            <div className="invite-envelope__flap" />
+            <div className="invite-envelope__seal">{initials}</div>
             <button type="button" onClick={revealInvite} disabled={bursting}>
               {bursting ? "Opening..." : "Tap to Reveal"}
             </button>
@@ -232,24 +232,6 @@ export default function PublicInvitationSite() {
             <div className="invite-memory-grid">
               {galleryImages.map((image, index) => (
                 <img key={`${image}-${index}`} src={image} alt="" />
-              ))}
-            </div>
-          </section>
-
-          <section className="invite-section invite-schedule invite-card-panel">
-            <p className="invite-kicker">Save The Date</p>
-            <h2>Celebration Schedule</h2>
-            <div className="invite-schedule__list">
-              {schedule.map((item, index) => (
-                <article key={item.key}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <div>
-                    <h3>{item.title}</h3>
-                    {item.meta && <p>{item.meta}</p>}
-                    {item.body && <strong>{item.body}</strong>}
-                    {item.address && <small>{item.address}</small>}
-                  </div>
-                </article>
               ))}
             </div>
           </section>

@@ -7614,6 +7614,9 @@ body.premium-flow-open .wedflix-footer {
 .invite-site {
   min-height: 100svh;
   background:
+    radial-gradient(ellipse at 74% 0%, rgba(238, 173, 169, 0.52) 0 7%, transparent 8%),
+    radial-gradient(ellipse at 86% 3%, rgba(246, 205, 201, 0.62) 0 12%, transparent 13%),
+    radial-gradient(ellipse at 60% 1%, rgba(143, 176, 125, 0.42) 0 7%, transparent 8%),
     radial-gradient(circle at 52% 8%, rgba(255, 239, 224, 0.62), transparent 27%),
     radial-gradient(circle at 50% 50%, rgba(238, 170, 120, 0.1), transparent 46%),
     linear-gradient(180deg, #fffdfa 0%, #fff8f3 45%, #fffdfa 100%);
@@ -7639,6 +7642,7 @@ body.premium-flow-open .wedflix-footer {
 .invite-site::before {
   left: 0;
   background-image:
+    radial-gradient(ellipse at 45% 2%, rgba(238, 173, 169, 0.44) 0 10%, transparent 11%),
     radial-gradient(ellipse at 18% 8%, rgba(63, 140, 75, 0.54) 0 9%, transparent 10%),
     radial-gradient(ellipse at 38% 18%, rgba(70, 157, 86, 0.5) 0 8%, transparent 9%),
     radial-gradient(ellipse at 24% 43%, rgba(192, 76, 104, 0.5) 0 7%, transparent 8%),
@@ -7649,6 +7653,7 @@ body.premium-flow-open .wedflix-footer {
   right: 0;
   transform: scaleX(-1);
   background-image:
+    radial-gradient(ellipse at 45% 2%, rgba(238, 173, 169, 0.44) 0 10%, transparent 11%),
     radial-gradient(ellipse at 18% 8%, rgba(63, 140, 75, 0.54) 0 9%, transparent 10%),
     radial-gradient(ellipse at 38% 18%, rgba(70, 157, 86, 0.5) 0 8%, transparent 9%),
     radial-gradient(ellipse at 24% 43%, rgba(192, 76, 104, 0.5) 0 7%, transparent 8%),
@@ -7843,6 +7848,137 @@ body.premium-flow-open .wedflix-footer {
   box-shadow: 0 16px 40px rgba(154, 20, 48, 0.28);
   position: relative;
   z-index: 1;
+}
+
+.invite-envelope {
+  position: relative;
+  z-index: 2;
+  width: min(420px, 86vw);
+  height: min(300px, 62vw);
+  margin-top: clamp(24px, 8vh, 72px);
+  perspective: 1100px;
+  filter: drop-shadow(0 28px 70px rgba(42, 25, 44, 0.24));
+}
+
+.invite-envelope__back,
+.invite-envelope__pocket,
+.invite-envelope__flap,
+.invite-envelope__letter {
+  position: absolute;
+  inset: 0;
+}
+
+.invite-envelope__back {
+  border-radius: 10px;
+  background: linear-gradient(145deg, #6b5f76, #514660);
+}
+
+.invite-envelope__letter {
+  inset: auto 9% 24% 9%;
+  height: 70%;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px 18px;
+  border: 1px solid rgba(157, 44, 48, 0.18);
+  border-radius: 10px;
+  background:
+    linear-gradient(145deg, rgba(255, 253, 248, 0.98), rgba(250, 241, 233, 0.96)),
+    #fffaf3;
+  color: #9b282d;
+  transform: translateY(28%);
+  transition: transform 0.85s ease 0.18s, opacity 0.5s ease;
+}
+
+.invite-envelope__letter p {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.invite-envelope__letter strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.1rem, 8vw, 3.7rem);
+  font-weight: 500;
+  line-height: 0.95;
+}
+
+.invite-envelope__letter span {
+  color: #7c4a4b;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.invite-envelope__pocket {
+  clip-path: polygon(0 28%, 50% 64%, 100% 28%, 100% 100%, 0 100%);
+  border-radius: 10px;
+  background:
+    linear-gradient(138deg, rgba(255, 255, 255, 0.06), transparent 42%),
+    linear-gradient(145deg, #5c4f69, #40364d);
+}
+
+.invite-envelope__flap {
+  transform-origin: top center;
+  clip-path: polygon(0 0, 100% 0, 50% 58%);
+  border-radius: 10px;
+  background: linear-gradient(160deg, #756980, #4c4158);
+  transition: transform 0.8s ease;
+}
+
+.invite-envelope__seal {
+  position: absolute;
+  left: 50%;
+  top: 57%;
+  width: 58px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 240, 196, 0.72);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #f5d48a, #bd823c);
+  color: #fff8d8;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 8px 22px rgba(45, 23, 36, 0.28);
+  transition: opacity 0.28s ease, transform 0.5s ease;
+}
+
+.invite-envelope button {
+  position: absolute;
+  left: 50%;
+  bottom: -78px;
+  min-width: 172px;
+  min-height: 50px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #9a1430, #d9793d);
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  transform: translateX(-50%);
+  box-shadow: 0 16px 40px rgba(154, 20, 48, 0.22);
+}
+
+.invite-reveal.is-bursting .invite-envelope__flap {
+  transform: rotateX(168deg);
+}
+
+.invite-reveal.is-bursting .invite-envelope__letter {
+  transform: translateY(-32%);
+}
+
+.invite-reveal.is-bursting .invite-envelope__seal {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.4);
 }
 
 .invite-reveal.is-bursting .invite-reveal__card {
@@ -8174,24 +8310,29 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-memory-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  display: flex;
   gap: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
   margin-top: 36px;
+  padding: 6px 4px 18px;
 }
 
 .invite-memory-grid img {
-  width: 100%;
-  height: 420px;
+  flex: 0 0 min(78vw, 340px);
+  width: min(78vw, 340px);
+  height: 440px;
   object-fit: cover;
   border: 1px solid rgba(157, 44, 48, 0.32);
   border-radius: 20px;
   box-shadow: 0 18px 50px rgba(80, 30, 34, 0.12);
+  scroll-snap-align: center;
 }
 
 .invite-memory-grid img:first-child {
-  grid-row: span 2;
-  height: 860px;
+  height: 440px;
 }
 
 .invite-events {
@@ -8615,9 +8756,18 @@ body.premium-flow-open .wedflix-footer {
     grid-template-columns: 1fr;
   }
 
+  .invite-memory-grid {
+    display: flex;
+    gap: 14px;
+    margin-inline: -18px;
+    padding-inline: 18px;
+  }
+
   .invite-memory-grid img,
   .invite-memory-grid img:first-child {
-    height: auto;
+    flex: 0 0 78%;
+    width: 78%;
+    height: 430px;
     aspect-ratio: 4 / 5;
   }
 
