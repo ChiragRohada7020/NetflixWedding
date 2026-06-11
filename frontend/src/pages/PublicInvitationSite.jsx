@@ -141,6 +141,7 @@ export default function PublicInvitationSite() {
   const [guessChoice, setGuessChoice] = useState("");
   const [guessVotes, setGuessVotes] = useState({ first: 4, second: 3, both: 7 });
   const bgInputRef = useRef(null);
+  const musicInputRef = useRef(null);
   const audioRef = useRef(null);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["public-invitation-site", publicSlug],
@@ -211,6 +212,9 @@ export default function PublicInvitationSite() {
     }
     if (patch.invitation_bg_image_file) {
       fd.append("invitation_bg_image_file", await preparePhotoForUpload(patch.invitation_bg_image_file));
+    }
+    if (patch.music_file) {
+      fd.append("music_file", patch.music_file);
     }
     await apiPostForm(`/admin/weddings/${wedding._id}/update`, fd);
     await refreshInvite();
@@ -327,19 +331,34 @@ export default function PublicInvitationSite() {
             {isEditing ? "Done Editing" : "Edit Invitation"}
           </button>
           {isEditing && (
-            <button type="button" className="invite-bg-edit" onClick={() => bgInputRef.current?.click()}>
-              Change BG
-              <input
-                ref={bgInputRef}
-                type="file"
-                accept="image/*"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  if (file) saveWeddingPatch({ invitation_bg_image_file: file });
-                }}
-              />
-            </button>
+            <>
+              <button type="button" className="invite-bg-edit" onClick={() => bgInputRef.current?.click()}>
+                Change BG
+                <input
+                  ref={bgInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) saveWeddingPatch({ invitation_bg_image_file: file });
+                  }}
+                />
+              </button>
+              <button type="button" className="invite-bg-edit" onClick={() => musicInputRef.current?.click()}>
+                Upload Music
+                <input
+                  ref={musicInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) saveWeddingPatch({ music_file: file });
+                  }}
+                />
+              </button>
+            </>
           )}
         </div>
       )}

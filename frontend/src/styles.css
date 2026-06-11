@@ -7681,11 +7681,25 @@ body.premium-flow-open .wedflix-footer {
   cursor: pointer;
 }
 
-.invite-edit-toggle {
+.invite-edit-tools {
   position: fixed;
   z-index: 60;
   left: 18px;
   bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 36px);
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+  background: rgba(69, 41, 37, 0.28);
+  box-shadow: 0 14px 38px rgba(80, 18, 28, 0.2);
+  backdrop-filter: blur(14px);
+}
+
+.invite-edit-toggle,
+.invite-bg-edit {
   min-height: 46px;
   padding: 0 18px;
   border: 1px solid rgba(255, 255, 255, 0.28);
@@ -7695,12 +7709,22 @@ body.premium-flow-open .wedflix-footer {
   font-family: "Manrope", "Segoe UI", sans-serif;
   font-size: 0.82rem;
   font-weight: 900;
-  box-shadow: 0 14px 38px rgba(80, 18, 28, 0.24);
+  white-space: nowrap;
+  box-shadow: 0 10px 24px rgba(80, 18, 28, 0.18);
   cursor: pointer;
 }
 
 .invite-edit-toggle.is-on {
   background: rgba(18, 97, 68, 0.94);
+}
+
+.invite-bg-edit {
+  background: rgba(255, 253, 249, 0.96);
+  color: #6e4a38;
+}
+
+.invite-bg-edit input {
+  display: none;
 }
 
 .invite-florals__corner {
@@ -8750,7 +8774,7 @@ body.premium-flow-open .wedflix-footer {
   max-width: 420px;
   margin: 0 auto;
   background:
-    url("/invite-floral-bg.png"),
+    var(--invite-bg-image, url("/invite-floral-bg.png")),
     linear-gradient(180deg, #fffefa 0%, #fffaf7 48%, #fffefa 100%);
   background-position: top center;
   background-repeat: repeat-y;
@@ -9053,11 +9077,13 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-timeline-section::before {
+  content: "";
   left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: rgba(201, 140, 114, 0.62);
+  top: 18px;
+  bottom: 18px;
+  z-index: 1;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, rgba(201, 140, 114, 0.92) 10%, rgba(201, 140, 114, 0.92) 90%, transparent);
   transform: translateX(-50%);
 }
 
@@ -9151,7 +9177,7 @@ body.premium-flow-open .wedflix-footer {
 .invite-heart-node {
   position: absolute;
   left: 50%;
-  z-index: 0;
+  z-index: 3;
   width: 22px;
   height: 22px;
   display: grid;
@@ -9223,9 +9249,9 @@ body.premium-flow-open .wedflix-footer {
 .invite-hashtag strong {
   display: block;
   margin-top: 12px;
-  color: #9a2a2e;
+  color: #8a5a44;
   font-family: "Great Vibes", "Allura", "Parisienne", cursive;
-  font-size: clamp(2.6rem, 13vw, 4rem);
+  font-size: clamp(2.35rem, 11vw, 3.55rem);
   font-weight: 400;
   line-height: 1;
   overflow-wrap: anywhere;
