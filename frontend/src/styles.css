@@ -8626,14 +8626,18 @@ body.premium-flow-open .wedflix-footer {
   max-width: 420px;
   margin: 0 auto;
   background:
-    radial-gradient(ellipse at 10% 4%, rgba(123, 154, 115, 0.3) 0 6%, transparent 7%),
-    radial-gradient(ellipse at 24% 8%, rgba(123, 154, 115, 0.22) 0 8%, transparent 9%),
-    radial-gradient(ellipse at 88% 7%, rgba(123, 154, 115, 0.28) 0 7%, transparent 8%),
-    radial-gradient(ellipse at 74% 0%, rgba(201, 140, 114, 0.2) 0 11%, transparent 12%),
-    radial-gradient(ellipse at 92% 3%, rgba(216, 177, 122, 0.14) 0 14%, transparent 15%),
-    radial-gradient(ellipse at 0% 82%, rgba(123, 154, 115, 0.22) 0 9%, transparent 10%),
-    radial-gradient(ellipse at 100% 72%, rgba(123, 154, 115, 0.2) 0 10%, transparent 11%),
-    radial-gradient(circle at 18% 34%, rgba(201, 140, 114, 0.11), transparent 28%),
+    radial-gradient(ellipse at 8% 4%, rgba(123, 154, 115, 0.34) 0 5%, transparent 6%),
+    radial-gradient(ellipse at 18% 9%, rgba(123, 154, 115, 0.28) 0 7%, transparent 8%),
+    radial-gradient(ellipse at 31% 1%, rgba(123, 154, 115, 0.2) 0 6%, transparent 7%),
+    radial-gradient(ellipse at 88% 5%, rgba(123, 154, 115, 0.34) 0 6%, transparent 7%),
+    radial-gradient(ellipse at 76% 12%, rgba(123, 154, 115, 0.24) 0 8%, transparent 9%),
+    radial-gradient(circle at 83% 3%, rgba(239, 198, 189, 0.52) 0 8%, transparent 9%),
+    radial-gradient(circle at 97% 12%, rgba(238, 176, 168, 0.42) 0 7%, transparent 8%),
+    radial-gradient(circle at 3% 83%, rgba(239, 198, 189, 0.5) 0 9%, transparent 10%),
+    radial-gradient(circle at 15% 92%, rgba(238, 176, 168, 0.4) 0 7%, transparent 8%),
+    radial-gradient(ellipse at 0% 76%, rgba(123, 154, 115, 0.3) 0 10%, transparent 11%),
+    radial-gradient(ellipse at 100% 70%, rgba(123, 154, 115, 0.28) 0 10%, transparent 11%),
+    radial-gradient(circle at 18% 34%, rgba(201, 140, 114, 0.1), transparent 28%),
     radial-gradient(circle at 92% 68%, rgba(123, 154, 115, 0.12), transparent 30%),
     linear-gradient(180deg, #fcf8f3 0%, #fffaf4 42%, #fcf8f3 100%);
   color: #5a4338;
@@ -8643,15 +8647,25 @@ body.premium-flow-open .wedflix-footer {
 
 .invite-site.is-revealed::before,
 .invite-site.is-revealed::after {
-  width: 150px;
-  opacity: 0.72;
+  width: 190px;
+  opacity: 0.86;
   filter: blur(0.1px);
+  background-size: 190px 380px;
 }
 
 .invite-site.is-revealed .invite-florals__corner {
-  width: 180px;
-  height: 250px;
-  opacity: 0.72;
+  width: 230px;
+  height: 330px;
+  opacity: 0.86;
+  background:
+    radial-gradient(ellipse at 28% 7%, rgba(93, 137, 84, 0.62) 0 5%, transparent 6%),
+    radial-gradient(ellipse at 42% 13%, rgba(123, 154, 115, 0.58) 0 7%, transparent 8%),
+    radial-gradient(ellipse at 19% 28%, rgba(99, 145, 88, 0.5) 0 6%, transparent 7%),
+    radial-gradient(ellipse at 58% 25%, rgba(123, 154, 115, 0.45) 0 7%, transparent 8%),
+    radial-gradient(circle at 30% 58%, rgba(239, 198, 189, 0.76) 0 7%, transparent 8%),
+    radial-gradient(circle at 46% 64%, rgba(231, 164, 158, 0.56) 0 5%, transparent 6%),
+    radial-gradient(ellipse at 34% 76%, rgba(123, 154, 115, 0.4) 0 8%, transparent 9%),
+    linear-gradient(135deg, transparent 0 42%, rgba(216, 177, 122, 0.24) 43% 44%, transparent 45%);
   animation: inviteFloat 7s ease-in-out infinite;
 }
 
@@ -8725,11 +8739,13 @@ body.premium-flow-open .wedflix-footer {
 .invite-luxury-hero::before {
   inset: 0;
   background:
-    radial-gradient(ellipse at 8% 8%, rgba(123, 154, 115, 0.3) 0 7%, transparent 8%),
-    radial-gradient(ellipse at 22% 5%, rgba(123, 154, 115, 0.26) 0 8%, transparent 9%),
-    radial-gradient(ellipse at 42% 0%, rgba(123, 154, 115, 0.2) 0 7%, transparent 8%),
-    radial-gradient(ellipse at 72% 3%, rgba(123, 154, 115, 0.24) 0 8%, transparent 9%),
-    radial-gradient(ellipse at 90% 0%, rgba(201, 140, 114, 0.16) 0 12%, transparent 13%);
+    radial-gradient(ellipse at 8% 8%, rgba(98, 143, 88, 0.36) 0 7%, transparent 8%),
+    radial-gradient(ellipse at 21% 2%, rgba(123, 154, 115, 0.34) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 38% 0%, rgba(123, 154, 115, 0.22) 0 7%, transparent 8%),
+    radial-gradient(circle at 77% 3%, rgba(239, 198, 189, 0.46) 0 11%, transparent 12%),
+    radial-gradient(circle at 92% 13%, rgba(231, 164, 158, 0.35) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 72% 3%, rgba(123, 154, 115, 0.3) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 92% 0%, rgba(123, 154, 115, 0.24) 0 10%, transparent 11%);
 }
 
 .invite-luxury-hero::after {
