@@ -106,13 +106,43 @@ function EditableImage({ src, alt, enabled, className = "", onFile }) {
   );
 }
 
+function sectionKey(value) {
+  return String(value || "main").toLowerCase();
+}
+
+function customSections(wedding) {
+  const src = Array.isArray(wedding?.custom_sections) ? wedding.custom_sections : [];
+  if (src.length) return src;
+  if (wedding?.custom_section_label) return [{ key: "custom", label: wedding.custom_section_label }];
+  return [];
+}
+
+function preweddingSectionKeys(wedding) {
+  const keys = customSections(wedding)
+    .filter((section) => /pre\s*-?\s*wedding/i.test(`${section.key || ""} ${section.label || ""}`))
+    .map((section) => sectionKey(section.key));
+  return Array.from(new Set([...keys, "prewedding", "pre-wedding"]));
+}
+
+function invitationSectionKeys(wedding) {
+  const keys = customSections(wedding)
+    .filter((section) => /invitation|invite/i.test(`${section.key || ""} ${section.label || ""}`))
+    .map((section) => sectionKey(section.key));
+  return Array.from(new Set([...keys, "invitation", "invite"]));
+}
+
 function editableGalleryItems(heroImage, programs) {
-  return [
-    { key: "hero", image: heroImage, program: null },
-    ...programs
-      .map((program) => ({ key: program._id, image: mediaUrl(program.thumbnail || ""), program }))
-      .filter((item) => item.image),
-  ].slice(0, 8);
+  const source = programs.length ? programs : [];
+  const items = source
+    .map((program, index) => ({
+      key: program._id || `gallery-${index}`,
+      image: mediaUrl(program.thumbnail || ""),
+      program,
+    }))
+    .filter((item) => item.image)
+    .slice(0, 8);
+  if (items.length) return items;
+  return heroImage ? [{ key: "hero", image: heroImage, program: null }] : [];
 }
 
 function guessStorageKey(publicSlug) {
@@ -139,6 +169,8 @@ export default function PublicInvitationSite() {
   const [scratchProgress, setScratchProgress] = useState(0);
   const [scratchPoints, setScratchPoints] = useState([]);
   const [guessChoice, setGuessChoice] = useState("");
+  const [revealChoice, setRevealChoice] = useState("");
+  const [reasonChoice, setReasonChoice] = useState("");
   const [guessVotes, setGuessVotes] = useState({ first: 4, second: 3, both: 7 });
   const bgInputRef = useRef(null);
   const musicInputRef = useRef(null);
@@ -154,20 +186,29 @@ export default function PublicInvitationSite() {
 
   const wedding = data?.wedding;
   const programs = data?.programs || [];
-  const featured = programs[0] || {};
+  const invitationKeys = useMemo(() => invitationSectionKeys(wedding), [wedding]);
+  const invitationPrograms = useMemo(
+    () => programs.filter((program) => invitationKeys.includes(sectionKey(program.section_key))),
+    [programs, invitationKeys],
+  );
+  const preweddingKeys = useMemo(() => preweddingSectionKeys(wedding), [wedding]);
+  const preweddingPrograms = useMemo(
+    () => programs.filter((program) => preweddingKeys.includes(sectionKey(program.section_key))),
+    [programs, preweddingKeys],
+  );
   const [firstName, secondName] = splitNames(wedding?.couple_names);
   const date = dateParts(wedding?.wedding_date);
-  const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featured.thumbnail || "") || placeholder(wedding?.couple_names);
-  const venueName = wedding?.venue_name || featured.venue_name || "Wedding Venue";
-  const venueAddress = wedding?.event_address || featured.event_address || "";
-  const weddingTime = wedding?.wedding_time || featured.event_time || "";
+  const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || "") || placeholder(wedding?.couple_names);
+  const venueName = wedding?.venue_name || invitationPrograms[0]?.venue_name || "Wedding Venue";
+  const venueAddress = wedding?.event_address || invitationPrograms[0]?.event_address || "";
+  const weddingTime = wedding?.wedding_time || invitationPrograms[0]?.event_time || "";
   const musicUrl = mediaUrl(wedding?.music_url || "");
   const invitationBgImage = mediaUrl(wedding?.invitation_bg_image || "") || "/invite-floral-bg.png";
   const initials = `${(firstName || "W").charAt(0)}${(secondName || "F").charAt(0)}`;
   const inviteTitle = wedding?.invitation_title || "Wedding Invitation";
   const countdown = countdownParts(wedding?.wedding_date);
-  const galleryItems = editableGalleryItems(heroImage, programs);
-  const inviteEvents = useMemo(() => timelineEvents(programs, wedding, venueName, heroImage), [programs, wedding, venueName, heroImage]);
+  const galleryItems = editableGalleryItems(heroImage, preweddingPrograms);
+  const inviteEvents = useMemo(() => timelineEvents(invitationPrograms, wedding, venueName, heroImage), [invitationPrograms, wedding, venueName, heroImage]);
 
   const refreshInvite = async () => {
     await queryClient.invalidateQueries({ queryKey: ["public-invitation-site", publicSlug] });
@@ -233,7 +274,7 @@ export default function PublicInvitationSite() {
     fd.append("video_url", value("video_url"));
     fd.append("thumbnail", value("thumbnail"));
     fd.append("music_url", value("music_url"));
-    fd.append("section_key", value("section_key", "main"));
+    fd.append("section_key", value("section_key", program.section_key || "invitation"));
     if (patch.thumbnail_file) {
       fd.append("thumbnail_file", await preparePhotoForUpload(patch.thumbnail_file));
     }
@@ -252,7 +293,7 @@ export default function PublicInvitationSite() {
     fd.append("event_address", venueAddress);
     fd.append("thumbnail", heroImage);
     fd.append("music_url", "");
-    fd.append("section_key", "main");
+    fd.append("section_key", "invitation");
     fd.append("order", String(programs.length));
     fd.append("event_sections_json", JSON.stringify([]));
     await apiPostForm("/admin/programs/create", fd);
@@ -662,23 +703,50 @@ export default function PublicInvitationSite() {
                   {guessChoice && <small>{guessPercents.both}%</small>}
                 </button>
               </div>
-              <em>Reveal after the wedding</em>
+              <div className="invite-reveal-options" aria-label="Choose your reveal answer">
+                {[
+                  `${firstName || "Bride"} will smile first`,
+                  `${secondName || "Groom"} will tear up`,
+                  "Both, obviously",
+                ].map((answer) => (
+                  <button
+                    type="button"
+                    key={answer}
+                    className={revealChoice === answer ? "is-selected" : ""}
+                    onClick={() => setRevealChoice(answer)}
+                  >
+                    {answer}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="invite-mood-grid">
-              {["🍽️ The Food", "💃 Dance Floor", "💗 The Love", "✨ All of it"].map((item) => <button type="button" key={item}>{item}</button>)}
+            <div className="invite-reason-poll">
+              <h3>Why are you coming?</h3>
+              <div className="invite-mood-grid" aria-label="Choose why you are coming">
+                {[
+                  "To bless the couple",
+                  "To celebrate with family",
+                  "To dance all night",
+                  "To make memories",
+                ].map((item) => (
+                  <button
+                    type="button"
+                    key={item}
+                    className={reasonChoice === item ? "is-selected" : ""}
+                    onClick={() => setReasonChoice(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
 
           <section className="invite-section invite-notes">
-            <article>
+            <article className="invite-note-card">
               <h2>Leave Us a Note</h2>
               <p>Share a wish or memory.</p>
               <textarea placeholder="Write something from the heart..." />
-            </article>
-            <article>
-              <h2>Words for Forever</h2>
-              <p>Advice for married life.</p>
-              <textarea placeholder="One piece of advice..." />
             </article>
             <button type="button">Send Love</button>
           </section>

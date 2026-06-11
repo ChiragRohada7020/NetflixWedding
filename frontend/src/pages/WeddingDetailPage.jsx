@@ -127,7 +127,6 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
   useModalHistory(Boolean(modal), () => setModal(null));
   const [ordered, setOrdered] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [premiumSeen, setPremiumSeen] = useState(() => localStorage.getItem(`wedflix_premium_seen_${weddingId}`) === "1");
   const [premiumPanel, setPremiumPanel] = useState("");
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -384,20 +383,6 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
 
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
-
-  if (wedding?.premium_experience_enabled && !premiumSeen) {
-    return (
-      <PremiumWeddingExperience
-        wedding={wedding}
-        programs={programs}
-        basePath={weddingBasePath}
-        canEdit={isEditing}
-        onSaveWeddingField={saveWeddingField}
-        onMusicUrlChange={onMusicUrlChange}
-        onComplete={() => setPremiumSeen(true)}
-      />
-    );
-  }
 
   if (wedding?.premium_experience_enabled && premiumPanel) {
     return (
