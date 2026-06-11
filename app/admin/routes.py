@@ -249,6 +249,7 @@ def create_wedding():
         "venue_map_location": (request.form.get("venue_map_location") or request.form.get("event_address") or "").strip(),
         "venue_description": (request.form.get("venue_description") or "").strip(),
         "venue_image": _resolve_image_url("venue_image", "venue_image_file"),
+        "invitation_bg_image": _resolve_image_url("invitation_bg_image", "invitation_bg_image_file"),
         "profile_image": _resolve_image_url("profile_image", "profile_image_file"),
         "music_url": _resolve_music_url("music_url", "music_file"),
         "access_level": access_level,
@@ -317,6 +318,7 @@ def update_wedding(wedding_id):
         ).strip(),
         "venue_description": (request.form.get("venue_description") or current.get("venue_description") or "").strip(),
         "venue_image": _resolve_image_url("venue_image", "venue_image_file", current.get("venue_image", "")),
+        "invitation_bg_image": _resolve_image_url("invitation_bg_image", "invitation_bg_image_file", current.get("invitation_bg_image", "")),
         "profile_image": _resolve_image_url("profile_image", "profile_image_file", current.get("profile_image", "")),
         "music_url": _resolve_music_url("music_url", "music_file", current.get("music_url", "")),
         "access_level": access_level,
@@ -417,8 +419,11 @@ def create_program():
         "event_sections": _parse_custom_sections(request.form.get("event_sections_json")),
         "order": _safe_int(request.form.get("order"), 0),
     }
-    Program.create(payload)
+    program_id = Program.create(payload)
     flash("Program created", "success")
+    success_response = _form_success("Program created", wedding_id=wedding_id, program_id=str(program_id))
+    if success_response:
+        return success_response
     return redirect(url_for("admin.home", wedding_id=wedding_id))
 
 

@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { apiGet, apiGetPublic, apiPostForm, mediaUrl } from "../api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -106,15 +106,41 @@ function EditableImage({ src, alt, enabled, className = "", onFile }) {
   );
 }
 
+function editableGalleryItems(heroImage, programs) {
+  return [
+    { key: "hero", image: heroImage, program: null },
+    ...programs
+      .map((program) => ({ key: program._id, image: mediaUrl(program.thumbnail || ""), program }))
+      .filter((item) => item.image),
+  ].slice(0, 8);
+}
+
+function guessStorageKey(publicSlug) {
+  return `wedflix_invite_guess_${publicSlug || "guest"}`;
+}
+
+function getGuessPercents(votes) {
+  const total = Math.max(1, Object.values(votes).reduce((sum, value) => sum + value, 0));
+  return {
+    first: Math.round(((votes.first || 0) / total) * 100),
+    second: Math.round(((votes.second || 0) / total) * 100),
+    both: Math.round(((votes.both || 0) / total) * 100),
+  };
+}
+
 export default function PublicInvitationSite() {
   const { publicSlug } = useParams();
   const queryClient = useQueryClient();
-  const { canEdit, editMode } = useEditMode();
+  const { canEdit, editMode, toggleEditMode } = useEditMode();
   const isEditing = canEdit && editMode;
   const [revealed, setRevealed] = useState(false);
   const [bursting, setBursting] = useState(false);
   const [scratchOpen, setScratchOpen] = useState(false);
   const [scratchProgress, setScratchProgress] = useState(0);
+  const [scratchPoints, setScratchPoints] = useState([]);
+  const [guessChoice, setGuessChoice] = useState("");
+  const [guessVotes, setGuessVotes] = useState({ first: 4, second: 3, both: 7 });
+  const bgInputRef = useRef(null);
   const audioRef = useRef(null);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["public-invitation-site", publicSlug],
@@ -135,10 +161,11 @@ export default function PublicInvitationSite() {
   const venueAddress = wedding?.event_address || featured.event_address || "";
   const weddingTime = wedding?.wedding_time || featured.event_time || "";
   const musicUrl = mediaUrl(wedding?.music_url || "");
+  const invitationBgImage = mediaUrl(wedding?.invitation_bg_image || "") || "/invite-floral-bg.png";
   const initials = `${(firstName || "W").charAt(0)}${(secondName || "F").charAt(0)}`;
   const inviteTitle = wedding?.invitation_title || "Wedding Invitation";
   const countdown = countdownParts(wedding?.wedding_date);
-  const galleryImages = [heroImage, ...programs.map((program) => mediaUrl(program.thumbnail || "")).filter(Boolean)].slice(0, 8);
+  const galleryItems = editableGalleryItems(heroImage, programs);
   const inviteEvents = useMemo(() => timelineEvents(programs, wedding, venueName, heroImage), [programs, wedding, venueName, heroImage]);
 
   const refreshInvite = async () => {
@@ -162,6 +189,7 @@ export default function PublicInvitationSite() {
     fd.append("venue_map_location", value("venue_map_location", wedding.event_address || ""));
     fd.append("venue_description", value("venue_description"));
     fd.append("venue_image", value("venue_image"));
+    fd.append("invitation_bg_image", value("invitation_bg_image"));
     fd.append("profile_image", value("profile_image"));
     fd.append("music_url", value("music_url"));
     fd.append("access_level", value("access_level", "private"));
@@ -180,6 +208,9 @@ export default function PublicInvitationSite() {
     fd.append("custom_section_label", value("custom_section_label"));
     if (patch.profile_image_file) {
       fd.append("profile_image_file", await preparePhotoForUpload(patch.profile_image_file));
+    }
+    if (patch.invitation_bg_image_file) {
+      fd.append("invitation_bg_image_file", await preparePhotoForUpload(patch.invitation_bg_image_file));
     }
     await apiPostForm(`/admin/weddings/${wedding._id}/update`, fd);
     await refreshInvite();
@@ -206,6 +237,24 @@ export default function PublicInvitationSite() {
     await refreshInvite();
   };
 
+  const addWeddingProgram = async () => {
+    if (!wedding?._id) return;
+    const fd = new FormData();
+    fd.append("wedding_id", wedding._id);
+    fd.append("title", `Wedding Program ${programs.length + 1}`);
+    fd.append("event_date", wedding.wedding_date || "");
+    fd.append("event_time", wedding.wedding_time || "");
+    fd.append("venue_name", venueName);
+    fd.append("event_address", venueAddress);
+    fd.append("thumbnail", heroImage);
+    fd.append("music_url", "");
+    fd.append("section_key", "main");
+    fd.append("order", String(programs.length));
+    fd.append("event_sections_json", JSON.stringify([]));
+    await apiPostForm("/admin/programs/create", fd);
+    await refreshInvite();
+  };
+
   const revealInvite = async () => {
     setBursting(true);
     if (musicUrl) {
@@ -216,25 +265,84 @@ export default function PublicInvitationSite() {
 
   const scratchReveal = (event) => {
     if (scratchOpen) return;
+    if (event.type === "click") {
+      setScratchOpen(true);
+      setScratchProgress(100);
+      return;
+    }
     if (event.type === "pointermove" && event.buttons !== 1) return;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = Math.round(event.clientX - rect.left);
+    const y = Math.round(event.clientY - rect.top);
+    setScratchPoints((points) => [...points.slice(-10), `${x}px ${y}px`]);
     setScratchProgress((progress) => {
-      const next = Math.min(100, progress + 15);
-      if (next >= 72) setScratchOpen(true);
+      const next = Math.min(100, progress + (event.type === "pointerdown" ? 8 : 4));
+      if (next >= 78) setScratchOpen(true);
       return next;
     });
   };
+
+  const chooseGuess = (choice) => {
+    if (guessChoice) return;
+    const next = { ...guessVotes, [choice]: (guessVotes[choice] || 0) + 1 };
+    setGuessChoice(choice);
+    setGuessVotes(next);
+    localStorage.setItem(guessStorageKey(publicSlug), JSON.stringify({ choice, votes: next }));
+  };
+
+  const guessPercents = getGuessPercents(guessVotes);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(guessStorageKey(publicSlug)) || "null");
+      if (saved?.votes) setGuessVotes(saved.votes);
+      if (saved?.choice) setGuessChoice(saved.choice);
+    } catch {
+      setGuessChoice("");
+    }
+  }, [publicSlug]);
 
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
 
   return (
-    <main className={`invite-site ${revealed ? "is-revealed" : ""}`}>
+    <main className={`invite-site ${revealed ? "is-revealed" : ""}`} style={{ "--invite-bg-image": `url(${invitationBgImage})` }}>
       <SeoHead
         title={wedding ? `${wedding.couple_names} Wedding Invitation` : "Wedding Invitation"}
         description={wedding?.description || "You are invited to the wedding celebration."}
         canonicalPath={`/p/${publicSlug}/invite`}
         image={heroImage}
       />
+      {canEdit && (
+        <div className="invite-edit-tools">
+          <button
+            type="button"
+            className={`invite-edit-toggle ${isEditing ? "is-on" : ""}`}
+            onClick={() => {
+              if (!revealed) setRevealed(true);
+              toggleEditMode();
+            }}
+          >
+            {isEditing ? "Done Editing" : "Edit Invitation"}
+          </button>
+          {isEditing && (
+            <button type="button" className="invite-bg-edit" onClick={() => bgInputRef.current?.click()}>
+              Change BG
+              <input
+                ref={bgInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (file) saveWeddingPatch({ invitation_bg_image_file: file });
+                }}
+              />
+            </button>
+          )}
+        </div>
+      )}
       <audio ref={audioRef} src={musicUrl} loop preload="metadata" />
       <button
         type="button"
@@ -291,8 +399,18 @@ export default function PublicInvitationSite() {
               transition={{ duration: 1.5, ease: "easeOut" }}
             >
               <h1 className="invite-celebration-title">
-                <span>The Celebration</span>
-                <span>Unfolds</span>
+                <InlineEditableText
+                  as="span"
+                  value={wedding?.hero_meta_one || "The Celebration"}
+                  enabled={isEditing}
+                  onSave={(value) => saveWeddingPatch({ hero_meta_one: value })}
+                />
+                <InlineEditableText
+                  as="span"
+                  value={wedding?.hero_meta_two || "Unfolds"}
+                  enabled={isEditing}
+                  onSave={(value) => saveWeddingPatch({ hero_meta_two: value })}
+                />
               </h1>
               <div className="invite-soft-hearts" aria-hidden="true"><span /><span /></div>
               <motion.div
@@ -301,7 +419,18 @@ export default function PublicInvitationSite() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.9, delay: 0.28, ease: "easeOut" }}
               >
-                Sacred <em>Ceremonies</em>
+                <InlineEditableText
+                  as="span"
+                  value={wedding?.hero_meta_three || "Sacred"}
+                  enabled={isEditing}
+                  onSave={(value) => saveWeddingPatch({ hero_meta_three: value })}
+                />
+                <InlineEditableText
+                  as="em"
+                  value={wedding?.programs_section_title || "Ceremonies"}
+                  enabled={isEditing}
+                  onSave={(value) => saveWeddingPatch({ programs_section_title: value })}
+                />
               </motion.div>
               <div className="invite-luxury-couple">
                 <EditableImage
@@ -362,6 +491,12 @@ export default function PublicInvitationSite() {
           </section>
 
           <section className="invite-section invite-events invite-timeline-section" id="events">
+            {isEditing && (
+              <div className="invite-program-editor">
+                <p>Edit wedding programs here. Add a new function, then click any title, time, date, attire text, or image below to update it.</p>
+                <button type="button" onClick={addWeddingProgram}>Add Wedding Program</button>
+              </div>
+            )}
             <div className="invite-event-grid invite-timeline">
               {inviteEvents.map((event, index) => (
                 <motion.article
@@ -399,11 +534,32 @@ export default function PublicInvitationSite() {
           </section>
 
           <section className="invite-section invite-memories invite-card-panel">
-            <p className="invite-kicker">A Little Story</p>
-            <h2>Our memories before we create more memories</h2>
+            <InlineEditableText
+              as="p"
+              className="invite-kicker"
+              value={wedding?.custom_section_label || "A Little Story"}
+              enabled={isEditing}
+              onSave={(value) => saveWeddingPatch({ custom_section_label: value })}
+            />
+            <InlineEditableText
+              as="h2"
+              value={wedding?.programs_section_title || "Our memories before we create more memories"}
+              enabled={isEditing}
+              onSave={(value) => saveWeddingPatch({ programs_section_title: value })}
+            />
             <div className="invite-memory-grid">
-              {galleryImages.map((image, index) => (
-                <img key={`${image}-${index}`} src={image} alt="" />
+              {galleryItems.map((item, index) => (
+                <EditableImage
+                  key={`${item.key}-${index}`}
+                  src={item.image}
+                  alt=""
+                  enabled={isEditing}
+                  onFile={(file) => (
+                    item.program
+                      ? saveProgramPatch(item.program, { thumbnail_file: file })
+                      : saveWeddingPatch({ profile_image_file: file })
+                  )}
+                />
               ))}
             </div>
           </section>
@@ -423,14 +579,31 @@ export default function PublicInvitationSite() {
           </section>
 
           <section className="invite-section invite-countdown invite-card-panel">
-            <p className="invite-kicker">Counting Every Moment</p>
-            <h2>Until we say I do</h2>
+            <InlineEditableText
+              as="p"
+              className="invite-kicker"
+              value={wedding?.venue_eyebrow || "Counting Every Moment"}
+              enabled={isEditing}
+              onSave={(value) => saveWeddingPatch({ venue_eyebrow: value })}
+            />
+            <InlineEditableText
+              as="h2"
+              value={wedding?.venue_script || "Until we say I do"}
+              enabled={isEditing}
+              onSave={(value) => saveWeddingPatch({ venue_script: value })}
+            />
             <button
               type="button"
               className={`invite-scratch ${scratchOpen ? "is-open" : ""}`}
-              style={{ "--scratch-progress": `${scratchProgress}%` }}
+              style={{
+                "--scratch-progress": `${scratchProgress}%`,
+                "--scratch-mask": scratchPoints.length
+                  ? scratchPoints.map((point) => `radial-gradient(circle 28px at ${point}, transparent 0 54%, #000 57%)`).join(", ")
+                  : "linear-gradient(#000, #000)",
+              }}
               onPointerDown={scratchReveal}
               onPointerMove={scratchReveal}
+              onClick={scratchReveal}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") setScratchOpen(true);
               }}
@@ -452,9 +625,23 @@ export default function PublicInvitationSite() {
               <h3>Make a Guess</h3>
               <p>Who will get emotional first?</p>
               <div className="invite-guess-options">
-                <button type="button"><span>🥹</span>{firstName || "Bride"}</button>
-                {secondName && <button type="button"><span>😭</span>{secondName}</button>}
-                <button type="button"><span>💞</span>Both</button>
+                <button type="button" className={guessChoice === "first" ? "is-selected" : ""} onClick={() => chooseGuess("first")} disabled={Boolean(guessChoice)}>
+                  <span aria-hidden="true">{"\uD83E\uDD79"}</span>
+                  {firstName || "Bride"}
+                  {guessChoice && <small>{guessPercents.first}%</small>}
+                </button>
+                {secondName && (
+                  <button type="button" className={guessChoice === "second" ? "is-selected" : ""} onClick={() => chooseGuess("second")} disabled={Boolean(guessChoice)}>
+                    <span aria-hidden="true">{"\uD83D\uDE2D"}</span>
+                    {secondName}
+                    {guessChoice && <small>{guessPercents.second}%</small>}
+                  </button>
+                )}
+                <button type="button" className={guessChoice === "both" ? "is-selected" : ""} onClick={() => chooseGuess("both")} disabled={Boolean(guessChoice)}>
+                  <span aria-hidden="true">{"\uD83D\uDC9E"}</span>
+                  Both
+                  {guessChoice && <small>{guessPercents.both}%</small>}
+                </button>
               </div>
               <em>Reveal after the wedding</em>
             </div>
@@ -480,6 +667,9 @@ export default function PublicInvitationSite() {
           <section className="invite-hashtag">
             <span>Forever begins here</span>
             <strong>{inviteHash(wedding?.couple_names)}</strong>
+            <Link className="invite-story-button" to={`/p/${publicSlug}/home`}>
+              See Their Wedflix Story
+            </Link>
           </section>
         </>
       )}
