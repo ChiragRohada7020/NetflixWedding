@@ -181,17 +181,20 @@ export default function PublicInvitationSite() {
               <a href="#events">Events</a>
               <a href="#venue">Venue</a>
             </nav>
+            <div className="invite-hero__couple">
+              <img src={heroImage} alt={wedding?.couple_names || "Couple"} />
+            </div>
             <div className="invite-hero__content invite-card-panel">
-              <div className="invite-hero__portrait">
-                <img src={heroImage} alt="" />
+              <div className="invite-logo-mark" aria-hidden="true">
+                <span>{initials}</span>
+                <small>{inviteHash(wedding?.couple_names)}</small>
               </div>
-              <p className="invite-kicker">Together with their families</p>
+              <p className="invite-kicker">Wedding Invitation</p>
               <h1>
                 <span>{firstName}</span>
-                {secondName && <em>&amp;</em>}
+                {secondName && <em>weds</em>}
                 {secondName && <span>{secondName}</span>}
               </h1>
-              <p className="invite-hash">{inviteHash(wedding?.couple_names)}</p>
               <div className="invite-date">
                 {date.day && <strong>{date.day}</strong>}
                 <span>{date.month}{date.weekday && <small>{date.weekday}</small>}</span>
