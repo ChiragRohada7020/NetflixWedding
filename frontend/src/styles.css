@@ -8626,8 +8626,13 @@ body.premium-flow-open .wedflix-footer {
   max-width: 420px;
   margin: 0 auto;
   background:
+    radial-gradient(ellipse at 10% 4%, rgba(123, 154, 115, 0.3) 0 6%, transparent 7%),
+    radial-gradient(ellipse at 24% 8%, rgba(123, 154, 115, 0.22) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 88% 7%, rgba(123, 154, 115, 0.28) 0 7%, transparent 8%),
     radial-gradient(ellipse at 74% 0%, rgba(201, 140, 114, 0.2) 0 11%, transparent 12%),
     radial-gradient(ellipse at 92% 3%, rgba(216, 177, 122, 0.14) 0 14%, transparent 15%),
+    radial-gradient(ellipse at 0% 82%, rgba(123, 154, 115, 0.22) 0 9%, transparent 10%),
+    radial-gradient(ellipse at 100% 72%, rgba(123, 154, 115, 0.2) 0 10%, transparent 11%),
     radial-gradient(circle at 18% 34%, rgba(201, 140, 114, 0.11), transparent 28%),
     radial-gradient(circle at 92% 68%, rgba(123, 154, 115, 0.12), transparent 30%),
     linear-gradient(180deg, #fcf8f3 0%, #fffaf4 42%, #fcf8f3 100%);
@@ -8676,6 +8681,33 @@ body.premium-flow-open .wedflix-footer {
 .invite-particles i:nth-child(5n + 3) { left: 84%; top: 74%; animation-delay: -6s; }
 .invite-particles i:nth-child(5n + 4) { left: 24%; top: 82%; animation-delay: -3s; }
 
+.invite-particles b {
+  position: fixed;
+  z-index: 6;
+  bottom: -22px;
+  width: 10px;
+  height: 10px;
+  background: rgba(201, 140, 114, 0.28);
+  clip-path: path("M5 9 C1 6 0 4 1 2 C2 0 4 1 5 3 C6 1 8 0 9 2 C10 4 9 6 5 9Z");
+  animation: inviteHeartRise 9s linear infinite;
+  pointer-events: none;
+}
+
+.invite-particles b:nth-of-type(1) { left: 11%; animation-delay: -1s; }
+.invite-particles b:nth-of-type(2) { left: 24%; animation-delay: -5s; transform: scale(0.76); }
+.invite-particles b:nth-of-type(3) { left: 39%; animation-delay: -3s; transform: scale(1.1); }
+.invite-particles b:nth-of-type(4) { left: 52%; animation-delay: -7s; transform: scale(0.72); }
+.invite-particles b:nth-of-type(5) { left: 66%; animation-delay: -2s; }
+.invite-particles b:nth-of-type(6) { left: 81%; animation-delay: -6s; transform: scale(0.85); }
+.invite-particles b:nth-of-type(7) { left: 93%; animation-delay: -4s; transform: scale(0.65); }
+.invite-particles b:nth-of-type(8) { left: 18%; animation-delay: -8s; transform: scale(0.58); }
+.invite-particles b:nth-of-type(9) { left: 34%; animation-delay: -10s; transform: scale(0.82); }
+.invite-particles b:nth-of-type(10) { left: 47%; animation-delay: -12s; transform: scale(0.66); }
+.invite-particles b:nth-of-type(11) { left: 58%; animation-delay: -9s; transform: scale(0.94); }
+.invite-particles b:nth-of-type(12) { left: 72%; animation-delay: -11s; transform: scale(0.7); }
+.invite-particles b:nth-of-type(13) { left: 86%; animation-delay: -13s; transform: scale(0.88); }
+.invite-particles b:nth-of-type(14) { left: 6%; animation-delay: -14s; transform: scale(0.62); }
+
 .invite-luxury-hero {
   min-height: 560px;
   padding: 80px 20px 24px;
@@ -8693,9 +8725,11 @@ body.premium-flow-open .wedflix-footer {
 .invite-luxury-hero::before {
   inset: 0;
   background:
-    radial-gradient(ellipse at 24% 5%, rgba(123, 154, 115, 0.24) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 8% 8%, rgba(123, 154, 115, 0.3) 0 7%, transparent 8%),
+    radial-gradient(ellipse at 22% 5%, rgba(123, 154, 115, 0.26) 0 8%, transparent 9%),
     radial-gradient(ellipse at 42% 0%, rgba(123, 154, 115, 0.2) 0 7%, transparent 8%),
-    radial-gradient(ellipse at 80% 0%, rgba(201, 140, 114, 0.16) 0 12%, transparent 13%);
+    radial-gradient(ellipse at 72% 3%, rgba(123, 154, 115, 0.24) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 90% 0%, rgba(201, 140, 114, 0.16) 0 12%, transparent 13%);
 }
 
 .invite-luxury-hero::after {
@@ -8789,6 +8823,42 @@ body.premium-flow-open .wedflix-footer {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.invite-couple-date-card {
+  width: min(330px, 100%);
+  margin: 16px auto 8px;
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(201, 140, 114, 0.42);
+  border-radius: 18px;
+  background: rgba(255, 253, 249, 0.78);
+  box-shadow: 0 16px 34px rgba(90, 67, 56, 0.08);
+  backdrop-filter: blur(5px);
+}
+
+.invite-couple-date-card p {
+  margin: 0;
+  color: #8a5a44;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.invite-couple-date-card h2 {
+  margin: 8px 0 6px;
+  color: #c98c72;
+  font-family: "Great Vibes", "Allura", "Parisienne", cursive;
+  font-size: 2.6rem;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.invite-couple-date-card span {
+  color: #5a4338;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
 }
 
 .invite-luxury-description {
@@ -8906,18 +8976,25 @@ body.premium-flow-open .wedflix-footer {
 .invite-heart-node {
   position: absolute;
   left: 50%;
-  width: 36px;
-  height: 36px;
+  z-index: 0;
+  width: 22px;
+  height: 22px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(201, 140, 114, 0.66);
   border-radius: 50%;
   background: #fffdf9;
   color: #c98c72;
-  font-size: 1.15rem;
+  font-size: 0.82rem;
   transform: translateX(-50%);
-  box-shadow: 0 8px 22px rgba(90, 67, 56, 0.08);
+  box-shadow: 0 6px 16px rgba(90, 67, 56, 0.08);
   animation: invitePulse 2.6s ease-in-out infinite;
+}
+
+.invite-timeline-card,
+.invite-couple-art {
+  position: relative;
+  z-index: 2;
 }
 
 .invite-story,
@@ -8953,6 +9030,12 @@ body.premium-flow-open .wedflix-footer {
   0% { transform: translate3d(0, 0, 0); opacity: 0; }
   20% { opacity: 1; }
   100% { transform: translate3d(16px, -58px, 0); opacity: 0; }
+}
+
+@keyframes inviteHeartRise {
+  0% { transform: translate3d(0, 0, 0) scale(0.7); opacity: 0; }
+  12% { opacity: 0.72; }
+  100% { transform: translate3d(14px, -110vh, 0) scale(1.08); opacity: 0; }
 }
 
 @media (max-width: 700px) {

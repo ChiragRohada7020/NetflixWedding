@@ -167,6 +167,7 @@ export default function PublicInvitationSite() {
             <span className="invite-florals__corner invite-florals__corner--bl" />
             <span className="invite-florals__corner invite-florals__corner--br" />
             {Array.from({ length: 16 }).map((_, index) => <i key={index} />)}
+            {Array.from({ length: 14 }).map((_, index) => <b key={`heart-${index}`} />)}
           </div>
           <section className="invite-hero invite-luxury-hero" style={{ backgroundImage: `url(${heroImage})` }}>
             <div className="invite-hero__shade" />
@@ -192,6 +193,16 @@ export default function PublicInvitationSite() {
               <div className="invite-luxury-couple">
                 <img src={heroImage} alt={wedding?.couple_names || "Couple"} />
               </div>
+              <motion.div
+                className="invite-couple-date-card"
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.9, delay: 0.45, ease: "easeOut" }}
+              >
+                <p>{inviteTitle}</p>
+                <h2>{firstName}{secondName ? ` weds ${secondName}` : ""}</h2>
+                <span>{date.weekday || "Wedding Day"} / {date.day || ""} {date.month || ""} {date.year || ""}</span>
+              </motion.div>
               <div className="invite-date">
                 {date.day && <strong>{date.day}</strong>}
                 <span>{date.month}{date.weekday && <small>{date.weekday}</small>}</span>
