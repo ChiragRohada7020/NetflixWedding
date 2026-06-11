@@ -683,7 +683,7 @@ export default function PublicInvitationSite() {
               aria-label="Scratch countdown card to reveal wedding countdown"
             >
               {scratchOpen ? (
-                <span>{countdown.days} Days / {countdown.hours} Hours / {countdown.minutes} Minutes</span>
+                <span>{readableDate(wedding?.wedding_date, "Wedding Date")} / {countdown.days} Days / {countdown.hours} Hours / {countdown.minutes} Minutes</span>
               ) : (
                 <span>Scratch to reveal</span>
               )}
@@ -718,9 +718,10 @@ export default function PublicInvitationSite() {
               </div>
               <div className="invite-reveal-options" aria-label="Choose your reveal answer">
                 {[
-                  `${firstName || "Bride"} will smile first`,
-                  `${secondName || "Groom"} will tear up`,
-                  "Both, obviously",
+                  `😊 ${firstName || "Bride"} will smile first`,
+                  `🥹 ${secondName || "Groom"} will tear up`,
+                  "💞 Both, obviously",
+                  "🎉 Family will cry first",
                 ].map((answer) => (
                   <button
                     type="button"
@@ -737,10 +738,10 @@ export default function PublicInvitationSite() {
               <h3>Why are you coming?</h3>
               <div className="invite-mood-grid" aria-label="Choose why you are coming">
                 {[
-                  "To bless the couple",
-                  "To celebrate with family",
-                  "To dance all night",
-                  "To make memories",
+                  "🙏 To bless the couple",
+                  "👨‍👩‍👧 To celebrate with family",
+                  "💃 To dance all night",
+                  "📸 To make memories",
                 ].map((item) => (
                   <button
                     type="button"

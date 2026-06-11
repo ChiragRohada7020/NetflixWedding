@@ -8696,6 +8696,8 @@ body.premium-flow-open .wedflix-footer {
 
 .invite-scratch:focus-visible,
 .invite-guess-options button:focus-visible,
+.invite-reveal-options button:focus-visible,
+.invite-mood-grid button:focus-visible,
 .invite-program-editor button:focus-visible {
   outline: 2px solid rgba(152, 42, 47, 0.62);
   outline-offset: 3px;
@@ -8791,13 +8793,13 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-reveal-options {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 24px;
 }
 
 .invite-reveal-options button {
-  min-height: 54px;
-  border-radius: 999px;
+  min-height: 62px;
+  border-radius: 18px;
 }
 
 .invite-reveal-options button:hover,
@@ -9564,9 +9566,13 @@ body.premium-flow-open .wedflix-footer {
     opacity: 0.46;
   }
 
-  .invite-memory-grid,
-  .invite-mood-grid {
+  .invite-memory-grid {
     grid-template-columns: 1fr;
+  }
+
+  .invite-reveal-options,
+  .invite-mood-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .invite-guess-options {
