@@ -19,6 +19,7 @@ const DeveloperAdminPage = React.lazy(() => import("./pages/DeveloperAdminPage")
 const DeveloperLoginPage = React.lazy(() => import("./pages/DeveloperLoginPage"));
 const ShareHomePage = React.lazy(() => import("./pages/ShareHomePage"));
 const PublicWeddingProfilePage = React.lazy(() => import("./pages/PublicWeddingProfilePage"));
+const PublicInvitationSite = React.lazy(() => import("./pages/PublicInvitationSite"));
 const PublicUserWedflixPage = React.lazy(() => import("./pages/PublicUserWedflixPage"));
 const FavouritesPage = React.lazy(() => import("./pages/FavouritesPage"));
 
@@ -65,6 +66,7 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
             <Route path="/share/:weddingId/programs/:programId/episodes/:episodeId" element={<EpisodeDetailPage publicMode />} />
             <Route path="/p/:publicSlug" element={<PublicWeddingProfilePage />} />
             <Route path="/p/:publicSlug/home" element={<PublicWeddingProfilePage openHome />} />
+            <Route path="/p/:publicSlug/invite" element={<PublicInvitationSite />} />
             <Route path="/u/:userId" element={<PublicUserWedflixPage />} />
             <Route path="/developer" element={<DeveloperAdminPage />} />
             <Route path="/developer-login" element={<DeveloperLoginPage />} />

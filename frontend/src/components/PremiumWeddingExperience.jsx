@@ -85,6 +85,9 @@ export default function PremiumWeddingExperience({
   const musicUrl = mediaUrl(wedding?.music_url || "");
   const invitation = getInvitationText(wedding);
   const invitationDate = getInvitationDate(wedding?.wedding_date);
+  const invitationWebsiteUrl = wedding?.public_slug
+    ? `${window.location.origin}/p/${wedding.public_slug}/invite`
+    : window.location.href;
   const mapQuery = mapLocation || [venueName, venueAddress].filter(Boolean).join(", ");
   const venueBlocks = useMemo(() => {
     const saved = Array.isArray(wedding?.venue_blocks) ? wedding.venue_blocks : [];
@@ -214,7 +217,7 @@ export default function PremiumWeddingExperience({
   };
 
   const shareText = `${wedding?.couple_names || "Wedflix Story"} - ${wedding?.wedding_date || ""}`;
-  const shareUrl = window.location.href;
+  const shareUrl = invitationWebsiteUrl;
   const shareInvitation = async () => {
     if (navigator.share) {
       await navigator.share({ title: shareText, text: "You are invited to the wedding celebration.", url: shareUrl }).catch(() => {});
@@ -332,13 +335,20 @@ export default function PremiumWeddingExperience({
         </button>
         <div className="premium-intro__content">
           <p className="premium-kicker">A WEDFLIX WEDDING ORIGINAL</p>
+          <div className="premium-intro__monogram" aria-hidden="true">
+            {(invitation.first || "W").charAt(0)}
+            {(invitation.second || "F").charAt(0)}
+          </div>
           <h1>{wedding.couple_names || "Wedflix Story"}</h1>
+          <p className="premium-intro__hashtag">
+            #{(wedding.couple_names || "WedflixForever").replace(/[^a-z0-9]+/gi, "").slice(0, 22) || "WedflixForever"}
+          </p>
           <p className="premium-intro__tagline">{wedding.description || "Together Forever"}</p>
           <div className="premium-intro__meta">
             <span>{wedding.wedding_date || "Story Date"}</span>
             <span>{venueAddress}</span>
           </div>
-          <button type="button" className="premium-primary" onClick={() => setScreen("invitation")}>Enter Story</button>
+          <button type="button" className="premium-primary premium-primary--reveal" onClick={() => setScreen("invitation")}>Tap to Reveal</button>
         </div>
       </header>,
     );
