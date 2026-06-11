@@ -421,7 +421,19 @@ export default function PublicInvitationSite() {
       {!revealed && (
         <section className={`invite-reveal ${bursting ? "is-bursting" : ""}`} style={{ backgroundImage: `url(${invitationBgImage})` }}>
           <div className="invite-reveal__shade" />
-          <div className="invite-envelope">
+          <div
+            className="invite-envelope"
+            role="button"
+            tabIndex={0}
+            onClick={revealInvite}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                revealInvite();
+              }
+            }}
+            aria-label="Open wedding invitation"
+          >
             <div className="invite-envelope__back" />
             <div className="invite-envelope__letter">
               <p>Wedding Invitation</p>
@@ -431,8 +443,8 @@ export default function PublicInvitationSite() {
             <div className="invite-envelope__pocket" />
             <div className="invite-envelope__flap" />
             <div className="invite-envelope__seal">{initials}</div>
-            <button type="button" onClick={revealInvite} disabled={bursting}>
-              {bursting ? "Opening..." : "Tap to Reveal"}
+            <button type="button" disabled={bursting}>
+              {bursting ? "Opening..." : "Open Invitation"}
             </button>
           </div>
           <div className="invite-burst" aria-hidden="true">
