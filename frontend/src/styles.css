@@ -7755,6 +7755,7 @@ body.premium-flow-open .wedflix-footer {
   justify-content: center;
   gap: clamp(18px, 4vw, 34px);
   padding: clamp(28px, 6vw, 72px) 28px;
+  background-color: #fff8f0;
   background-size: cover;
   background-position: center;
   text-align: center;
@@ -7765,9 +7766,9 @@ body.premium-flow-open .wedflix-footer {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 24%, rgba(255, 241, 230, 0.92), transparent 28%),
-    linear-gradient(180deg, rgba(255, 252, 248, 0.9), rgba(255, 245, 238, 0.82));
-  backdrop-filter: blur(5px);
+    radial-gradient(circle at 50% 45%, rgba(255, 248, 238, 0.08), transparent 28%),
+    linear-gradient(180deg, rgba(255, 251, 244, 0.02), rgba(255, 246, 236, 0.06));
+  backdrop-filter: blur(0.5px);
 }
 
 .invite-reveal__couple {
@@ -7901,11 +7902,37 @@ body.premium-flow-open .wedflix-footer {
 .invite-envelope {
   position: relative;
   z-index: 2;
-  width: min(420px, 86vw);
-  height: min(300px, 62vw);
-  margin-top: clamp(24px, 8vh, 72px);
+  width: min(620px, 84vw);
+  height: min(560px, 76vw);
+  margin-top: clamp(10px, 4vh, 42px);
   perspective: 1100px;
-  filter: drop-shadow(0 28px 70px rgba(42, 25, 44, 0.24));
+  filter: drop-shadow(0 30px 42px rgba(42, 25, 44, 0.24));
+}
+
+.invite-envelope::before,
+.invite-envelope::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  bottom: 4%;
+  width: 38%;
+  height: 44%;
+  background:
+    radial-gradient(circle at 30% 40%, #e5a8a1 0 10%, transparent 11%),
+    radial-gradient(circle at 44% 58%, #fff0dc 0 12%, transparent 13%),
+    radial-gradient(circle at 23% 68%, #cf8e8f 0 8%, transparent 9%),
+    radial-gradient(ellipse at 68% 20%, rgba(107, 128, 93, 0.9) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 76% 45%, rgba(201, 160, 99, 0.82) 0 6%, transparent 7%);
+  opacity: 0.92;
+}
+
+.invite-envelope::before {
+  left: -15%;
+}
+
+.invite-envelope::after {
+  right: -15%;
+  transform: scaleX(-1);
 }
 
 .invite-envelope__back,
@@ -7917,25 +7944,27 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-envelope__back {
-  border-radius: 10px;
-  background: linear-gradient(145deg, #6b5f76, #514660);
+  top: 10%;
+  border-radius: 28px 28px 0 0;
+  background: linear-gradient(145deg, #5e506d, #3d2f4d);
 }
 
 .invite-envelope__letter {
-  inset: auto 9% 24% 9%;
-  height: 70%;
+  inset: 4% 12% auto 12%;
+  height: 58%;
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 8px;
-  padding: 24px 18px;
-  border: 1px solid rgba(157, 44, 48, 0.18);
-  border-radius: 10px;
+  gap: 10px;
+  padding: 32px 28px;
+  border: 1px solid rgba(205, 163, 95, 0.58);
+  border-radius: 0;
   background:
+    linear-gradient(90deg, transparent 0 5%, rgba(205, 163, 95, 0.28) 5.4% 5.8%, transparent 6.2% 94%, rgba(205, 163, 95, 0.28) 94.2% 94.6%, transparent 95%),
     linear-gradient(145deg, rgba(255, 253, 248, 0.98), rgba(250, 241, 233, 0.96)),
     #fffaf3;
   color: #9b282d;
-  transform: translateY(28%);
+  transform: translateY(8%);
   transition: transform 0.85s ease 0.18s, opacity 0.5s ease;
 }
 
@@ -7963,26 +7992,27 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-envelope__pocket {
-  clip-path: polygon(0 28%, 50% 64%, 100% 28%, 100% 100%, 0 100%);
-  border-radius: 10px;
+  top: 22%;
+  clip-path: polygon(0 28%, 50% 70%, 100% 28%, 100% 100%, 0 100%);
+  border-radius: 0 0 3px 3px;
   background:
-    linear-gradient(138deg, rgba(255, 255, 255, 0.06), transparent 42%),
-    linear-gradient(145deg, #5c4f69, #40364d);
+    linear-gradient(138deg, rgba(255, 255, 255, 0.07), transparent 42%),
+    linear-gradient(145deg, #4f405f, #2f253d);
 }
 
 .invite-envelope__flap {
+  top: 22%;
   transform-origin: top center;
-  clip-path: polygon(0 0, 100% 0, 50% 58%);
-  border-radius: 10px;
-  background: linear-gradient(160deg, #756980, #4c4158);
+  clip-path: polygon(0 0, 100% 0, 50% 64%);
+  background: linear-gradient(160deg, #675875, #372b47);
   transition: transform 0.8s ease;
 }
 
 .invite-envelope__seal {
   position: absolute;
   left: 50%;
-  top: 57%;
-  width: 58px;
+  top: 68%;
+  width: 78px;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -7992,7 +8022,7 @@ body.premium-flow-open .wedflix-footer {
     radial-gradient(circle, #f5d48a, #bd823c);
   color: #fff8d8;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 1.45rem;
+  font-size: 1.9rem;
   font-weight: 800;
   transform: translate(-50%, -50%);
   box-shadow: 0 8px 22px rgba(45, 23, 36, 0.28);
@@ -8002,10 +8032,10 @@ body.premium-flow-open .wedflix-footer {
 .invite-envelope button {
   position: absolute;
   left: 50%;
-  bottom: -78px;
-  min-width: 172px;
-  min-height: 50px;
-  border: 0;
+  bottom: -96px;
+  min-width: 216px;
+  min-height: 58px;
+  border: 2px solid rgba(245, 212, 138, 0.72);
   border-radius: 999px;
   background: linear-gradient(135deg, #9a1430, #d9793d);
   color: #fff;
@@ -8021,7 +8051,7 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-reveal.is-bursting .invite-envelope__letter {
-  transform: translateY(-32%);
+  transform: translateY(-18%);
 }
 
 .invite-reveal.is-bursting .invite-envelope__seal {
@@ -8048,17 +8078,31 @@ body.premium-flow-open .wedflix-footer {
 .invite-burst span {
   position: absolute;
   left: 50%;
-  top: 48%;
-  width: 12px;
-  height: 12px;
+  top: 60%;
+  width: 18px;
+  height: 18px;
   border-radius: 999px 999px 999px 0;
-  background: #d9793d;
+  background:
+    radial-gradient(circle at 42% 38%, rgba(255, 255, 255, 0.62) 0 13%, transparent 14%),
+    #e7aaa2;
   opacity: 0;
+  --angle: 0deg;
+  --travel: 220px;
   transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) scale(0.2);
 }
 
-.invite-burst span:nth-child(3n) { background: #9a1430; }
-.invite-burst span:nth-child(3n + 1) { background: #6a9a5e; }
+.invite-burst span:nth-child(3n) { background: #c8909a; }
+.invite-burst span:nth-child(3n + 1) {
+  width: 22px;
+  height: 10px;
+  border-radius: 999px 0 999px 0;
+  background: #78906f;
+}
+.invite-burst span:nth-child(4n) {
+  width: 24px;
+  height: 24px;
+  background: #fff0dc;
+}
 .invite-burst span:nth-child(1) { --angle: 0deg; --travel: 180px; }
 .invite-burst span:nth-child(2) { --angle: 24deg; --travel: 220px; }
 .invite-burst span:nth-child(3) { --angle: 48deg; --travel: 190px; }
@@ -8077,9 +8121,21 @@ body.premium-flow-open .wedflix-footer {
 .invite-burst span:nth-child(16) { --angle: 18deg; --travel: 275px; }
 .invite-burst span:nth-child(17) { --angle: 198deg; --travel: 265px; }
 .invite-burst span:nth-child(18) { --angle: 276deg; --travel: 230px; }
+.invite-burst span:nth-child(19) { --angle: 36deg; --travel: 315px; }
+.invite-burst span:nth-child(20) { --angle: 56deg; --travel: 285px; }
+.invite-burst span:nth-child(21) { --angle: 86deg; --travel: 310px; }
+.invite-burst span:nth-child(22) { --angle: 108deg; --travel: 290px; }
+.invite-burst span:nth-child(23) { --angle: 132deg; --travel: 320px; }
+.invite-burst span:nth-child(24) { --angle: 158deg; --travel: 280px; }
+.invite-burst span:nth-child(25) { --angle: 184deg; --travel: 315px; }
+.invite-burst span:nth-child(26) { --angle: 208deg; --travel: 300px; }
+.invite-burst span:nth-child(27) { --angle: 236deg; --travel: 330px; }
+.invite-burst span:nth-child(28) { --angle: 258deg; --travel: 292px; }
+.invite-burst span:nth-child(29) { --angle: 304deg; --travel: 318px; }
+.invite-burst span:nth-child(30) { --angle: 326deg; --travel: 288px; }
 
 .invite-reveal.is-bursting .invite-burst span {
-  animation: inviteFlowerBurst 0.9s ease-out forwards;
+  animation: inviteFlowerBurst 1.25s ease-out forwards;
 }
 
 .invite-hero {
@@ -9177,18 +9233,18 @@ body.premium-flow-open .wedflix-footer {
 .invite-heart-node {
   position: absolute;
   left: 50%;
-  z-index: 3;
-  width: 22px;
-  height: 22px;
+  z-index: 1;
+  width: 13px;
+  height: 13px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(201, 140, 114, 0.66);
+  border: 1px solid rgba(201, 140, 114, 0.52);
   border-radius: 50%;
   background: #fffdf9;
   color: #c98c72;
-  font-size: 0.82rem;
+  font-size: 0.48rem;
   transform: translateX(-50%);
-  box-shadow: 0 6px 16px rgba(90, 67, 56, 0.08);
+  box-shadow: 0 4px 10px rgba(90, 67, 56, 0.06);
   animation: invitePulse 2.6s ease-in-out infinite;
 }
 

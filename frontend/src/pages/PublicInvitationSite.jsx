@@ -377,7 +377,7 @@ export default function PublicInvitationSite() {
       </button>
 
       {!revealed && (
-        <section className={`invite-reveal ${bursting ? "is-bursting" : ""}`} style={{ backgroundImage: `url(${heroImage})` }}>
+        <section className={`invite-reveal ${bursting ? "is-bursting" : ""}`} style={{ backgroundImage: `url(${invitationBgImage})` }}>
           <div className="invite-reveal__shade" />
           <div className="invite-envelope">
             <div className="invite-envelope__back" />
@@ -394,7 +394,7 @@ export default function PublicInvitationSite() {
             </button>
           </div>
           <div className="invite-burst" aria-hidden="true">
-            {Array.from({ length: 18 }).map((_, index) => <span key={index} />)}
+            {Array.from({ length: 30 }).map((_, index) => <span key={index} />)}
           </div>
         </section>
       )}
@@ -526,7 +526,7 @@ export default function PublicInvitationSite() {
                   viewport={{ once: true, margin: "-80px" }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
                 >
-                  <div className="invite-heart-node" aria-hidden="true">♡</div>
+                  <div className="invite-heart-node" aria-hidden="true">{"\u2661"}</div>
                   <div className="invite-couple-art">
                     <EditableImage
                       src={event.image}
