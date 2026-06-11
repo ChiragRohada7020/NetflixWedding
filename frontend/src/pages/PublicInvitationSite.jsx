@@ -302,11 +302,12 @@ export default function PublicInvitationSite() {
   };
 
   const revealInvite = async () => {
+    if (bursting) return;
     setBursting(true);
     if (musicUrl) {
       setTimeout(() => audioRef.current?.play().catch(() => {}), 120);
     }
-    window.setTimeout(() => setRevealed(true), 920);
+    window.setTimeout(() => setRevealed(true), 1350);
   };
 
   const scratchReveal = (event) => {
