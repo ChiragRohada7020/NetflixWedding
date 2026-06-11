@@ -15,6 +15,7 @@ body {
 }
 html, #root {
   height: 100%;
+  scroll-behavior: smooth;
 }
 
 .intro-screen {
@@ -7613,6 +7614,7 @@ body.premium-flow-open .wedflix-footer {
 
 .invite-site {
   min-height: 100svh;
+  scroll-behavior: smooth;
   background:
     radial-gradient(ellipse at 74% 0%, rgba(238, 173, 169, 0.52) 0 7%, transparent 8%),
     radial-gradient(ellipse at 86% 3%, rgba(246, 205, 201, 0.62) 0 12%, transparent 13%),
@@ -8530,24 +8532,72 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-scratch {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   width: min(560px, 100%);
   min-height: 160px;
   margin-top: 36px;
-  border: 0;
+  border: 1px solid rgba(157, 44, 48, 0.18);
   border-radius: 18px;
-  background: linear-gradient(135deg, #992a2f, #c59842);
-  color: #fff;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.86), transparent 22%),
+    linear-gradient(135deg, #fff9ef, #f5dfd0);
+  color: #982a2f;
   font: inherit;
   font-weight: 900;
   text-transform: uppercase;
   box-shadow: 0 26px 70px rgba(81, 31, 29, 0.22);
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.invite-scratch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    repeating-linear-gradient(125deg, rgba(255, 255, 255, 0.16) 0 8px, transparent 8px 18px),
+    linear-gradient(135deg, #8f2830, #c8944b 54%, #6e4a38);
+  clip-path: inset(0 0 0 var(--scratch-progress, 0%));
+  transition: clip-path 0.18s ease, opacity 0.24s ease;
+}
+
+.invite-scratch::after {
+  content: "scratch here";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.86rem;
+  letter-spacing: 0.18em;
+  pointer-events: none;
+  text-shadow: 0 1px 8px rgba(70, 28, 28, 0.36);
+  transition: opacity 0.24s ease;
+}
+
+.invite-scratch span {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  max-width: 86%;
+  line-height: 1.65;
 }
 
 .invite-scratch.is-open {
   background: linear-gradient(135deg, #fff7ed, #f4ded2);
   color: #982a2f;
   border: 1px solid rgba(157, 44, 48, 0.24);
+  cursor: default;
+}
+
+.invite-scratch.is-open::before,
+.invite-scratch.is-open::after {
+  opacity: 0;
 }
 
 .invite-fun-card {
@@ -8556,28 +8606,52 @@ body.premium-flow-open .wedflix-footer {
 
 .invite-fun-card h3 {
   margin: 0;
-  color: #982a2f;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2.3rem, 6vw, 3.6rem);
+  color: #c98c72;
+  font-family: "Great Vibes", "Allura", "Parisienne", cursive;
+  font-size: clamp(2.7rem, 8vw, 4rem);
+  font-weight: 400;
 }
 
-.invite-fun-card div,
+.invite-fun-card p {
+  color: #8a5a44;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.12rem;
+}
+
+.invite-guess-options,
 .invite-mood-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 10px;
   margin-top: 22px;
 }
 
-.invite-fun-card button,
+.invite-guess-options button,
 .invite-mood-grid button {
-  min-height: 58px;
-  border: 1px solid rgba(217, 121, 61, 0.5);
-  border-radius: 12px;
-  background: rgba(255, 250, 244, 0.7);
-  color: #982a2f;
-  font: inherit;
-  font-weight: 800;
+  min-height: 70px;
+  padding: 10px 8px;
+  border: 1px solid rgba(201, 140, 114, 0.46);
+  border-radius: 18px;
+  background: rgba(255, 253, 249, 0.76);
+  color: #8a5a44;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 12px 24px rgba(90, 67, 56, 0.06);
+}
+
+.invite-guess-options button {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.invite-guess-options button span {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  font-size: 1.65rem;
+  line-height: 1;
 }
 
 .invite-fun-card em {
@@ -8626,20 +8700,11 @@ body.premium-flow-open .wedflix-footer {
   max-width: 420px;
   margin: 0 auto;
   background:
-    radial-gradient(ellipse at 8% 4%, rgba(123, 154, 115, 0.34) 0 5%, transparent 6%),
-    radial-gradient(ellipse at 18% 9%, rgba(123, 154, 115, 0.28) 0 7%, transparent 8%),
-    radial-gradient(ellipse at 31% 1%, rgba(123, 154, 115, 0.2) 0 6%, transparent 7%),
-    radial-gradient(ellipse at 88% 5%, rgba(123, 154, 115, 0.34) 0 6%, transparent 7%),
-    radial-gradient(ellipse at 76% 12%, rgba(123, 154, 115, 0.24) 0 8%, transparent 9%),
-    radial-gradient(circle at 83% 3%, rgba(239, 198, 189, 0.52) 0 8%, transparent 9%),
-    radial-gradient(circle at 97% 12%, rgba(238, 176, 168, 0.42) 0 7%, transparent 8%),
-    radial-gradient(circle at 3% 83%, rgba(239, 198, 189, 0.5) 0 9%, transparent 10%),
-    radial-gradient(circle at 15% 92%, rgba(238, 176, 168, 0.4) 0 7%, transparent 8%),
-    radial-gradient(ellipse at 0% 76%, rgba(123, 154, 115, 0.3) 0 10%, transparent 11%),
-    radial-gradient(ellipse at 100% 70%, rgba(123, 154, 115, 0.28) 0 10%, transparent 11%),
-    radial-gradient(circle at 18% 34%, rgba(201, 140, 114, 0.1), transparent 28%),
-    radial-gradient(circle at 92% 68%, rgba(123, 154, 115, 0.12), transparent 30%),
-    linear-gradient(180deg, #fcf8f3 0%, #fffaf4 42%, #fcf8f3 100%);
+    url("/invite-leaf-bg.png"),
+    linear-gradient(180deg, #f6fbf5 0%, #fffefa 48%, #f7fbf6 100%);
+  background-position: top center;
+  background-repeat: repeat-y;
+  background-size: 100% auto;
   color: #5a4338;
   font-family: "Cormorant Garamond", Georgia, serif;
   box-shadow: 0 0 0 1px rgba(201, 140, 114, 0.1), 0 26px 90px rgba(90, 67, 56, 0.14);
@@ -8656,7 +8721,7 @@ body.premium-flow-open .wedflix-footer {
 .invite-site.is-revealed .invite-florals__corner {
   width: 230px;
   height: 330px;
-  opacity: 0.86;
+  opacity: 0.26;
   background:
     radial-gradient(ellipse at 28% 7%, rgba(93, 137, 84, 0.62) 0 5%, transparent 6%),
     radial-gradient(ellipse at 42% 13%, rgba(123, 154, 115, 0.58) 0 7%, transparent 8%),
@@ -8841,6 +8906,46 @@ body.premium-flow-open .wedflix-footer {
   object-fit: cover;
 }
 
+.invite-editable-image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.invite-editable-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.invite-editable-image span {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(90, 67, 56, 0.68);
+  color: #fffaf4;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.invite-editable-image input {
+  display: none;
+}
+
 .invite-couple-date-card {
   width: min(330px, 100%);
   margin: 16px auto 8px;
@@ -8942,6 +9047,7 @@ body.premium-flow-open .wedflix-footer {
   height: 170px;
   justify-self: center;
   overflow: hidden;
+  padding: 0;
   border-radius: 70px 70px 16px 16px;
   background: rgba(252, 248, 243, 0.52);
   filter: drop-shadow(0 16px 28px rgba(90, 67, 56, 0.12));
@@ -8953,7 +9059,7 @@ body.premium-flow-open .wedflix-footer {
   object-fit: cover;
 }
 
-.invite-timeline-card {
+.invite-timeline .invite-timeline-card {
   width: 170px;
   min-height: 146px;
   padding: 18px 18px 16px;
@@ -9019,15 +9125,20 @@ body.premium-flow-open .wedflix-footer {
 .invite-countdown,
 .invite-fun,
 .invite-notes {
-  width: calc(100% - 40px);
-  margin: 34px auto;
+  width: calc(100% - 34px);
+  margin: 30px auto;
 }
 
 .invite-site.is-revealed .invite-card-panel,
 .invite-notes article {
   border-color: rgba(201, 140, 114, 0.32);
-  background: rgba(255, 253, 249, 0.82);
+  background: rgba(255, 253, 249, 0.9);
   box-shadow: 0 18px 38px rgba(90, 67, 56, 0.08);
+}
+
+.invite-site.is-revealed .invite-section {
+  padding: 34px 18px;
+  border-radius: 22px;
 }
 
 .invite-site.is-revealed .invite-section h2 {
@@ -9035,6 +9146,36 @@ body.premium-flow-open .wedflix-footer {
   font-family: "Great Vibes", "Allura", "Parisienne", cursive;
   font-size: 2.8rem;
   font-weight: 400;
+}
+
+.invite-hashtag {
+  width: calc(100% - 34px);
+  margin: 38px auto 64px;
+  padding: 30px 18px 34px;
+  border: 1px solid rgba(201, 140, 114, 0.28);
+  border-radius: 24px;
+  background: rgba(255, 253, 249, 0.88);
+  text-align: center;
+  box-shadow: 0 18px 42px rgba(90, 67, 56, 0.08);
+}
+
+.invite-hashtag span {
+  display: block;
+  color: #9d6c5d;
+  font-size: 0.76rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.invite-hashtag strong {
+  display: block;
+  margin-top: 12px;
+  color: #9a2a2e;
+  font-family: "Great Vibes", "Allura", "Parisienne", cursive;
+  font-size: clamp(2.6rem, 13vw, 4rem);
+  font-weight: 400;
+  line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 @keyframes invitePulse {
@@ -9183,9 +9324,19 @@ body.premium-flow-open .wedflix-footer {
   }
 
   .invite-memory-grid,
-  .invite-mood-grid,
-  .invite-fun-card div {
+  .invite-mood-grid {
     grid-template-columns: 1fr;
+  }
+
+  .invite-guess-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .invite-guess-options button {
+    min-height: 72px;
+    padding-inline: 5px;
+    font-size: 0.92rem;
   }
 
   .invite-memory-grid {

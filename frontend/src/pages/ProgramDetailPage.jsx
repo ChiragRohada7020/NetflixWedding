@@ -31,12 +31,12 @@ function getVideoId(url) {
   return m ? m[1] : "";
 }
 
-function withPlayerParams(url) {
+function withPlayerParams(url, { muted = true } = {}) {
   if (!url) return "";
   const joiner = url.includes("?") ? "&" : "?";
   const videoId = getVideoId(url);
   const loopParams = videoId ? `&playlist=${videoId}` : "";
-  return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1${loopParams}&playsinline=1&start=0&rel=0&modestbranding=1`;
+  return `${url}${joiner}autoplay=1&mute=${muted ? "1" : "0"}&controls=0&loop=1${loopParams}&playsinline=1&start=0&rel=0&modestbranding=1`;
 }
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
@@ -385,8 +385,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
 
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
-  const programHeroVideo = toEmbed(program?.hero_video_url) || ordered[0]?.embed_url || "";
-  const programHeroImage = program?.thumbnail || ordered[0]?.thumbnail || "https://picsum.photos/seed/program-hero/1200/800";
+  const programHeroVideo = toEmbed(program?.hero_video_url);
+  const programHeroImage = mediaUrl(program?.thumbnail || ordered[0]?.thumbnail || wedding?.profile_image || "") || "https://picsum.photos/seed/program-hero/1200/800";
   const scrollToEvents = () => {
     document.getElementById("events")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -405,7 +405,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         <div className={`home-hero__media ${programHeroVideo ? "has-video" : ""}`}>
           {programHeroVideo ? (
             <LazyHeroVideo
-              src={withPlayerParams(programHeroVideo)}
+              src={withPlayerParams(programHeroVideo, { muted: Boolean(pageMusicUrl) })}
               title="Program Hero"
               poster={programHeroImage}
               alt={program?.title || "Program"}
@@ -673,7 +673,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
         <VideoModal
           open={openVideo}
           title={program?.title || "Episode Video"}
-          url={toEmbed(program?.hero_video_url) || ordered[0]?.embed_url}
+          url={toEmbed(program?.hero_video_url)}
           downloadUrl={program?.download_url || program?.video_download_url || ordered[0]?.download_url || ordered[0]?.video_download_url || ""}
           onClose={() => setOpenVideo(false)}
         />

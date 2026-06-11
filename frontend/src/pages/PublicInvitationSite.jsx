@@ -1,10 +1,13 @@
 import React, { useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { apiGet, apiGetPublic, mediaUrl } from "../api";
-import { useQuery } from "@tanstack/react-query";
+import { apiGet, apiGetPublic, apiPostForm, mediaUrl } from "../api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import AsyncState from "../components/AsyncState";
+import InlineEditableText from "../components/InlineEditableText";
 import SeoHead from "../components/SeoHead";
+import { useEditMode } from "../components/EditModeContext";
+import { preparePhotoForUpload } from "../utils/imageUpload";
 
 function placeholder(label) {
   const text = encodeURIComponent((label || "Wedding Invitation").trim().slice(0, 28));
@@ -53,11 +56,14 @@ function timelineEvents(programs, wedding, venueName, heroImage) {
   const source = programs.length ? programs.slice(0, 6) : fallback;
   return source.map((event, index) => ({
     key: event._id || `timeline-${index}`,
+    programId: event._id || "",
     title: event.title || fallback[index % fallback.length].title,
     time: event.event_time || event.time || fallback[index % fallback.length].event_time,
+    rawDate: event.event_date || wedding?.wedding_date || "",
     date: readableDate(event.event_date || wedding?.wedding_date, fallback[index % fallback.length].event_date),
     attire: event.attire || event.dress_code || event.description || fallback[index % fallback.length].description,
     image: mediaUrl(event.thumbnail || "") || heroImage,
+    raw: event,
   }));
 }
 
@@ -72,11 +78,43 @@ function countdownParts(value) {
   };
 }
 
+function EditableImage({ src, alt, enabled, className = "", onFile }) {
+  const inputRef = useRef(null);
+  if (!enabled) {
+    return <img src={src} alt={alt} className={className} />;
+  }
+  return (
+    <button
+      type="button"
+      className={`invite-editable-image ${className}`.trim()}
+      onClick={() => inputRef.current?.click()}
+      title="Click to change image"
+    >
+      <img src={src} alt={alt} />
+      <span>Change image</span>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          if (file) onFile(file);
+        }}
+      />
+    </button>
+  );
+}
+
 export default function PublicInvitationSite() {
   const { publicSlug } = useParams();
+  const queryClient = useQueryClient();
+  const { canEdit, editMode } = useEditMode();
+  const isEditing = canEdit && editMode;
   const [revealed, setRevealed] = useState(false);
   const [bursting, setBursting] = useState(false);
   const [scratchOpen, setScratchOpen] = useState(false);
+  const [scratchProgress, setScratchProgress] = useState(0);
   const audioRef = useRef(null);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["public-invitation-site", publicSlug],
@@ -103,12 +141,87 @@ export default function PublicInvitationSite() {
   const galleryImages = [heroImage, ...programs.map((program) => mediaUrl(program.thumbnail || "")).filter(Boolean)].slice(0, 8);
   const inviteEvents = useMemo(() => timelineEvents(programs, wedding, venueName, heroImage), [programs, wedding, venueName, heroImage]);
 
+  const refreshInvite = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["public-invitation-site", publicSlug] });
+  };
+
+  const saveWeddingPatch = async (patch) => {
+    if (!wedding?._id) return;
+    const fd = new FormData();
+    const value = (field, fallback = "") => patch[field] ?? wedding[field] ?? fallback;
+    fd.append("couple_names", value("couple_names"));
+    fd.append("wedding_date", value("wedding_date"));
+    fd.append("wedding_time", value("wedding_time"));
+    fd.append("hero_video_url", value("hero_video_url"));
+    fd.append("description", value("description"));
+    fd.append("venue_name", value("venue_name"));
+    fd.append("event_address", value("event_address"));
+    fd.append("venue_eyebrow", value("venue_eyebrow", "You're Invited To"));
+    fd.append("venue_script", value("venue_script", "the wedding of"));
+    fd.append("venue_section_label", value("venue_section_label", "Our Venue"));
+    fd.append("venue_map_location", value("venue_map_location", wedding.event_address || ""));
+    fd.append("venue_description", value("venue_description"));
+    fd.append("venue_image", value("venue_image"));
+    fd.append("profile_image", value("profile_image"));
+    fd.append("music_url", value("music_url"));
+    fd.append("access_level", value("access_level", "private"));
+    fd.append("show_on_demo_home", wedding.show_on_demo_home ? "1" : "");
+    fd.append("premium_experience_enabled", wedding.premium_experience_enabled ? "1" : "");
+    fd.append("hero_kicker", value("hero_kicker", "A WEDDING ORIGINAL"));
+    fd.append("hero_badge_top", value("hero_badge_top", "TOP"));
+    fd.append("hero_badge_bottom", value("hero_badge_bottom", "10"));
+    fd.append("hero_meta_one", value("hero_meta_one", "Celebration"));
+    fd.append("hero_meta_two", value("hero_meta_two", "Family"));
+    fd.append("hero_meta_three", value("hero_meta_three", "Romance"));
+    fd.append("invitation_title", value("invitation_title", "Wedding Invitation"));
+    fd.append("programs_section_title", value("programs_section_title", "Wedding Programs"));
+    fd.append("custom_sections_json", JSON.stringify(Array.isArray(wedding.custom_sections) ? wedding.custom_sections : []));
+    fd.append("venue_blocks_json", JSON.stringify(Array.isArray(wedding.venue_blocks) ? wedding.venue_blocks : []));
+    fd.append("custom_section_label", value("custom_section_label"));
+    if (patch.profile_image_file) {
+      fd.append("profile_image_file", await preparePhotoForUpload(patch.profile_image_file));
+    }
+    await apiPostForm(`/admin/weddings/${wedding._id}/update`, fd);
+    await refreshInvite();
+  };
+
+  const saveProgramPatch = async (program, patch) => {
+    if (!program?._id) return;
+    const fd = new FormData();
+    const value = (field, fallback = "") => patch[field] ?? program[field] ?? fallback;
+    fd.append("title", value("title"));
+    fd.append("description", value("description"));
+    fd.append("event_date", value("event_date"));
+    fd.append("event_time", value("event_time"));
+    fd.append("venue_name", value("venue_name", venueName));
+    fd.append("event_address", value("event_address", venueAddress));
+    fd.append("video_url", value("video_url"));
+    fd.append("thumbnail", value("thumbnail"));
+    fd.append("music_url", value("music_url"));
+    fd.append("section_key", value("section_key", "main"));
+    if (patch.thumbnail_file) {
+      fd.append("thumbnail_file", await preparePhotoForUpload(patch.thumbnail_file));
+    }
+    await apiPostForm(`/admin/programs/${program._id}/update`, fd);
+    await refreshInvite();
+  };
+
   const revealInvite = async () => {
     setBursting(true);
     if (musicUrl) {
       setTimeout(() => audioRef.current?.play().catch(() => {}), 120);
     }
     window.setTimeout(() => setRevealed(true), 920);
+  };
+
+  const scratchReveal = (event) => {
+    if (scratchOpen) return;
+    if (event.type === "pointermove" && event.buttons !== 1) return;
+    setScratchProgress((progress) => {
+      const next = Math.min(100, progress + 15);
+      if (next >= 72) setScratchOpen(true);
+      return next;
+    });
   };
 
   if (isLoading && !data) return <AsyncState mode="loading" />;
@@ -191,7 +304,12 @@ export default function PublicInvitationSite() {
                 Sacred <em>Ceremonies</em>
               </motion.div>
               <div className="invite-luxury-couple">
-                <img src={heroImage} alt={wedding?.couple_names || "Couple"} />
+                <EditableImage
+                  src={heroImage}
+                  alt={wedding?.couple_names || "Couple"}
+                  enabled={isEditing}
+                  onFile={(file) => saveWeddingPatch({ profile_image_file: file })}
+                />
               </div>
               <motion.div
                 className="invite-couple-date-card"
@@ -199,17 +317,47 @@ export default function PublicInvitationSite() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.9, delay: 0.45, ease: "easeOut" }}
               >
-                <p>{inviteTitle}</p>
-                <h2>{firstName}{secondName ? ` weds ${secondName}` : ""}</h2>
-                <span>{date.weekday || "Wedding Day"} / {date.day || ""} {date.month || ""} {date.year || ""}</span>
+                <InlineEditableText
+                  as="p"
+                  value={inviteTitle}
+                  enabled={isEditing}
+                  onSave={(value) => saveWeddingPatch({ invitation_title: value })}
+                />
+                <InlineEditableText
+                  as="h2"
+                  value={`${firstName}${secondName ? ` weds ${secondName}` : ""}`}
+                  enabled={isEditing}
+                  onSave={(value) => saveWeddingPatch({ couple_names: value.replace(/\s+weds\s+/i, " & ") })}
+                />
+                <InlineEditableText
+                  as="span"
+                  value={wedding?.wedding_date || `${date.weekday || "Wedding Day"} / ${date.day || ""} ${date.month || ""} ${date.year || ""}`}
+                  enabled={isEditing}
+                  onSave={(value) => saveWeddingPatch({ wedding_date: value })}
+                />
               </motion.div>
               <div className="invite-date">
                 {date.day && <strong>{date.day}</strong>}
                 <span>{date.month}{date.weekday && <small>{date.weekday}</small>}</span>
                 {date.year && <strong>{date.year}</strong>}
               </div>
-              {weddingTime && <p className="invite-time">{weddingTime}</p>}
-              <p className="invite-luxury-description">{wedding?.description || `${firstName}${secondName ? ` weds ${secondName}` : ""}. Join us as the celebration unfolds.`}</p>
+              {(weddingTime || isEditing) && (
+                <InlineEditableText
+                  as="p"
+                  className="invite-time"
+                  value={weddingTime}
+                  placeholder="Add time"
+                  enabled={isEditing}
+                  onSave={(value) => saveWeddingPatch({ wedding_time: value })}
+                />
+              )}
+              <InlineEditableText
+                as="p"
+                className="invite-luxury-description"
+                value={wedding?.description || `${firstName}${secondName ? ` weds ${secondName}` : ""}. Join us as the celebration unfolds.`}
+                enabled={isEditing}
+                onSave={(value) => saveWeddingPatch({ description: value })}
+              />
             </motion.div>
           </section>
 
@@ -226,13 +374,18 @@ export default function PublicInvitationSite() {
                 >
                   <div className="invite-heart-node" aria-hidden="true">♡</div>
                   <div className="invite-couple-art">
-                    <img src={event.image} alt="" />
+                    <EditableImage
+                      src={event.image}
+                      alt=""
+                      enabled={Boolean(isEditing && event.programId)}
+                      onFile={(file) => saveProgramPatch(event.raw, { thumbnail_file: file })}
+                    />
                   </div>
                   <div className="invite-timeline-card">
-                    <h3>{event.title}</h3>
-                    <p>{event.time}</p>
-                    <span>{event.date}</span>
-                    <small>{event.attire}</small>
+                    <InlineEditableText as="h3" value={event.title} enabled={Boolean(isEditing && event.programId)} onSave={(value) => saveProgramPatch(event.raw, { title: value })} />
+                    <InlineEditableText as="p" value={event.time} enabled={Boolean(isEditing && event.programId)} onSave={(value) => saveProgramPatch(event.raw, { event_time: value })} />
+                    <InlineEditableText as="span" value={event.rawDate || event.date} enabled={Boolean(isEditing && event.programId)} onSave={(value) => saveProgramPatch(event.raw, { event_date: value })} />
+                    <InlineEditableText as="small" value={event.attire} enabled={Boolean(isEditing && event.programId)} onSave={(value) => saveProgramPatch(event.raw, { description: value })} />
                   </div>
                 </motion.article>
               ))}
@@ -240,9 +393,9 @@ export default function PublicInvitationSite() {
           </section>
 
           <section className="invite-section invite-story invite-card-panel" id="invitation">
-            <p className="invite-kicker">{inviteTitle}</p>
-            <h2>{firstName}{secondName ? ` weds ${secondName}` : ""}</h2>
-            <p>With the blessings of our families, we request your presence for love, laughter, rituals, and forever.</p>
+            <InlineEditableText as="p" className="invite-kicker" value={inviteTitle} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invitation_title: value })} />
+            <InlineEditableText as="h2" value={`${firstName}${secondName ? ` weds ${secondName}` : ""}`} enabled={isEditing} onSave={(value) => saveWeddingPatch({ couple_names: value.replace(/\s+weds\s+/i, " & ") })} />
+            <InlineEditableText as="p" value={wedding?.venue_description || "With the blessings of our families, we request your presence for love, laughter, rituals, and forever."} enabled={isEditing} onSave={(value) => saveWeddingPatch({ venue_description: value })} />
           </section>
 
           <section className="invite-section invite-memories invite-card-panel">
@@ -257,8 +410,8 @@ export default function PublicInvitationSite() {
 
           <section className="invite-section invite-venue invite-card-panel" id="venue">
             <p className="invite-kicker">Venue</p>
-            <h2>{venueName}</h2>
-            <p>{venueAddress || "Location details will be shared soon."}</p>
+            <InlineEditableText as="h2" value={venueName} enabled={isEditing} onSave={(value) => saveWeddingPatch({ venue_name: value })} />
+            <InlineEditableText as="p" value={venueAddress || "Location details will be shared soon."} enabled={isEditing} onSave={(value) => saveWeddingPatch({ event_address: value })} />
             <div className="invite-map">
               <iframe
                 title="Wedding venue map"
@@ -272,11 +425,21 @@ export default function PublicInvitationSite() {
           <section className="invite-section invite-countdown invite-card-panel">
             <p className="invite-kicker">Counting Every Moment</p>
             <h2>Until we say I do</h2>
-            <button type="button" className={`invite-scratch ${scratchOpen ? "is-open" : ""}`} onClick={() => setScratchOpen(true)}>
+            <button
+              type="button"
+              className={`invite-scratch ${scratchOpen ? "is-open" : ""}`}
+              style={{ "--scratch-progress": `${scratchProgress}%` }}
+              onPointerDown={scratchReveal}
+              onPointerMove={scratchReveal}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") setScratchOpen(true);
+              }}
+              aria-label="Scratch countdown card to reveal wedding countdown"
+            >
               {scratchOpen ? (
                 <span>{countdown.days} Days / {countdown.hours} Hours / {countdown.minutes} Minutes</span>
               ) : (
-                <span>Scratch here to reveal</span>
+                <span>Scratch to reveal</span>
               )}
             </button>
           </section>
@@ -288,15 +451,15 @@ export default function PublicInvitationSite() {
             <div className="invite-fun-card">
               <h3>Make a Guess</h3>
               <p>Who will get emotional first?</p>
-              <div>
-                <button>{firstName.charAt(0)}</button>
-                {secondName && <button>{secondName.charAt(0)}</button>}
-                <button>B</button>
+              <div className="invite-guess-options">
+                <button type="button"><span>🥹</span>{firstName || "Bride"}</button>
+                {secondName && <button type="button"><span>😭</span>{secondName}</button>}
+                <button type="button"><span>💞</span>Both</button>
               </div>
               <em>Reveal after the wedding</em>
             </div>
             <div className="invite-mood-grid">
-              {["The Food", "Dance Floor", "The Love", "All of it"].map((item) => <button key={item}>{item}</button>)}
+              {["🍽️ The Food", "💃 Dance Floor", "💗 The Love", "✨ All of it"].map((item) => <button type="button" key={item}>{item}</button>)}
             </div>
           </section>
 
@@ -312,6 +475,11 @@ export default function PublicInvitationSite() {
               <textarea placeholder="One piece of advice..." />
             </article>
             <button type="button">Send Love</button>
+          </section>
+
+          <section className="invite-hashtag">
+            <span>Forever begins here</span>
+            <strong>{inviteHash(wedding?.couple_names)}</strong>
           </section>
         </>
       )}

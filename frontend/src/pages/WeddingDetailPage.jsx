@@ -25,12 +25,12 @@ function getVideoId(url) {
   return m ? m[1] : "";
 }
 
-function withPlayerParams(url) {
+function withPlayerParams(url, { muted = true } = {}) {
   if (!url) return "";
   const joiner = url.includes("?") ? "&" : "?";
   const videoId = getVideoId(url);
   const loopParams = videoId ? `&playlist=${videoId}` : "";
-  return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1${loopParams}&playsinline=1&start=0&rel=0&modestbranding=1`;
+  return `${url}${joiner}autoplay=1&mute=${muted ? "1" : "0"}&controls=0&loop=1${loopParams}&playsinline=1&start=0&rel=0&modestbranding=1`;
 }
 
 function getPlaceholder(label) {
@@ -304,9 +304,12 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
   };
 
   const featuredProgram = ordered[0] || mainPrograms[0] || programs[0] || null;
-  const featuredVideoUrl = useMemo(() => withPlayerParams(toEmbed(wedding?.hero_video_url || featuredProgram?.hero_video_url)), [wedding?.hero_video_url, featuredProgram?.hero_video_url]);
   const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names));
   const pageMusicUrl = mediaUrl(wedding?.music_url || "");
+  const featuredVideoUrl = useMemo(
+    () => withPlayerParams(toEmbed(wedding?.hero_video_url), { muted: Boolean(pageMusicUrl) }),
+    [wedding?.hero_video_url, pageMusicUrl],
+  );
   const scrollToFunctions = () => {
     document.getElementById("programs")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
