@@ -174,6 +174,7 @@ export default function PublicInvitationSite() {
   const [guessVotes, setGuessVotes] = useState({ first: 4, second: 3, both: 7 });
   const bgInputRef = useRef(null);
   const musicInputRef = useRef(null);
+  const memoryInputRef = useRef(null);
   const audioRef = useRef(null);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["public-invitation-site", publicSlug],
@@ -295,6 +296,26 @@ export default function PublicInvitationSite() {
     fd.append("thumbnail", heroImage);
     fd.append("music_url", "");
     fd.append("section_key", "invitation");
+    fd.append("order", String(programs.length));
+    fd.append("event_sections_json", JSON.stringify([]));
+    await apiPostForm("/admin/programs/create", fd);
+    await refreshInvite();
+  };
+
+  const addMemoryPhoto = async (file) => {
+    if (!wedding?._id || !file) return;
+    const fd = new FormData();
+    fd.append("wedding_id", wedding._id);
+    fd.append("title", `Prewedding Photo ${preweddingPrograms.length + 1}`);
+    fd.append("description", "");
+    fd.append("event_date", wedding.wedding_date || "");
+    fd.append("event_time", "");
+    fd.append("venue_name", venueName);
+    fd.append("event_address", venueAddress);
+    fd.append("thumbnail", "");
+    fd.append("thumbnail_file", await preparePhotoForUpload(file));
+    fd.append("music_url", "");
+    fd.append("section_key", "prewedding");
     fd.append("order", String(programs.length));
     fd.append("event_sections_json", JSON.stringify([]));
     await apiPostForm("/admin/programs/create", fd);
@@ -586,8 +607,12 @@ export default function PublicInvitationSite() {
                     <EditableImage
                       src={event.image}
                       alt=""
-                      enabled={Boolean(isEditing && event.programId)}
-                      onFile={(file) => saveProgramPatch(event.raw, { thumbnail_file: file })}
+                      enabled={isEditing}
+                      onFile={(file) => (
+                        event.programId
+                          ? saveProgramPatch(event.raw, { thumbnail_file: file })
+                          : saveWeddingPatch({ profile_image_file: file })
+                      )}
                     />
                   </div>
                   <div className="invite-timeline-card">
@@ -635,6 +660,23 @@ export default function PublicInvitationSite() {
                   )}
                 />
               ))}
+              {isEditing && (
+                <button type="button" className="invite-add-photo-tile" onClick={() => memoryInputRef.current?.click()}>
+                  <span aria-hidden="true">+</span>
+                  <strong>Add Photo</strong>
+                  <small>Explore the story</small>
+                  <input
+                    ref={memoryInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      event.target.value = "";
+                      if (file) addMemoryPhoto(file);
+                    }}
+                  />
+                </button>
+              )}
             </div>
           </section>
 

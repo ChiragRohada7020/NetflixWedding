@@ -8462,7 +8462,8 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-memory-grid img,
-.invite-memory-grid .invite-editable-image {
+.invite-memory-grid .invite-editable-image,
+.invite-memory-grid .invite-add-photo-tile {
   flex: 0 0 min(78vw, 340px);
   width: min(78vw, 340px);
   height: 440px;
@@ -8476,6 +8477,49 @@ body.premium-flow-open .wedflix-footer {
 .invite-memory-grid img:first-child,
 .invite-memory-grid .invite-editable-image:first-child {
   height: 440px;
+}
+
+.invite-add-photo-tile {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  border: 1px dashed rgba(152, 42, 47, 0.42);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(255, 247, 224, 0.86), transparent 34%),
+    rgba(255, 253, 249, 0.74);
+  color: #982a2f;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  box-shadow: 0 18px 44px rgba(90, 67, 56, 0.1);
+  cursor: pointer;
+}
+
+.invite-add-photo-tile span {
+  width: 58px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #982a2f;
+  color: #fffaf4;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.invite-add-photo-tile strong {
+  font-size: 1.35rem;
+}
+
+.invite-add-photo-tile small {
+  color: #8a5a44;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.invite-add-photo-tile input {
+  display: none;
 }
 
 .invite-events {
@@ -9595,6 +9639,7 @@ body.premium-flow-open .wedflix-footer {
 
   .invite-memory-grid img,
   .invite-memory-grid .invite-editable-image,
+  .invite-memory-grid .invite-add-photo-tile,
   .invite-memory-grid img:first-child,
   .invite-memory-grid .invite-editable-image:first-child {
     flex: 0 0 78%;
