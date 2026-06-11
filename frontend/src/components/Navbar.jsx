@@ -12,7 +12,11 @@ export default function Navbar({ musicUrl }) {
   const publicShareMatch = location.pathname.match(/^\/share\/([^/]+)/);
   const publicSlugMatch = location.pathname.match(/^\/p\/([^/]+)/);
   const isPublicRoute = Boolean(publicShareMatch || publicSlugMatch);
-  const homeHref = "/";
+  const homeHref = publicSlugMatch
+    ? `/p/${publicSlugMatch[1]}/home`
+    : publicShareMatch
+      ? `/share/${publicShareMatch[1]}`
+      : "/";
   const isHomePage = location.pathname === "/";
   const { canEdit, editMode, toggleEditMode, cardSize, setCardSize } = useEditMode();
   const audioRef = useRef(null);

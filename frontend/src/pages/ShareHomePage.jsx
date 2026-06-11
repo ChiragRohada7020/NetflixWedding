@@ -200,7 +200,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
       <audio ref={audioRef} src={pageMusicUrl} loop preload="metadata" />
 
       <nav className="share-home-nav" aria-label="Wedding home">
-        <Link to="/" className="share-home-nav__brand">WEDFLIX</Link>
+        <Link to={shareBasePath} className="share-home-nav__brand">WEDFLIX</Link>
         <a href="#celebration-series" className="share-home-nav__link">Home</a>
         {wedding?.premium_experience_enabled && (
           <>
