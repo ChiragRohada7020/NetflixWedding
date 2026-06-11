@@ -202,7 +202,7 @@ export default function PublicInvitationSite() {
   const venueName = wedding?.venue_name || invitationPrograms[0]?.venue_name || "Wedding Venue";
   const venueAddress = wedding?.event_address || invitationPrograms[0]?.event_address || "";
   const weddingTime = wedding?.wedding_time || invitationPrograms[0]?.event_time || "";
-  const musicUrl = mediaUrl(wedding?.music_url || "");
+  const musicUrl = mediaUrl(wedding?.invitation_music_url || "");
   const invitationBgImage = mediaUrl(wedding?.invitation_bg_image || "") || "/invite-floral-bg.png";
   const initials = `${(firstName || "W").charAt(0)}${(secondName || "F").charAt(0)}`;
   const inviteTitle = wedding?.invitation_title || "Wedding Invitation";
@@ -234,6 +234,7 @@ export default function PublicInvitationSite() {
     fd.append("invitation_bg_image", value("invitation_bg_image"));
     fd.append("profile_image", value("profile_image"));
     fd.append("music_url", value("music_url"));
+    fd.append("invitation_music_url", value("invitation_music_url"));
     fd.append("access_level", value("access_level", "private"));
     fd.append("show_on_demo_home", wedding.show_on_demo_home ? "1" : "");
     fd.append("premium_experience_enabled", wedding.premium_experience_enabled ? "1" : "");
@@ -254,8 +255,8 @@ export default function PublicInvitationSite() {
     if (patch.invitation_bg_image_file) {
       fd.append("invitation_bg_image_file", await preparePhotoForUpload(patch.invitation_bg_image_file));
     }
-    if (patch.music_file) {
-      fd.append("music_file", patch.music_file);
+    if (patch.invitation_music_file) {
+      fd.append("invitation_music_file", patch.invitation_music_file);
     }
     await apiPostForm(`/admin/weddings/${wedding._id}/update`, fd);
     await refreshInvite();
@@ -395,7 +396,7 @@ export default function PublicInvitationSite() {
                   onChange={(event) => {
                     const file = event.target.files?.[0];
                     event.target.value = "";
-                    if (file) saveWeddingPatch({ music_file: file });
+                    if (file) saveWeddingPatch({ invitation_music_file: file });
                   }}
                 />
               </button>

@@ -252,6 +252,7 @@ def create_wedding():
         "invitation_bg_image": _resolve_image_url("invitation_bg_image", "invitation_bg_image_file"),
         "profile_image": _resolve_image_url("profile_image", "profile_image_file"),
         "music_url": _resolve_music_url("music_url", "music_file"),
+        "invitation_music_url": _resolve_music_url("invitation_music_url", "invitation_music_file"),
         "access_level": access_level,
         "show_on_demo_home": request.form.get("show_on_demo_home") in {"1", "true", "on", "yes"} if is_developer() else False,
         "premium_experience_enabled": request.form.get("premium_experience_enabled") in {"1", "true", "on", "yes"},
@@ -321,6 +322,7 @@ def update_wedding(wedding_id):
         "invitation_bg_image": _resolve_image_url("invitation_bg_image", "invitation_bg_image_file", current.get("invitation_bg_image", "")),
         "profile_image": _resolve_image_url("profile_image", "profile_image_file", current.get("profile_image", "")),
         "music_url": _resolve_music_url("music_url", "music_file", current.get("music_url", "")),
+        "invitation_music_url": _resolve_music_url("invitation_music_url", "invitation_music_file", current.get("invitation_music_url", "")),
         "access_level": access_level,
         "show_on_demo_home": (
             request.form.get("show_on_demo_home") in {"1", "true", "on", "yes"}

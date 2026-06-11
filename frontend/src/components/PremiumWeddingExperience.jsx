@@ -82,7 +82,7 @@ export default function PremiumWeddingExperience({
   const venueSectionLabel = wedding?.venue_section_label || "Story Location";
   const mapLocation = wedding?.venue_map_location || venueAddress;
   const weddingTime = wedding?.wedding_time || featuredProgram?.event_time || "11:00 AM";
-  const musicUrl = mediaUrl(wedding?.music_url || "");
+  const musicUrl = mediaUrl((screen === "invitation" ? wedding?.invitation_music_url : "") || wedding?.music_url || "");
   const invitation = getInvitationText(wedding);
   const invitationDate = getInvitationDate(wedding?.wedding_date);
   const invitationWebsiteUrl = wedding?.public_slug
