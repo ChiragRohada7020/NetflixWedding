@@ -247,6 +247,22 @@ export default function PublicInvitationSite() {
     fd.append("hero_meta_three", value("hero_meta_three", "Romance"));
     fd.append("invitation_title", value("invitation_title", "Wedding Invitation"));
     fd.append("programs_section_title", value("programs_section_title", "Wedding Programs"));
+    fd.append("invite_envelope_label", value("invite_envelope_label", "Wedding Invitation"));
+    fd.append("invite_venue_label", value("invite_venue_label", "Venue"));
+    fd.append("invite_map_label", value("invite_map_label", "Open Map"));
+    fd.append("invite_scratch_label", value("invite_scratch_label", "Scratch to reveal"));
+    fd.append("invite_fun_kicker", value("invite_fun_kicker", "Join The Celebration"));
+    fd.append("invite_fun_title", value("invite_fun_title", "Celebrate With Us"));
+    fd.append("invite_fun_intro", value("invite_fun_intro", "A few fun questions before the big day."));
+    fd.append("invite_guess_title", value("invite_guess_title", "Make a Guess"));
+    fd.append("invite_guess_question", value("invite_guess_question", "Who will get emotional first?"));
+    fd.append("invite_reason_question", value("invite_reason_question", "Why are you coming?"));
+    fd.append("invite_notes_title", value("invite_notes_title", "Leave Us a Note"));
+    fd.append("invite_notes_prompt", value("invite_notes_prompt", "Share a wish or memory."));
+    fd.append("invite_note_placeholder", value("invite_note_placeholder", "Write something from the heart..."));
+    fd.append("invite_send_label", value("invite_send_label", "Send Love"));
+    fd.append("invite_hashtag_label", value("invite_hashtag_label", "Forever begins here"));
+    fd.append("invite_story_button_label", value("invite_story_button_label", "See Their Wedflix Story"));
     fd.append("custom_sections_json", JSON.stringify(Array.isArray(wedding.custom_sections) ? wedding.custom_sections : []));
     fd.append("venue_blocks_json", JSON.stringify(Array.isArray(wedding.venue_blocks) ? wedding.venue_blocks : []));
     fd.append("custom_section_label", value("custom_section_label"));
@@ -288,7 +304,7 @@ export default function PublicInvitationSite() {
     if (!wedding?._id) return;
     const fd = new FormData();
     fd.append("wedding_id", wedding._id);
-    fd.append("title", `Wedding Program ${programs.length + 1}`);
+    fd.append("title", `Invitation Program ${invitationPrograms.length + 1}`);
     fd.append("event_date", wedding.wedding_date || "");
     fd.append("event_time", wedding.wedding_time || "");
     fd.append("venue_name", venueName);
@@ -458,7 +474,7 @@ export default function PublicInvitationSite() {
           >
             <div className="invite-envelope__back" />
             <div className="invite-envelope__letter">
-              <p>Wedding Invitation</p>
+              <InlineEditableText as="p" value={wedding?.invite_envelope_label || "Wedding Invitation"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_envelope_label: value })} />
               <strong>{firstName}{secondName ? ` & ${secondName}` : ""}</strong>
               <span>{date.day || ""} {date.month || ""} {date.year || ""}</span>
             </div>
@@ -588,8 +604,9 @@ export default function PublicInvitationSite() {
           <section className="invite-section invite-events invite-timeline-section" id="events">
             {isEditing && (
               <div className="invite-program-editor">
-                <p>Edit wedding programs here. Add a new function, then click any title, time, date, attire text, or image below to update it.</p>
-                <button type="button" onClick={addWeddingProgram}>Add Wedding Program</button>
+                <p>Invitation programs are separate from the Wedflix story functions. Add an invitation program, then click its title, time, date, attire text, or image below to edit it.</p>
+                {!invitationPrograms.length && <small>Add your first invitation program to replace the sample cards.</small>}
+                <button type="button" onClick={addWeddingProgram}>Add Invitation Program</button>
               </div>
             )}
             <div className="invite-event-grid invite-timeline">
@@ -681,7 +698,7 @@ export default function PublicInvitationSite() {
           </section>
 
           <section className="invite-section invite-venue invite-card-panel" id="venue">
-            <p className="invite-kicker">Venue</p>
+            <InlineEditableText as="p" className="invite-kicker" value={wedding?.invite_venue_label || "Venue"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_venue_label: value })} />
             <InlineEditableText as="h2" value={venueName} enabled={isEditing} onSave={(value) => saveWeddingPatch({ venue_name: value })} />
             <InlineEditableText as="p" value={venueAddress || "Location details will be shared soon."} enabled={isEditing} onSave={(value) => saveWeddingPatch({ event_address: value })} />
             <div className="invite-map">
@@ -691,7 +708,9 @@ export default function PublicInvitationSite() {
                 loading="lazy"
               />
             </div>
-            <a href={mapsUrl(venueAddress || venueName)} target="_blank" rel="noreferrer">Open Map</a>
+            <a href={mapsUrl(venueAddress || venueName)} target="_blank" rel="noreferrer">
+              <InlineEditableText as="span" value={wedding?.invite_map_label || "Open Map"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_map_label: value })} />
+            </a>
           </section>
 
           <section className="invite-section invite-countdown invite-card-panel">
@@ -728,18 +747,18 @@ export default function PublicInvitationSite() {
               {scratchOpen ? (
                 <span>{readableDate(wedding?.wedding_date, "Wedding Date")} / {countdown.days} Days / {countdown.hours} Hours / {countdown.minutes} Minutes</span>
               ) : (
-                <span>Scratch to reveal</span>
+                <InlineEditableText as="span" value={wedding?.invite_scratch_label || "Scratch to reveal"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_scratch_label: value })} />
               )}
             </button>
           </section>
 
           <section className="invite-section invite-fun invite-card-panel">
-            <p className="invite-kicker">Join The Celebration</p>
-            <h2>Celebrate With Us</h2>
-            <p>A few fun questions before the big day.</p>
+            <InlineEditableText as="p" className="invite-kicker" value={wedding?.invite_fun_kicker || "Join The Celebration"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_fun_kicker: value })} />
+            <InlineEditableText as="h2" value={wedding?.invite_fun_title || "Celebrate With Us"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_fun_title: value })} />
+            <InlineEditableText as="p" value={wedding?.invite_fun_intro || "A few fun questions before the big day."} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_fun_intro: value })} />
             <div className="invite-fun-card">
-              <h3>Make a Guess</h3>
-              <p>Who will get emotional first?</p>
+              <InlineEditableText as="h3" value={wedding?.invite_guess_title || "Make a Guess"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_guess_title: value })} />
+              <InlineEditableText as="p" value={wedding?.invite_guess_question || "Who will get emotional first?"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_guess_question: value })} />
               <div className="invite-guess-options">
                 <button type="button" className={guessChoice === "first" ? "is-selected" : ""} onClick={() => chooseGuess("first")} disabled={Boolean(guessChoice)}>
                   <span aria-hidden="true">{"\uD83E\uDD79"}</span>
@@ -778,7 +797,7 @@ export default function PublicInvitationSite() {
               </div>
             </div>
             <div className="invite-reason-poll">
-              <h3>Why are you coming?</h3>
+              <InlineEditableText as="h3" value={wedding?.invite_reason_question || "Why are you coming?"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_reason_question: value })} />
               <div className="invite-mood-grid" aria-label="Choose why you are coming">
                 {[
                   "🙏 To bless the couple",
@@ -801,18 +820,20 @@ export default function PublicInvitationSite() {
 
           <section className="invite-section invite-notes">
             <article className="invite-note-card">
-              <h2>Leave Us a Note</h2>
-              <p>Share a wish or memory.</p>
-              <textarea placeholder="Write something from the heart..." />
+              <InlineEditableText as="h2" value={wedding?.invite_notes_title || "Leave Us a Note"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_notes_title: value })} />
+              <InlineEditableText as="p" value={wedding?.invite_notes_prompt || "Share a wish or memory."} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_notes_prompt: value })} />
+              <textarea placeholder={wedding?.invite_note_placeholder || "Write something from the heart..."} />
             </article>
-            <button type="button">Send Love</button>
+            <button type="button">
+              <InlineEditableText as="span" value={wedding?.invite_send_label || "Send Love"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_send_label: value })} />
+            </button>
           </section>
 
           <section className="invite-hashtag">
-            <span>Forever begins here</span>
+            <InlineEditableText as="span" value={wedding?.invite_hashtag_label || "Forever begins here"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_hashtag_label: value })} />
             <strong>{inviteHash(wedding?.couple_names)}</strong>
             <Link className="invite-story-button" to={`/p/${publicSlug}/home`}>
-              See Their Wedflix Story
+              <InlineEditableText as="span" value={wedding?.invite_story_button_label || "See Their Wedflix Story"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_story_button_label: value })} />
             </Link>
           </section>
         </>

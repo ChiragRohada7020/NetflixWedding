@@ -8987,6 +8987,16 @@ body.premium-flow-open .wedflix-footer {
   line-height: 1.5;
 }
 
+.invite-program-editor small {
+  display: block;
+  margin: -4px 0 14px;
+  color: #9b6b4e;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
 .invite-program-editor button {
   min-height: 44px;
   padding: 0 20px;
