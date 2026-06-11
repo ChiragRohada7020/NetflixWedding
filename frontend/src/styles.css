@@ -8622,6 +8622,339 @@ body.premium-flow-open .wedflix-footer {
   text-transform: uppercase;
 }
 
+.invite-site.is-revealed {
+  max-width: 420px;
+  margin: 0 auto;
+  background:
+    radial-gradient(ellipse at 74% 0%, rgba(201, 140, 114, 0.2) 0 11%, transparent 12%),
+    radial-gradient(ellipse at 92% 3%, rgba(216, 177, 122, 0.14) 0 14%, transparent 15%),
+    radial-gradient(circle at 18% 34%, rgba(201, 140, 114, 0.11), transparent 28%),
+    radial-gradient(circle at 92% 68%, rgba(123, 154, 115, 0.12), transparent 30%),
+    linear-gradient(180deg, #fcf8f3 0%, #fffaf4 42%, #fcf8f3 100%);
+  color: #5a4338;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  box-shadow: 0 0 0 1px rgba(201, 140, 114, 0.1), 0 26px 90px rgba(90, 67, 56, 0.14);
+}
+
+.invite-site.is-revealed::before,
+.invite-site.is-revealed::after {
+  width: 150px;
+  opacity: 0.72;
+  filter: blur(0.1px);
+}
+
+.invite-site.is-revealed .invite-florals__corner {
+  width: 180px;
+  height: 250px;
+  opacity: 0.72;
+  animation: inviteFloat 7s ease-in-out infinite;
+}
+
+.invite-site.is-revealed .invite-florals__corner--tl,
+.invite-site.is-revealed .invite-florals__corner--tr {
+  top: -8px;
+}
+
+.invite-site.is-revealed .invite-florals__corner--bl,
+.invite-site.is-revealed .invite-florals__corner--br {
+  bottom: -28px;
+}
+
+.invite-particles i {
+  position: fixed;
+  z-index: 2;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(216, 177, 122, 0.58);
+  animation: inviteDust 8s linear infinite;
+}
+
+.invite-particles i:nth-child(5n) { left: 16%; top: 20%; animation-delay: -1s; }
+.invite-particles i:nth-child(5n + 1) { left: 72%; top: 28%; animation-delay: -2s; }
+.invite-particles i:nth-child(5n + 2) { left: 42%; top: 56%; animation-delay: -4s; }
+.invite-particles i:nth-child(5n + 3) { left: 84%; top: 74%; animation-delay: -6s; }
+.invite-particles i:nth-child(5n + 4) { left: 24%; top: 82%; animation-delay: -3s; }
+
+.invite-luxury-hero {
+  min-height: 560px;
+  padding: 80px 20px 24px;
+  background-image: none !important;
+}
+
+.invite-luxury-hero::before,
+.invite-luxury-hero::after,
+.invite-timeline-section::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.invite-luxury-hero::before {
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 24% 5%, rgba(123, 154, 115, 0.24) 0 8%, transparent 9%),
+    radial-gradient(ellipse at 42% 0%, rgba(123, 154, 115, 0.2) 0 7%, transparent 8%),
+    radial-gradient(ellipse at 80% 0%, rgba(201, 140, 114, 0.16) 0 12%, transparent 13%);
+}
+
+.invite-luxury-hero::after {
+  left: 30px;
+  right: 28px;
+  bottom: 8px;
+  height: 160px;
+  border: 1px solid rgba(216, 177, 122, 0.16);
+  border-left: 0;
+  border-bottom: 0;
+  border-radius: 50%;
+  transform: rotate(-12deg);
+}
+
+.invite-luxury-card {
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.invite-luxury-card::before {
+  display: none;
+}
+
+.invite-celebration-title {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  color: #c98c72 !important;
+  font-family: "Great Vibes", "Allura", "Parisienne", cursive !important;
+  font-size: 54px !important;
+  font-weight: 400 !important;
+  letter-spacing: 1px;
+  line-height: 1.2 !important;
+}
+
+.invite-soft-hearts {
+  display: flex;
+  justify-content: center;
+  gap: 52px;
+  height: 40px;
+  margin: 10px 0 8px;
+}
+
+.invite-soft-hearts span {
+  width: 18px;
+  height: 18px;
+  display: block;
+  background: rgba(201, 140, 114, 0.23);
+  clip-path: path("M9 16 C2 11 0 7 2 4 C4 1 7 2 9 5 C11 2 14 1 16 4 C18 7 16 11 9 16Z");
+  animation: inviteFloat 5.5s ease-in-out infinite;
+}
+
+.invite-soft-hearts span:last-child {
+  width: 14px;
+  height: 14px;
+  animation-delay: -2s;
+}
+
+.invite-sacred-badge {
+  margin: 0 auto 46px;
+  padding: 14px 34px;
+  border-color: rgba(201, 140, 114, 0.55);
+  border-radius: 8px;
+  background: rgba(252, 248, 243, 0.62);
+  backdrop-filter: blur(6px);
+  color: #8a5a44;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  font-size: 0.74rem;
+  font-weight: 400;
+}
+
+.invite-sacred-badge em {
+  color: #c98c72;
+  font-family: "Great Vibes", "Allura", "Parisienne", cursive;
+  font-size: 1.9rem;
+}
+
+.invite-luxury-couple {
+  width: 180px;
+  aspect-ratio: 3 / 4;
+  margin: 0 auto 12px;
+  overflow: hidden;
+  border-radius: 120px 120px 18px 18px;
+  filter: drop-shadow(0 18px 32px rgba(90, 67, 56, 0.12));
+}
+
+.invite-luxury-couple img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.invite-luxury-description {
+  width: min(310px, 100%);
+  margin: 20px auto 0 !important;
+  color: rgba(90, 67, 56, 0.72) !important;
+  font-size: 1.1rem !important;
+  line-height: 1.7 !important;
+}
+
+.invite-timeline-section {
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 20px 62px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.invite-timeline-section::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(201, 140, 114, 0.62);
+  transform: translateX(-50%);
+}
+
+.invite-timeline {
+  display: grid;
+  gap: 74px;
+  margin-top: 0;
+  position: relative;
+}
+
+.invite-timeline::before {
+  display: none;
+}
+
+.invite-timeline article,
+.invite-timeline article:nth-child(even),
+.invite-timeline article:nth-child(odd) {
+  width: 100%;
+  min-height: 230px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 28px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.invite-timeline article.is-right .invite-couple-art {
+  order: 2;
+}
+
+.invite-timeline article.is-right .invite-timeline-card {
+  order: 1;
+}
+
+.invite-timeline .invite-couple-art {
+  width: 132px;
+  height: 170px;
+  justify-self: center;
+  overflow: hidden;
+  border-radius: 70px 70px 16px 16px;
+  background: rgba(252, 248, 243, 0.52);
+  filter: drop-shadow(0 16px 28px rgba(90, 67, 56, 0.12));
+}
+
+.invite-couple-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.invite-timeline-card {
+  width: 170px;
+  min-height: 146px;
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(201, 140, 114, 0.72);
+  border-radius: 18px;
+  background: rgba(255, 253, 249, 0.86);
+  box-shadow: 0 18px 38px rgba(90, 67, 56, 0.09);
+  text-align: left;
+}
+
+.invite-timeline-card h3 {
+  margin: 0 0 12px;
+  color: #8a5a44;
+  font-family: "Great Vibes", "Allura", "Parisienne", cursive;
+  font-size: 1.9rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.invite-timeline-card p,
+.invite-timeline-card span,
+.invite-timeline-card small {
+  display: block;
+  color: #5a4338;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.invite-timeline-card small {
+  margin-top: 9px;
+  color: #8a5a44;
+}
+
+.invite-heart-node {
+  position: absolute;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(201, 140, 114, 0.66);
+  border-radius: 50%;
+  background: #fffdf9;
+  color: #c98c72;
+  font-size: 1.15rem;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 22px rgba(90, 67, 56, 0.08);
+  animation: invitePulse 2.6s ease-in-out infinite;
+}
+
+.invite-story,
+.invite-memories,
+.invite-venue,
+.invite-countdown,
+.invite-fun,
+.invite-notes {
+  width: calc(100% - 40px);
+  margin: 34px auto;
+}
+
+.invite-site.is-revealed .invite-card-panel,
+.invite-notes article {
+  border-color: rgba(201, 140, 114, 0.32);
+  background: rgba(255, 253, 249, 0.82);
+  box-shadow: 0 18px 38px rgba(90, 67, 56, 0.08);
+}
+
+.invite-site.is-revealed .invite-section h2 {
+  color: #c98c72;
+  font-family: "Great Vibes", "Allura", "Parisienne", cursive;
+  font-size: 2.8rem;
+  font-weight: 400;
+}
+
+@keyframes invitePulse {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.08); }
+}
+
+@keyframes inviteDust {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate3d(16px, -58px, 0); opacity: 0; }
+}
+
 @media (max-width: 700px) {
   .invite-site {
     background:
@@ -8788,6 +9121,42 @@ body.premium-flow-open .wedflix-footer {
     height: 220px;
     margin: 0;
     border-radius: 6px 6px 0 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .invite-site.is-revealed {
+    max-width: 420px;
+  }
+
+  .invite-site.is-revealed .invite-hero {
+    padding: 76px 20px 26px;
+  }
+
+  .invite-site.is-revealed .invite-timeline article,
+  .invite-site.is-revealed .invite-timeline article:nth-child(even),
+  .invite-site.is-revealed .invite-timeline article:nth-child(odd) {
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+    justify-self: stretch;
+  }
+
+  .invite-site.is-revealed .invite-timeline .invite-couple-art {
+    width: 118px;
+    height: 162px;
+  }
+
+  .invite-site.is-revealed .invite-couple-art img {
+    float: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: inherit;
+  }
+
+  .invite-site.is-revealed .invite-timeline-card {
+    width: 160px;
+    padding: 16px 14px;
   }
 }
 

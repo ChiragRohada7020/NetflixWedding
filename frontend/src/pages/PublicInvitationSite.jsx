@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiGet, apiGetPublic, mediaUrl } from "../api";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 
@@ -31,37 +32,33 @@ function inviteHash(names) {
   return `#${compact.slice(0, 24) || "WedflixForever"}`;
 }
 
-function venueBlocks(wedding, programs, venueName, venueAddress) {
-  if (Array.isArray(wedding?.venue_blocks) && wedding.venue_blocks.length) {
-    return wedding.venue_blocks.map((block, index) => ({
-      key: block.key || `venue-${index}`,
-      title: block.title || `Event ${index + 1}`,
-      meta: block.meta || wedding?.wedding_date || "",
-      body: block.body || "",
-      address: block.address || venueAddress,
-    }));
-  }
-  if (programs.length) {
-    return programs.slice(0, 5).map((program, index) => ({
-      key: program._id || `program-${index}`,
-      title: program.title || `Event ${index + 1}`,
-      meta: [program.event_date, program.event_time].filter(Boolean).join(" | "),
-      body: program.description || program.venue_name || venueName,
-      address: program.event_address || venueAddress,
-    }));
-  }
-  return [{
-    key: "main-wedding",
-    title: "Wedding Ceremony",
-    meta: wedding?.wedding_date || "",
-    body: venueName,
-    address: venueAddress,
-  }];
-}
-
 function mapsUrl(address) {
   if (/^https?:\/\//i.test(address || "")) return address;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || "")}`;
+}
+
+function readableDate(value, fallback) {
+  const date = new Date(value || "");
+  if (Number.isNaN(date.getTime())) return fallback || value || "Wedding Date";
+  return date.toLocaleDateString("en", { day: "2-digit", month: "long", year: "numeric" });
+}
+
+function timelineEvents(programs, wedding, venueName, heroImage) {
+  const fallbackDate = readableDate(wedding?.wedding_date, "Wedding Date");
+  const fallback = [
+    { title: "Carnival", event_time: "12:00 PM Onwards", event_date: fallbackDate, description: "Attire: Multicolor Outfits" },
+    { title: "Reception Night", event_time: "08:30 PM Onwards", event_date: fallbackDate, description: "Attire: Blazer & One Piece" },
+    { title: "Vedic Vidhi", event_time: "12:00 PM Onwards", event_date: fallbackDate, description: "Attire: Traditional" },
+  ];
+  const source = programs.length ? programs.slice(0, 6) : fallback;
+  return source.map((event, index) => ({
+    key: event._id || `timeline-${index}`,
+    title: event.title || fallback[index % fallback.length].title,
+    time: event.event_time || event.time || fallback[index % fallback.length].event_time,
+    date: readableDate(event.event_date || wedding?.wedding_date, fallback[index % fallback.length].event_date),
+    attire: event.attire || event.dress_code || event.description || fallback[index % fallback.length].description,
+    image: mediaUrl(event.thumbnail || "") || heroImage,
+  }));
 }
 
 function countdownParts(value) {
@@ -104,10 +101,7 @@ export default function PublicInvitationSite() {
   const inviteTitle = wedding?.invitation_title || "Wedding Invitation";
   const countdown = countdownParts(wedding?.wedding_date);
   const galleryImages = [heroImage, ...programs.map((program) => mediaUrl(program.thumbnail || "")).filter(Boolean)].slice(0, 8);
-  const inviteEvents = useMemo(() => {
-    if (programs.length) return programs.slice(0, 6);
-    return [{ _id: "wedding", title: "Wedding Celebration", event_date: wedding?.wedding_date, venue_name: venueName, thumbnail: heroImage }];
-  }, [programs, wedding?.wedding_date, venueName, heroImage]);
+  const inviteEvents = useMemo(() => timelineEvents(programs, wedding, venueName, heroImage), [programs, wedding, venueName, heroImage]);
 
   const revealInvite = async () => {
     setBursting(true);
@@ -167,63 +161,77 @@ export default function PublicInvitationSite() {
 
       {revealed && (
         <>
-          <div className="invite-florals" aria-hidden="true">
+          <div className="invite-florals invite-particles" aria-hidden="true">
             <span className="invite-florals__corner invite-florals__corner--tl" />
             <span className="invite-florals__corner invite-florals__corner--tr" />
             <span className="invite-florals__corner invite-florals__corner--bl" />
             <span className="invite-florals__corner invite-florals__corner--br" />
+            {Array.from({ length: 16 }).map((_, index) => <i key={index} />)}
           </div>
-          <section className="invite-hero" style={{ backgroundImage: `url(${heroImage})` }}>
+          <section className="invite-hero invite-luxury-hero" style={{ backgroundImage: `url(${heroImage})` }}>
             <div className="invite-hero__shade" />
-            <nav className="invite-nav">
-              <span>{initials}</span>
-              <a href="#invitation">Invitation</a>
-              <a href="#events">Events</a>
-              <a href="#venue">Venue</a>
-            </nav>
-            <div className="invite-hero__couple">
-              <img src={heroImage} alt={wedding?.couple_names || "Couple"} />
-            </div>
-            <div className="invite-hero__content invite-card-panel">
-              <div className="invite-logo-mark" aria-hidden="true">
-                <span>{initials}</span>
-                <small>{inviteHash(wedding?.couple_names)}</small>
-              </div>
-              <p className="invite-kicker">Wedding Invitation</p>
-              <h1>
-                <span>{firstName}</span>
-                {secondName && <em>weds</em>}
-                {secondName && <span>{secondName}</span>}
+            <motion.div
+              className="invite-hero__content invite-luxury-card"
+              initial={{ opacity: 0, y: 28, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+            >
+              <h1 className="invite-celebration-title">
+                <span>The Celebration</span>
+                <span>Unfolds</span>
               </h1>
+              <div className="invite-soft-hearts" aria-hidden="true"><span /><span /></div>
+              <motion.div
+                className="invite-tab invite-sacred-badge"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.9, delay: 0.28, ease: "easeOut" }}
+              >
+                Sacred <em>Ceremonies</em>
+              </motion.div>
+              <div className="invite-luxury-couple">
+                <img src={heroImage} alt={wedding?.couple_names || "Couple"} />
+              </div>
               <div className="invite-date">
                 {date.day && <strong>{date.day}</strong>}
                 <span>{date.month}{date.weekday && <small>{date.weekday}</small>}</span>
                 {date.year && <strong>{date.year}</strong>}
               </div>
               {weddingTime && <p className="invite-time">{weddingTime}</p>}
-              <p>{wedding?.description || "We request the pleasure of your presence as we begin our forever."}</p>
+              <p className="invite-luxury-description">{wedding?.description || `${firstName}${secondName ? ` weds ${secondName}` : ""}. Join us as the celebration unfolds.`}</p>
+            </motion.div>
+          </section>
+
+          <section className="invite-section invite-events invite-timeline-section" id="events">
+            <div className="invite-event-grid invite-timeline">
+              {inviteEvents.map((event, index) => (
+                <motion.article
+                  key={event.key}
+                  className={index % 2 === 0 ? "is-left" : "is-right"}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-80px" }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                >
+                  <div className="invite-heart-node" aria-hidden="true">♡</div>
+                  <div className="invite-couple-art">
+                    <img src={event.image} alt="" />
+                  </div>
+                  <div className="invite-timeline-card">
+                    <h3>{event.title}</h3>
+                    <p>{event.time}</p>
+                    <span>{event.date}</span>
+                    <small>{event.attire}</small>
+                  </div>
+                </motion.article>
+              ))}
             </div>
           </section>
 
           <section className="invite-section invite-story invite-card-panel" id="invitation">
             <p className="invite-kicker">{inviteTitle}</p>
-            <h2>With love, laughter, and blessings</h2>
-            <p>
-              Join us for a celebration filled with family, music, memories, and the beginning of a beautiful forever.
-            </p>
-          </section>
-
-          <section className="invite-section invite-blessings invite-card-panel">
-            <h2>|| Shri Ganeshay Namah ||</h2>
-            <p>With the blessings of our families</p>
-            <p>
-              We will be delighted to have your presence as {firstName}{secondName ? ` and ${secondName}` : ""} take their vows around the sacred fire.
-            </p>
-            <div className="invite-divider"><span>Love</span></div>
-            <div className="invite-blessing-names">
-              <strong>{firstName}</strong>
-              {secondName && <strong>{secondName}</strong>}
-            </div>
+            <h2>{firstName}{secondName ? ` weds ${secondName}` : ""}</h2>
+            <p>With the blessings of our families, we request your presence for love, laughter, rituals, and forever.</p>
           </section>
 
           <section className="invite-section invite-memories invite-card-panel">
@@ -232,24 +240,6 @@ export default function PublicInvitationSite() {
             <div className="invite-memory-grid">
               {galleryImages.map((image, index) => (
                 <img key={`${image}-${index}`} src={image} alt="" />
-              ))}
-            </div>
-          </section>
-
-          <section className="invite-section invite-events invite-card-panel" id="events">
-            <p className="invite-kicker">Celebrations</p>
-            <h2>The Celebration Unfolds</h2>
-            <div className="invite-tab">Sacred <em>Ceremonies</em></div>
-            <div className="invite-event-grid">
-              {inviteEvents.map((event) => (
-                <article key={event._id}>
-                  <img src={mediaUrl(event.thumbnail || heroImage)} alt="" />
-                  <div>
-                    <h3>{event.title || "Wedding Event"}</h3>
-                    <p>{event.event_date || wedding?.wedding_date || "Wedding Date"}</p>
-                    <span>{event.venue_name || venueName}</span>
-                  </div>
-                </article>
               ))}
             </div>
           </section>
@@ -273,7 +263,7 @@ export default function PublicInvitationSite() {
             <h2>Until we say I do</h2>
             <button type="button" className={`invite-scratch ${scratchOpen ? "is-open" : ""}`} onClick={() => setScratchOpen(true)}>
               {scratchOpen ? (
-                <span>{countdown.days} Days · {countdown.hours} Hours · {countdown.minutes} Minutes</span>
+                <span>{countdown.days} Days / {countdown.hours} Hours / {countdown.minutes} Minutes</span>
               ) : (
                 <span>Scratch here to reveal</span>
               )}
