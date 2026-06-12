@@ -7903,6 +7903,7 @@ body.premium-flow-open .wedflix-footer {
   position: relative;
   z-index: 2;
   width: min(680px, 88vw);
+  aspect-ratio: 16 / 10;
   height: auto;
   margin-top: clamp(10px, 4vh, 42px);
   cursor: pointer;
@@ -7921,12 +7922,90 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-envelope img {
+  position: relative;
+  z-index: 2;
   display: block;
   width: 100%;
   height: auto;
   border-radius: inherit;
   user-select: none;
   -webkit-user-drag: none;
+  transform-origin: bottom center;
+  transition: transform 1.1s cubic-bezier(0.2, 0.78, 0.18, 1), opacity 0.5s ease 0.95s;
+}
+
+.invite-envelope__paper {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 14%;
+  z-index: 1;
+  min-height: 58%;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: clamp(18px, 4vw, 34px);
+  border: 1px solid rgba(184, 132, 42, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 243, 0.98), rgba(251, 238, 207, 0.98)),
+    #fff8e6;
+  color: #7b1328;
+  box-shadow:
+    0 22px 54px rgba(80, 47, 20, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.76);
+  opacity: 0;
+  transform: translateY(42%) scale(0.78) rotateX(28deg);
+  transform-origin: bottom center;
+  transition:
+    transform 1.05s cubic-bezier(0.2, 0.78, 0.18, 1) 0.12s,
+    opacity 0.38s ease 0.08s;
+}
+
+.invite-envelope__paper::before,
+.invite-envelope__paper::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(157, 44, 48, 0.16);
+  pointer-events: none;
+}
+
+.invite-envelope__paper::after {
+  inset: 24px;
+  border-color: rgba(184, 132, 42, 0.2);
+}
+
+.invite-envelope__paper p,
+.invite-envelope__paper strong,
+.invite-envelope__paper span {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  text-align: center;
+}
+
+.invite-envelope__paper p {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.invite-envelope__paper strong {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.7rem, 5.8vw, 3.6rem);
+  font-weight: 600;
+  line-height: 0.95;
+}
+
+.invite-envelope__paper span {
+  color: #7c4a4b;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .invite-envelope button {
@@ -7954,8 +8033,19 @@ body.premium-flow-open .wedflix-footer {
 }
 
 .invite-reveal.is-bursting .invite-envelope {
-  transform: translateY(-18px) scale(0.94);
+  transform: translateY(-28px) scale(0.98);
   opacity: 0;
+  transition-delay: 1.15s;
+}
+
+.invite-reveal.is-bursting .invite-envelope img {
+  transform: translateY(34%) rotateX(-18deg) scale(0.92);
+  opacity: 0.38;
+}
+
+.invite-reveal.is-bursting .invite-envelope__paper {
+  opacity: 1;
+  transform: translateY(-76%) scale(1) rotateX(0deg);
 }
 
 .invite-burst {

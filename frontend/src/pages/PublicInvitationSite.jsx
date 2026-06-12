@@ -349,7 +349,7 @@ export default function PublicInvitationSite() {
     if (musicUrl) {
       setTimeout(() => audioRef.current?.play().catch(() => {}), 120);
     }
-    window.setTimeout(() => setRevealed(true), 1350);
+    window.setTimeout(() => setRevealed(true), 2300);
   };
 
   const scratchReveal = (event) => {
@@ -477,6 +477,11 @@ export default function PublicInvitationSite() {
             }}
             aria-label="Open wedding invitation"
           >
+            <div className="invite-envelope__paper" aria-hidden="true">
+              <p>{wedding?.invite_envelope_label || "Wedding Invitation"}</p>
+              <strong>{firstName}{secondName ? ` & ${secondName}` : ""}</strong>
+              <span>{date.day || ""} {date.month || ""} {date.year || ""}</span>
+            </div>
             <img src="/invite-premium-envelope.png" alt="Wedding invitation envelope" />
             <button type="button" disabled={bursting}>
               {bursting ? "Opening..." : "Open Invitation"}
