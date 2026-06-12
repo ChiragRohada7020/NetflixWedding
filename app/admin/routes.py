@@ -501,6 +501,7 @@ def create_invitation_program():
     if not can_edit_wedding(Wedding.get(wedding_id)):
         return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
     section_key = _clean_section_key(request.form.get("section_key"), "invitation")
+    existing_count = mongo.db.invitation_programs.count_documents({"wedding_id": ObjectId(wedding_id)})
     payload = {
         "wedding_id": ObjectId(wedding_id),
         "section_key": section_key,
@@ -512,7 +513,7 @@ def create_invitation_program():
         "venue_name": (request.form.get("venue_name") or "").strip(),
         "event_address": (request.form.get("event_address") or "").strip(),
         "music_url": _resolve_music_url("music_url", "music_file"),
-        "order": _safe_int(request.form.get("order"), 0),
+        "order": _safe_int(request.form.get("order"), existing_count + 1),
     }
     program_id = InvitationProgram.create(payload)
     success_response = _form_success("Invitation program created", wedding_id=wedding_id, program_id=str(program_id))
@@ -540,7 +541,7 @@ def update_invitation_program(program_id):
         "venue_name": (request.form.get("venue_name") or "").strip(),
         "event_address": (request.form.get("event_address") or "").strip(),
         "music_url": _resolve_music_url("music_url", "music_file", (program or {}).get("music_url", "")),
-        "order": _safe_int(request.form.get("order"), 0),
+        "order": _safe_int(request.form.get("order"), (program or {}).get("order", 0)),
     }
     mongo.db.invitation_programs.update_one({"_id": ObjectId(program_id)}, {"$set": payload})
     success_response = _form_success("Invitation program updated", wedding_id=wedding_id, program_id=program_id)

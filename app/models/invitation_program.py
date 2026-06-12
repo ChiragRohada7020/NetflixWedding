@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from bson import ObjectId
 
 from app.models.base import BaseModel
@@ -9,22 +7,11 @@ class InvitationProgram(BaseModel):
     collection_name = "invitation_programs"
     legacy_section_keys = {"invitation", "invite", "prewedding", "pre-wedding"}
 
-    @staticmethod
-    def _date_key(value):
-        if not value:
-            return datetime.max
-        for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y"):
-            try:
-                return datetime.strptime(str(value), fmt)
-            except ValueError:
-                continue
-        return datetime.max
-
     @classmethod
     def by_wedding(cls, wedding_id):
         cls.migrate_legacy_for_wedding(wedding_id)
         docs = [cls.serialize(x) for x in cls.collection().find({"wedding_id": cls.to_object_id(wedding_id)})]
-        docs.sort(key=lambda p: (p.get("order", 0), cls._date_key(p.get("event_date")), p.get("title", "")))
+        docs.sort(key=lambda p: (p.get("order", 0), str(p.get("_id", ""))))
         return docs
 
     @classmethod

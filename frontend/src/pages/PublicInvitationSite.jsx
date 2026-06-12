@@ -331,6 +331,7 @@ export default function PublicInvitationSite() {
     fd.append("thumbnail", value("thumbnail"));
     fd.append("music_url", value("music_url"));
     fd.append("section_key", value("section_key", program.section_key || "invitation"));
+    fd.append("order", String(value("order", 0)));
     if (patch.thumbnail_file) {
       fd.append("thumbnail_file", await preparePhotoForUpload(patch.thumbnail_file));
     }
