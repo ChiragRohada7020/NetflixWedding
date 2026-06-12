@@ -16,7 +16,7 @@ import useModalHistory from "../utils/useModalHistory";
 function toEmbed(url) {
   if (!url) return "";
   const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+  return m ? `https://www.youtube.com/embed/${m[1]}` : "";
 }
 
 function getVideoId(url) {

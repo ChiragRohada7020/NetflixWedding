@@ -1,6 +1,7 @@
 import mimetypes
 import os
 import base64
+import hashlib
 import json
 import re
 import tempfile
@@ -47,6 +48,8 @@ from app.utils.plans import (
 from app.utils.telegram_media import TelegramMediaError, upload_bytes_to_telegram, upload_photo_to_telegram
 
 api_bp = Blueprint("api", __name__)
+
+TELEGRAM_CACHE_MAX_AGE = int(os.getenv("TELEGRAM_MEDIA_CACHE_SECONDS", str(60 * 60 * 24 * 30)))
 
 
 def _is_debug_env():
@@ -1178,6 +1181,28 @@ def telegram_media(file_id):
     if not token:
         return jsonify({"error": "Telegram media storage is not configured"}), 503
 
+    cache_key = hashlib.sha256(file_id.encode("utf-8")).hexdigest()
+    cache_dir = Path(current_app.instance_path) / "telegram_media_cache"
+    cached_matches = list(cache_dir.glob(f"{cache_key}.*")) if cache_dir.exists() else []
+    if not request.headers.get("Range") and cached_matches:
+        cache_path = cached_matches[0]
+        content_type = mimetypes.guess_type(cache_path.name)[0] or "application/octet-stream"
+        disposition = "attachment" if request.args.get("download") == "1" else "inline"
+        response = send_file(
+            cache_path,
+            mimetype=content_type,
+            as_attachment=(disposition == "attachment"),
+            download_name=f"wedflix-media{cache_path.suffix}",
+            conditional=True,
+            max_age=TELEGRAM_CACHE_MAX_AGE,
+        )
+        response.headers.update({
+            "Accept-Ranges": "bytes",
+            "Cache-Control": f"public, max-age={TELEGRAM_CACHE_MAX_AGE}, immutable",
+            "Content-Disposition": f'{disposition}; filename="wedflix-media{cache_path.suffix}"',
+        })
+        return response
+
     response = requests.get(
         f"https://api.telegram.org/bot{token}/getFile",
         params={"file_id": file_id},
@@ -1191,6 +1216,32 @@ def telegram_media(file_id):
     if not file_path:
         return jsonify({"error": "Telegram file path missing"}), 502
 
+    content_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+    disposition = "attachment" if request.args.get("download") == "1" else "inline"
+    download_name = os.path.basename(file_path) or "wedflix-photo"
+    cache_headers = {
+        "Accept-Ranges": "bytes",
+        "Cache-Control": f"public, max-age={TELEGRAM_CACHE_MAX_AGE}, immutable",
+        "Content-Disposition": f'{disposition}; filename="{download_name}"',
+    }
+
+    # Images and audio used by invitations are requested repeatedly. Cache the
+    # immutable Telegram file locally after the first hit so public pages do not
+    # wait on Telegram for every visitor.
+    suffix = Path(file_path).suffix or mimetypes.guess_extension(content_type) or ".bin"
+    cache_path = cache_dir / f"{cache_key}{suffix}"
+    if not request.headers.get("Range") and cache_path.exists():
+        response = send_file(
+            cache_path,
+            mimetype=content_type,
+            as_attachment=(disposition == "attachment"),
+            download_name=download_name,
+            conditional=True,
+            max_age=TELEGRAM_CACHE_MAX_AGE,
+        )
+        response.headers.update(cache_headers)
+        return response
+
     file_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
     upstream_headers = {}
     if request.headers.get("Range"):
@@ -1199,16 +1250,30 @@ def telegram_media(file_id):
     if not file_response.ok:
         return jsonify({"error": "Telegram file download failed"}), 502
 
-    content_type = file_response.headers.get("content-type") or mimetypes.guess_type(file_path)[0] or "application/octet-stream"
-    disposition = "attachment" if request.args.get("download") == "1" else "inline"
-    headers = {
-        "Accept-Ranges": "bytes",
-        "Cache-Control": "public, max-age=604800, stale-while-revalidate=86400",
-        "Content-Disposition": f'{disposition}; filename="{os.path.basename(file_path) or "wedflix-photo"}"',
-    }
+    content_type = file_response.headers.get("content-type") or content_type
+    headers = dict(cache_headers)
     for header in ("Content-Length", "Content-Range"):
         if file_response.headers.get(header):
             headers[header] = file_response.headers[header]
+
+    if not request.headers.get("Range"):
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(delete=False, dir=cache_dir) as temp_file:
+            temp_path = Path(temp_file.name)
+            for chunk in file_response.iter_content(chunk_size=1024 * 64):
+                if chunk:
+                    temp_file.write(chunk)
+        temp_path.replace(cache_path)
+        response = send_file(
+            cache_path,
+            mimetype=content_type,
+            as_attachment=(disposition == "attachment"),
+            download_name=download_name,
+            conditional=True,
+            max_age=TELEGRAM_CACHE_MAX_AGE,
+        )
+        response.headers.update(headers)
+        return response
 
     return Response(
         stream_with_context(file_response.iter_content(chunk_size=1024 * 64)),

@@ -14,6 +14,15 @@ function placeholder(label) {
   return `data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 900'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='35%25' r='75%25'%3E%3Cstop stop-color='%23fff3eb'/%3E%3Cstop offset='1' stop-color='%23e9b6c5'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='900' fill='url(%23g)'/%3E%3Ctext x='600' y='455' text-anchor='middle' fill='%2384132a' font-size='74' font-family='Georgia,serif' font-weight='700'%3E${text}%3C/text%3E%3C/svg%3E`;
 }
 
+function warmImage(src, priority = "auto") {
+  if (!src || src.startsWith("data:")) return null;
+  const image = new Image();
+  image.decoding = "async";
+  image.fetchPriority = priority;
+  image.src = src;
+  return image;
+}
+
 function splitNames(value) {
   const parts = String(value || "The Couple").split("&").map((part) => part.trim()).filter(Boolean);
   return parts.length >= 2 ? parts.slice(0, 2) : [parts[0] || "The Couple", ""];
@@ -231,7 +240,7 @@ export default function PublicInvitationSite() {
   const initials = `${(firstName || "W").charAt(0)}${(secondName || "F").charAt(0)}`;
   const inviteTitle = wedding?.invitation_title || "Wedding Invitation";
   const countdown = useMemo(() => countdownParts(inviteDateValue, weddingTime || "10:00 AM"), [countdownTick, inviteDateValue, weddingTime]);
-  const galleryItems = editableGalleryItems(heroImage, preweddingPrograms);
+  const galleryItems = useMemo(() => editableGalleryItems(heroImage, preweddingPrograms), [heroImage, preweddingPrograms]);
   const inviteEvents = useMemo(() => timelineEvents(invitationPrograms, wedding, venueName, heroImage), [invitationPrograms, wedding, venueName, heroImage]);
 
   const refreshInvite = async () => {
@@ -430,6 +439,18 @@ export default function PublicInvitationSite() {
     const timer = window.setInterval(() => setCountdownTick(Date.now()), 60000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const images = [
+      warmImage(invitationBgImage, "high"),
+      warmImage(heroImage, "high"),
+      ...inviteEvents.slice(0, 2).map((event) => warmImage(event.image)),
+      ...galleryItems.slice(0, 2).map((item) => warmImage(item.image)),
+    ];
+    return () => images.forEach((image) => {
+      if (image) image.src = "";
+    });
+  }, [invitationBgImage, heroImage, inviteEvents, galleryItems]);
 
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;

@@ -14,7 +14,7 @@ import { isFavouriteWedding, removeFavouriteWedding, saveFavouriteWedding } from
 function toEmbed(url) {
   if (!url) return "";
   const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+  return match ? `https://www.youtube.com/embed/${match[1]}` : "";
 }
 
 function getVideoId(url) {
