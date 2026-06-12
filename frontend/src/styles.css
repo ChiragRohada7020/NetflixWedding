@@ -9501,6 +9501,13 @@ body.premium-flow-open .wedflix-footer {
   box-shadow: 0 16px 34px rgba(154, 20, 48, 0.24);
 }
 
+.invite-story-button,
+.invite-story-button:visited,
+.invite-story-button .inline-editable,
+.invite-story-button span {
+  color: #fff;
+}
+
 .invite-story-button:hover,
 .invite-story-button:focus-visible {
   background: #7f1027;
