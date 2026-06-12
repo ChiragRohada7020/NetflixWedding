@@ -280,6 +280,11 @@ def create_wedding():
         "invite_send_label": _form_text("invite_send_label", "Send Love"),
         "invite_hashtag_label": _form_text("invite_hashtag_label", "Forever begins here"),
         "invite_story_button_label": _form_text("invite_story_button_label", "See Their Wedflix Story"),
+        "invite_by_title": _form_text("invite_by_title", "Invitation By"),
+        "invite_by_line_one": _form_text("invite_by_line_one", "Lal Keshav Niwas"),
+        "invite_by_line_two": _form_text("invite_by_line_two", "Sindhi Colony, Pachora"),
+        "invite_by_line_three": _form_text("invite_by_line_three", "Mr. Manoj Lalchand Pinjani"),
+        "invite_by_line_four": _form_text("invite_by_line_four", "& All Pinjani Family, Friends & Relative"),
         "custom_sections": _parse_custom_sections(request.form.get("custom_sections_json")),
         "venue_blocks": (
             _parse_venue_blocks(request.form.get("venue_blocks_json"))
@@ -370,6 +375,11 @@ def update_wedding(wedding_id):
         "invite_send_label": _form_text("invite_send_label", current.get("invite_send_label") or "Send Love"),
         "invite_hashtag_label": _form_text("invite_hashtag_label", current.get("invite_hashtag_label") or "Forever begins here"),
         "invite_story_button_label": _form_text("invite_story_button_label", current.get("invite_story_button_label") or "See Their Wedflix Story"),
+        "invite_by_title": _form_text("invite_by_title", current.get("invite_by_title") or "Invitation By"),
+        "invite_by_line_one": _form_text("invite_by_line_one", current.get("invite_by_line_one") or "Lal Keshav Niwas"),
+        "invite_by_line_two": _form_text("invite_by_line_two", current.get("invite_by_line_two") or "Sindhi Colony, Pachora"),
+        "invite_by_line_three": _form_text("invite_by_line_three", current.get("invite_by_line_three") or "Mr. Manoj Lalchand Pinjani"),
+        "invite_by_line_four": _form_text("invite_by_line_four", current.get("invite_by_line_four") or "& All Pinjani Family, Friends & Relative"),
         "custom_sections": (
             _parse_custom_sections(request.form.get("custom_sections_json"))
             if "custom_sections_json" in request.form

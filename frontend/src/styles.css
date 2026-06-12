@@ -7903,19 +7903,15 @@ body.premium-flow-open .wedflix-footer {
   position: relative;
   z-index: 2;
   width: min(680px, 88vw);
-  aspect-ratio: 16 / 10;
   height: auto;
   margin-top: clamp(10px, 4vh, 42px);
-  perspective: 1100px;
   cursor: pointer;
   outline: none;
+  border: 0;
   border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(255, 248, 230, 0.12), rgba(89, 54, 21, 0.08)),
-    url("/invite-premium-envelope.png") center / cover no-repeat;
+  background: transparent;
   filter: drop-shadow(0 34px 58px rgba(99, 70, 31, 0.28));
-  transform-style: preserve-3d;
-  transition: transform 0.28s ease, filter 0.28s ease;
+  transition: transform 0.28s ease, filter 0.28s ease, opacity 0.45s ease;
 }
 
 .invite-envelope:hover,
@@ -7924,133 +7920,13 @@ body.premium-flow-open .wedflix-footer {
   filter: drop-shadow(0 44px 72px rgba(99, 70, 31, 0.34));
 }
 
-.invite-envelope::before,
-.invite-envelope::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.invite-envelope::before {
-  z-index: 1;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 248, 222, 0.2), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(49, 29, 13, 0.08));
-  box-shadow: inset 0 0 0 1px rgba(255, 235, 176, 0.24);
-}
-
-.invite-envelope::after {
-  z-index: 2;
-  background: linear-gradient(180deg, transparent 58%, rgba(54, 30, 10, 0.14));
-}
-
-.invite-envelope__back,
-.invite-envelope__pocket,
-.invite-envelope__flap,
-.invite-envelope__letter {
-  position: absolute;
-  inset: 0;
-}
-
-.invite-envelope__back {
-  display: none;
-}
-
-.invite-envelope__letter {
-  inset: 17% 18% auto 18%;
-  height: 32%;
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 8px;
-  padding: 18px 20px;
-  border: 1px solid rgba(184, 132, 42, 0.28);
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 50% 10%, rgba(255, 250, 224, 0.9), transparent 46%),
-    rgba(255, 252, 242, 0.72);
-  color: #8f6020;
-  transform: translateY(0);
-  box-shadow:
-    0 14px 32px rgba(95, 60, 20, 0.12),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  opacity: 0.96;
-  z-index: 3;
-  transition: transform 0.85s ease 0.18s, opacity 0.5s ease;
-}
-
-.invite-envelope__letter p {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-}
-
-.invite-envelope__letter strong {
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1.45rem, 5.6vw, 2.9rem);
-  font-weight: 500;
-  line-height: 0.95;
-}
-
-.invite-envelope__letter span {
-  color: #7c4a4b;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.invite-envelope__pocket {
-  display: none;
-}
-
-.invite-envelope__flap {
-  inset: 5.5% 8.5% auto 8.5%;
-  height: 47%;
+.invite-envelope img {
   display: block;
-  z-index: 5;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  transform-origin: top center;
-  background:
-    linear-gradient(135deg, transparent 0 2.2%, rgba(179, 124, 35, 0.82) 2.5% 3.2%, transparent 3.6% 96.4%, rgba(179, 124, 35, 0.82) 96.8% 97.5%, transparent 97.8%),
-    radial-gradient(circle at 50% 36%, rgba(255, 251, 229, 0.88), transparent 34%),
-    linear-gradient(160deg, rgba(255, 250, 235, 0.98), rgba(232, 203, 157, 0.96));
-  box-shadow:
-    inset 0 -1px 0 rgba(166, 111, 28, 0.26),
-    0 14px 28px rgba(75, 49, 19, 0.16);
-  transition: transform 1.05s cubic-bezier(0.2, 0.76, 0.18, 1), opacity 0.42s ease 0.68s;
-  backface-visibility: hidden;
-}
-
-.invite-envelope__seal {
-  position: absolute;
-  left: 50%;
-  top: 69%;
-  width: 88px;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  border: 2px solid rgba(255, 245, 207, 0.82);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 34% 28%, #ffeab0 0 12%, transparent 13%),
-    radial-gradient(circle, #eec36b 0%, #c58934 68%, #9e6428 100%);
-  color: #fff8d8;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2rem;
-  font-weight: 800;
-  transform: translate(-50%, -50%);
-  box-shadow:
-    0 10px 24px rgba(45, 23, 36, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.48),
-    inset 0 -8px 14px rgba(109, 65, 20, 0.22);
-  transition: opacity 0.28s ease, transform 0.5s ease;
-  opacity: 0;
-  pointer-events: none;
+  width: 100%;
+  height: auto;
+  border-radius: inherit;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .invite-envelope button {
@@ -8077,32 +7953,9 @@ body.premium-flow-open .wedflix-footer {
   z-index: 4;
 }
 
-.invite-reveal.is-bursting .invite-envelope__flap {
-  transform: rotateX(-158deg);
-  opacity: 0.18;
-}
-
-.invite-reveal.is-bursting .invite-envelope__letter {
-  transform: translateY(-58%) scale(0.96);
-  opacity: 0;
-}
-
 .invite-reveal.is-bursting .invite-envelope {
-  transform: translateY(-10px) scale(0.96);
-}
-
-.invite-reveal.is-bursting .invite-envelope__seal {
+  transform: translateY(-18px) scale(0.94);
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.4);
-}
-
-.invite-reveal.is-bursting .invite-reveal__card {
-  transform: perspective(900px) rotateX(18deg) scale(0.94);
-  opacity: 0.72;
-}
-
-.invite-reveal.is-bursting .invite-reveal__couple {
-  animation: inviteRevealPop 0.9s ease forwards;
 }
 
 .invite-burst {
@@ -8390,6 +8243,63 @@ body.premium-flow-open .wedflix-footer {
 
 .invite-story p {
   margin-inline: auto;
+}
+
+.invite-by {
+  overflow: hidden;
+}
+
+.invite-by::before,
+.invite-by::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border: 1px solid rgba(157, 44, 48, 0.16);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.invite-by::before {
+  top: -58px;
+  left: -42px;
+}
+
+.invite-by::after {
+  right: -48px;
+  bottom: -62px;
+}
+
+.invite-by__lines {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  max-width: 680px;
+  margin: 24px auto 0;
+  color: #3b1822;
+}
+
+.invite-by__lines strong {
+  color: #982a2f;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.1rem, 5vw, 4.2rem);
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+.invite-by__lines span {
+  color: rgba(59, 24, 34, 0.82);
+  font-size: clamp(1.05rem, 2.3vw, 1.38rem);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.invite-by__lines span:last-child {
+  color: #7b1328;
+  font-family: Georgia, serif;
+  font-weight: 600;
 }
 
 .invite-blessings,
@@ -10321,6 +10231,33 @@ body.premium-flow-open .wedflix-footer {
   margin: 0;
   color: rgba(255, 255, 255, 0.75);
   line-height: 1.72;
+}
+
+.premium-invitation__qr {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 196, 123, 0.24);
+  background: rgba(255, 247, 236, 0.08);
+}
+
+.premium-invitation__qr img {
+  width: 96px;
+  height: 96px;
+  flex: 0 0 96px;
+  border-radius: 8px;
+  background: #fff7ec;
+  padding: 6px;
+}
+
+.premium-invitation__qr span {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .premium-actionbar {

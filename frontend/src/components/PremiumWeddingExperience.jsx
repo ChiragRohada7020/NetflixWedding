@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
 import { mediaUrl } from "../api";
 
 function placeholder(label) {
@@ -69,6 +70,7 @@ export default function PremiumWeddingExperience({
   const [venueEditor, setVenueEditor] = useState(null);
   const [venueSettingsOpen, setVenueSettingsOpen] = useState(false);
   const [isSavingVenue, setIsSavingVenue] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const audioRef = useRef(null);
   const invitationRef = useRef(null);
@@ -218,6 +220,29 @@ export default function PremiumWeddingExperience({
 
   const shareText = `${wedding?.couple_names || "Wedflix Story"} - ${wedding?.wedding_date || ""}`;
   const shareUrl = invitationWebsiteUrl;
+
+  useEffect(() => {
+    let cancelled = false;
+    QRCode.toDataURL(shareUrl, {
+      errorCorrectionLevel: "M",
+      margin: 1,
+      width: 180,
+      color: {
+        dark: "#17110f",
+        light: "#fff7ec",
+      },
+    })
+      .then((url) => {
+        if (!cancelled) setQrCodeUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setQrCodeUrl("");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [shareUrl]);
+
   const shareInvitation = async () => {
     if (navigator.share) {
       await navigator.share({ title: shareText, text: "You are invited to the wedding celebration.", url: shareUrl }).catch(() => {});
@@ -444,6 +469,12 @@ export default function PremiumWeddingExperience({
               <small>{venueAddress}</small>
             </div>
             <p>{wedding.description || "Together with family and friends, join us for a celebration of love, laughter, and forever."}</p>
+            {qrCodeUrl && (
+              <div className="premium-invitation__qr">
+                <img src={qrCodeUrl} alt="QR code for public invitation link" />
+                <span>Scan to open invitation</span>
+              </div>
+            )}
           </aside>
         </div>
         <div className="premium-actionbar">

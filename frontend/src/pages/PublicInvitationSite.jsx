@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { apiGet, apiGetPublic, apiPostForm, mediaUrl } from "../api";
+import { apiGetPublic, apiPostForm, mediaUrl } from "../api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import AsyncState from "../components/AsyncState";
@@ -180,7 +180,7 @@ export default function PublicInvitationSite() {
     queryKey: ["public-invitation-site", publicSlug],
     queryFn: async () => {
       const wedding = await apiGetPublic(`/api/public-weddings/${publicSlug}`);
-      const programs = await apiGet(`/api/weddings/${wedding._id}/programs`);
+      const programs = await apiGetPublic(`/api/weddings/${wedding._id}/programs`);
       return { wedding, programs };
     },
   });
@@ -263,6 +263,11 @@ export default function PublicInvitationSite() {
     fd.append("invite_send_label", value("invite_send_label", "Send Love"));
     fd.append("invite_hashtag_label", value("invite_hashtag_label", "Forever begins here"));
     fd.append("invite_story_button_label", value("invite_story_button_label", "See Their Wedflix Story"));
+    fd.append("invite_by_title", value("invite_by_title", "Invitation By"));
+    fd.append("invite_by_line_one", value("invite_by_line_one", "Lal Keshav Niwas"));
+    fd.append("invite_by_line_two", value("invite_by_line_two", "Sindhi Colony, Pachora"));
+    fd.append("invite_by_line_three", value("invite_by_line_three", "Mr. Manoj Lalchand Pinjani"));
+    fd.append("invite_by_line_four", value("invite_by_line_four", "& All Pinjani Family, Friends & Relative"));
     fd.append("custom_sections_json", JSON.stringify(Array.isArray(wedding.custom_sections) ? wedding.custom_sections : []));
     fd.append("venue_blocks_json", JSON.stringify(Array.isArray(wedding.venue_blocks) ? wedding.venue_blocks : []));
     fd.append("custom_section_label", value("custom_section_label"));
@@ -472,15 +477,7 @@ export default function PublicInvitationSite() {
             }}
             aria-label="Open wedding invitation"
           >
-            <div className="invite-envelope__back" />
-            <div className="invite-envelope__letter">
-              <InlineEditableText as="p" value={wedding?.invite_envelope_label || "Wedding Invitation"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_envelope_label: value })} />
-              <strong>{firstName}{secondName ? ` & ${secondName}` : ""}</strong>
-              <span>{date.day || ""} {date.month || ""} {date.year || ""}</span>
-            </div>
-            <div className="invite-envelope__pocket" />
-            <div className="invite-envelope__flap" />
-            <div className="invite-envelope__seal">{initials}</div>
+            <img src="/invite-premium-envelope.png" alt="Wedding invitation envelope" />
             <button type="button" disabled={bursting}>
               {bursting ? "Opening..." : "Open Invitation"}
             </button>
@@ -647,6 +644,22 @@ export default function PublicInvitationSite() {
             <InlineEditableText as="p" className="invite-kicker" value={inviteTitle} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invitation_title: value })} />
             <InlineEditableText as="h2" value={`${firstName}${secondName ? ` weds ${secondName}` : ""}`} enabled={isEditing} onSave={(value) => saveWeddingPatch({ couple_names: value.replace(/\s+weds\s+/i, " & ") })} />
             <InlineEditableText as="p" value={wedding?.venue_description || "With the blessings of our families, we request your presence for love, laughter, rituals, and forever."} enabled={isEditing} onSave={(value) => saveWeddingPatch({ venue_description: value })} />
+          </section>
+
+          <section className="invite-section invite-by invite-card-panel">
+            <InlineEditableText
+              as="p"
+              className="invite-kicker"
+              value={wedding?.invite_by_title || "Invitation By"}
+              enabled={isEditing}
+              onSave={(value) => saveWeddingPatch({ invite_by_title: value })}
+            />
+            <div className="invite-by__lines">
+              <InlineEditableText as="strong" value={wedding?.invite_by_line_one || "Lal Keshav Niwas"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_one: value })} />
+              <InlineEditableText as="span" value={wedding?.invite_by_line_two || "Sindhi Colony, Pachora"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_two: value })} />
+              <InlineEditableText as="span" value={wedding?.invite_by_line_three || "Mr. Manoj Lalchand Pinjani"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_three: value })} />
+              <InlineEditableText as="span" value={wedding?.invite_by_line_four || "& All Pinjani Family, Friends & Relative"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_four: value })} />
+            </div>
           </section>
 
           <section className="invite-section invite-memories invite-card-panel">

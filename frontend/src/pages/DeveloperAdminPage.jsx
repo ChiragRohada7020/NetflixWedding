@@ -407,7 +407,7 @@ export default function DeveloperAdminPage() {
                             <div>
                               <strong>{wedding.couple_names}</strong>
                               <span>{wedding.wedding_date || "No date"} · {wedding.access_level}</span>
-                              <span>{wedding.public_slug ? `/p/${wedding.public_slug}` : "No public slug"}</span>
+                              <span>{wedding.public_slug ? `/p/${wedding.public_slug}/invite` : "No public slug"}</span>
                             </div>
                             <div className="developer-user-controls">
                               <select
@@ -426,8 +426,8 @@ export default function DeveloperAdminPage() {
                                 {isWeddingSaving ? "Saving..." : wedding.show_on_demo_home ? "Remove From Demo" : "Approve Demo"}
                               </button>
                               {wedding.public_slug && (
-                                <button type="button" onClick={() => copyText(`${window.location.origin}/p/${wedding.public_slug}`, "public link")}>
-                                  Copy Public Link
+                                <button type="button" onClick={() => copyText(`${window.location.origin}/p/${wedding.public_slug}/invite`, "invitation link")}>
+                                  Copy Invitation Link
                                 </button>
                               )}
                             </div>

@@ -117,12 +117,12 @@ export default function WeddingsPage() {
     await queryClient.invalidateQueries({ queryKey: ["session"] });
     setModal(null);
     if (result?.public_home_path) {
-      const publicUrl = `${window.location.origin}${result.public_home_path}`;
+      const publicUrl = `${window.location.origin}${result.public_home_path}/invite`;
       try {
         await navigator.clipboard.writeText(publicUrl);
-        window.alert(`Public home link copied:\n${publicUrl}`);
+        window.alert(`Public invitation link copied:\n${publicUrl}`);
       } catch {
-        window.prompt("Copy this public home link", publicUrl);
+        window.prompt("Copy this public invitation link", publicUrl);
       }
     }
   };
@@ -135,14 +135,16 @@ export default function WeddingsPage() {
   };
 
   const copyShareLink = async (wedding) => {
-    const shareUrl = wedding.public_slug
-      ? `${window.location.origin}/p/${wedding.public_slug}`
-      : `${window.location.origin}/share/${wedding._id}`;
+    if (!wedding.public_slug) {
+      window.alert("Please save this story once to create its public invitation link.");
+      return;
+    }
+    const shareUrl = `${window.location.origin}/p/${wedding.public_slug}/invite`;
     try {
       await navigator.clipboard.writeText(shareUrl);
-      window.alert("Public home link copied.");
+      window.alert("Public invitation link copied.");
     } catch {
-      window.prompt("Copy this public home link", shareUrl);
+      window.prompt("Copy this public invitation link", shareUrl);
     }
   };
 
