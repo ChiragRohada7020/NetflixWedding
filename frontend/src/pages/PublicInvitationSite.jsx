@@ -444,6 +444,7 @@ export default function PublicInvitationSite() {
     const images = [
       warmImage(invitationBgImage, "high"),
       warmImage(heroImage, "high"),
+      warmImage("/invite-premium-envelope.png", "high"),
       ...inviteEvents.slice(0, 2).map((event) => warmImage(event.image)),
       ...galleryItems.slice(0, 2).map((item) => warmImage(item.image)),
     ];
@@ -542,7 +543,13 @@ export default function PublicInvitationSite() {
               <strong>{firstName}{secondName ? ` & ${secondName}` : ""}</strong>
               <span>{date.day || ""} {date.month || ""} {date.year || ""}</span>
             </div>
-            <img src="/invite-premium-envelope.png" alt="Wedding invitation envelope" />
+            <img
+              src="/invite-premium-envelope.png"
+              alt="Wedding invitation envelope"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
             <button type="button" disabled={bursting}>
               {bursting ? "Opening..." : "Open Invitation"}
             </button>
