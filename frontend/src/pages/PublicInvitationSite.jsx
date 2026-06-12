@@ -19,8 +19,24 @@ function splitNames(value) {
   return parts.length >= 2 ? parts.slice(0, 2) : [parts[0] || "The Couple", ""];
 }
 
+function parseInviteDate(value, timeValue = "") {
+  const raw = String(value || "").trim();
+  if (!raw) return new Date("");
+  const time = String(timeValue || "").trim();
+  const candidates = [time ? `${raw} ${time}` : raw, raw];
+  const monthFirst = raw.match(/^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})$/);
+  if (monthFirst) candidates.unshift(`${monthFirst[1]} ${monthFirst[2]}, ${monthFirst[3]} ${time}`.trim());
+  const dayFirst = raw.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+  if (dayFirst) candidates.unshift(`${dayFirst[2]} ${dayFirst[1]}, ${dayFirst[3]} ${time}`.trim());
+  for (const candidate of candidates) {
+    const parsed = new Date(candidate);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  return new Date("");
+}
+
 function dateParts(value) {
-  const date = new Date(value || "");
+  const date = parseInviteDate(value);
   if (Number.isNaN(date.getTime())) return { day: "", month: value || "Wedding Date", year: "", weekday: "" };
   return {
     day: String(date.getDate()).padStart(2, "0"),
@@ -41,7 +57,7 @@ function mapsUrl(address) {
 }
 
 function readableDate(value, fallback) {
-  const date = new Date(value || "");
+  const date = parseInviteDate(value);
   if (Number.isNaN(date.getTime())) return fallback || value || "Wedding Date";
   return date.toLocaleDateString("en", { day: "2-digit", month: "long", year: "numeric" });
 }
@@ -69,8 +85,8 @@ function timelineEvents(programs, wedding, venueName, heroImage) {
   }));
 }
 
-function countdownParts(value) {
-  const target = new Date(value || "");
+function countdownParts(value, timeValue = "") {
+  const target = parseInviteDate(value, timeValue || "10:00 AM");
   if (Number.isNaN(target.getTime())) return { days: "--", hours: "--", minutes: "--" };
   const diff = Math.max(0, target.getTime() - Date.now());
   return {
@@ -174,6 +190,7 @@ export default function PublicInvitationSite() {
   const [revealChoice, setRevealChoice] = useState("");
   const [reasonChoice, setReasonChoice] = useState("");
   const [guessVotes, setGuessVotes] = useState({ first: 4, second: 3, both: 7 });
+  const [countdownTick, setCountdownTick] = useState(Date.now());
   const bgInputRef = useRef(null);
   const musicInputRef = useRef(null);
   const memoryInputRef = useRef(null);
@@ -200,16 +217,20 @@ export default function PublicInvitationSite() {
     [programs, preweddingKeys],
   );
   const [firstName, secondName] = splitNames(wedding?.couple_names);
-  const date = dateParts(wedding?.wedding_date);
   const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || "") || placeholder(wedding?.couple_names);
   const venueName = wedding?.venue_name || invitationPrograms[0]?.venue_name || "Wedding Venue";
   const venueAddress = wedding?.event_address || invitationPrograms[0]?.event_address || "";
   const weddingTime = wedding?.wedding_time || invitationPrograms[0]?.event_time || "";
+  const savedWeddingDate = parseInviteDate(wedding?.wedding_date, weddingTime || "10:00 AM");
+  const inviteDateValue = !Number.isNaN(savedWeddingDate.getTime()) && savedWeddingDate.getTime() > Date.now()
+    ? wedding?.wedding_date
+    : "25 June 2026";
+  const date = dateParts(inviteDateValue);
   const musicUrl = mediaUrl(wedding?.invitation_music_url || "");
   const invitationBgImage = mediaUrl(wedding?.invitation_bg_image || "") || "/invite-floral-bg.png";
   const initials = `${(firstName || "W").charAt(0)}${(secondName || "F").charAt(0)}`;
   const inviteTitle = wedding?.invitation_title || "Wedding Invitation";
-  const countdown = countdownParts(wedding?.wedding_date);
+  const countdown = useMemo(() => countdownParts(inviteDateValue, weddingTime || "10:00 AM"), [countdownTick, inviteDateValue, weddingTime]);
   const galleryItems = editableGalleryItems(heroImage, preweddingPrograms);
   const inviteEvents = useMemo(() => timelineEvents(invitationPrograms, wedding, venueName, heroImage), [invitationPrograms, wedding, venueName, heroImage]);
 
@@ -404,6 +425,11 @@ export default function PublicInvitationSite() {
     }
   }, [publicSlug]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setCountdownTick(Date.now()), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
 
@@ -585,7 +611,7 @@ export default function PublicInvitationSite() {
                 />
                 <InlineEditableText
                   as="span"
-                  value={wedding?.wedding_date || `${date.weekday || "Wedding Day"} / ${date.day || ""} ${date.month || ""} ${date.year || ""}`}
+                  value={inviteDateValue || `${date.weekday || "Wedding Day"} / ${date.day || ""} ${date.month || ""} ${date.year || ""}`}
                   enabled={isEditing}
                   onSave={(value) => saveWeddingPatch({ wedding_date: value })}
                 />
@@ -793,7 +819,7 @@ export default function PublicInvitationSite() {
               aria-label="Scratch countdown card to reveal wedding countdown"
             >
               {scratchOpen ? (
-                <span>{readableDate(wedding?.wedding_date, "Wedding Date")} / {countdown.days} Days / {countdown.hours} Hours / {countdown.minutes} Minutes</span>
+                <span>{readableDate(inviteDateValue, "25 June 2026")} / {countdown.days} Days / {countdown.hours} Hours / {countdown.minutes} Minutes</span>
               ) : (
                 <InlineEditableText as="span" value={wedding?.invite_scratch_label || "Scratch to reveal"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_scratch_label: value })} />
               )}
