@@ -16,6 +16,7 @@ from werkzeug.security import generate_password_hash
 from app import mongo
 from app.models.comment import Comment
 from app.models.episode import Episode
+from app.models.invitation_program import InvitationProgram
 from app.models.photo import Photo
 from app.models.program import Program
 from app.models.wedding import Wedding
@@ -699,6 +700,16 @@ def wedding_programs(wedding_id):
     if not _can_view_wedding(wedding):
         return jsonify({"error": "Unauthorized"}), 401
     return jsonify(_to_jsonable(Program.by_wedding(wedding_id)))
+
+
+@api_bp.route("/weddings/<wedding_id>/invitation-programs", methods=["GET"])
+def wedding_invitation_programs(wedding_id):
+    wedding = Wedding.get(wedding_id)
+    if not wedding:
+        return jsonify({"error": "Wedding not found"}), 404
+    if not _can_view_wedding(wedding):
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify(_to_jsonable(InvitationProgram.by_wedding(wedding_id)))
 
 
 @api_bp.route("/programs/<program_id>/episodes", methods=["GET"])

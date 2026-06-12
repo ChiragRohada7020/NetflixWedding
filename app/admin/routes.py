@@ -6,6 +6,7 @@ from flask_login import current_user, login_required
 
 from app import mongo
 from app.models.episode import Episode
+from app.models.invitation_program import InvitationProgram
 from app.models.program import Program
 from app.models.wedding import Wedding
 from app.utils.decorators import admin_required
@@ -429,6 +430,7 @@ def delete_wedding(wedding_id):
     if program_ids:
         mongo.db.photos.delete_many({"program_id": {"$in": program_ids}})
         mongo.db.programs.delete_many({"_id": {"$in": program_ids}})
+    mongo.db.invitation_programs.delete_many({"wedding_id": wid})
     mongo.db.weddings.delete_one({"_id": wid})
 
     success_response = _form_success("Wedding profile deleted")
@@ -466,6 +468,77 @@ def create_program():
     program_id = Program.create(payload)
     flash("Program created", "success")
     success_response = _form_success("Program created", wedding_id=wedding_id, program_id=str(program_id))
+    if success_response:
+        return success_response
+    return redirect(url_for("admin.home", wedding_id=wedding_id))
+
+
+@admin_bp.route("/invitation-programs/create", methods=["POST"])
+@login_required
+@admin_required
+def create_invitation_program():
+    wedding_id = request.form.get("wedding_id")
+    if not can_edit_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
+    section_key = _clean_section_key(request.form.get("section_key"), "invitation")
+    payload = {
+        "wedding_id": ObjectId(wedding_id),
+        "section_key": section_key,
+        "title": request.form.get("title"),
+        "description": (request.form.get("description") or "").strip(),
+        "thumbnail": _resolve_image_url("thumbnail", "thumbnail_file"),
+        "event_date": (request.form.get("event_date") or "").strip(),
+        "event_time": (request.form.get("event_time") or "").strip(),
+        "venue_name": (request.form.get("venue_name") or "").strip(),
+        "event_address": (request.form.get("event_address") or "").strip(),
+        "music_url": _resolve_music_url("music_url", "music_file"),
+        "order": _safe_int(request.form.get("order"), 0),
+    }
+    program_id = InvitationProgram.create(payload)
+    success_response = _form_success("Invitation program created", wedding_id=wedding_id, program_id=str(program_id))
+    if success_response:
+        return success_response
+    return redirect(url_for("admin.home", wedding_id=wedding_id))
+
+
+@admin_bp.route("/invitation-programs/<program_id>/update", methods=["POST"])
+@login_required
+@admin_required
+def update_invitation_program(program_id):
+    program = InvitationProgram.get(program_id)
+    wedding_id = str(program.get("wedding_id")) if program else ""
+    if not can_edit_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
+    section_key = _clean_section_key(request.form.get("section_key") or (program or {}).get("section_key"), "invitation")
+    payload = {
+        "section_key": section_key,
+        "title": (request.form.get("title") or "").strip(),
+        "description": (request.form.get("description") or "").strip(),
+        "thumbnail": _resolve_image_url("thumbnail", "thumbnail_file", (program or {}).get("thumbnail", "")),
+        "event_date": (request.form.get("event_date") or "").strip(),
+        "event_time": (request.form.get("event_time") or "").strip(),
+        "venue_name": (request.form.get("venue_name") or "").strip(),
+        "event_address": (request.form.get("event_address") or "").strip(),
+        "music_url": _resolve_music_url("music_url", "music_file", (program or {}).get("music_url", "")),
+        "order": _safe_int(request.form.get("order"), 0),
+    }
+    mongo.db.invitation_programs.update_one({"_id": ObjectId(program_id)}, {"$set": payload})
+    success_response = _form_success("Invitation program updated", wedding_id=wedding_id, program_id=program_id)
+    if success_response:
+        return success_response
+    return redirect(url_for("admin.home", wedding_id=wedding_id))
+
+
+@admin_bp.route("/invitation-programs/<program_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_invitation_program(program_id):
+    program = InvitationProgram.get(program_id)
+    wedding_id = str(program.get("wedding_id")) if program else ""
+    if not can_edit_wedding(Wedding.get(wedding_id)):
+        return _form_error("Unauthorized", 403) or redirect(url_for("admin.home"))
+    mongo.db.invitation_programs.delete_one({"_id": ObjectId(program_id)})
+    success_response = _form_success("Invitation program deleted", wedding_id=wedding_id)
     if success_response:
         return success_response
     return redirect(url_for("admin.home", wedding_id=wedding_id))

@@ -5,6 +5,7 @@ from app.models.base import BaseModel
 
 class Program(BaseModel):
     collection_name = "programs"
+    invitation_section_keys = {"invitation", "invite", "prewedding", "pre-wedding"}
 
     @staticmethod
     def _date_key(value):
@@ -18,8 +19,11 @@ class Program(BaseModel):
         return datetime.max
 
     @classmethod
-    def by_wedding(cls, wedding_id):
-        docs = [cls.serialize(x) for x in cls.collection().find({"wedding_id": cls.to_object_id(wedding_id)})]
+    def by_wedding(cls, wedding_id, include_invitation=False):
+        query = {"wedding_id": cls.to_object_id(wedding_id)}
+        if not include_invitation:
+            query["section_key"] = {"$nin": sorted(cls.invitation_section_keys)}
+        docs = [cls.serialize(x) for x in cls.collection().find(query)]
         docs.sort(key=lambda p: (p.get("order", 0), cls._date_key(p.get("event_date")), p.get("title", "")))
         return docs
 

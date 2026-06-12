@@ -180,7 +180,7 @@ export default function PublicInvitationSite() {
     queryKey: ["public-invitation-site", publicSlug],
     queryFn: async () => {
       const wedding = await apiGetPublic(`/api/public-weddings/${publicSlug}`);
-      const programs = await apiGetPublic(`/api/weddings/${wedding._id}/programs`);
+      const programs = await apiGetPublic(`/api/weddings/${wedding._id}/invitation-programs`);
       return { wedding, programs };
     },
   });
@@ -301,7 +301,7 @@ export default function PublicInvitationSite() {
     if (patch.thumbnail_file) {
       fd.append("thumbnail_file", await preparePhotoForUpload(patch.thumbnail_file));
     }
-    await apiPostForm(`/admin/programs/${program._id}/update`, fd);
+    await apiPostForm(`/admin/invitation-programs/${program._id}/update`, fd);
     await refreshInvite();
   };
 
@@ -319,7 +319,7 @@ export default function PublicInvitationSite() {
     fd.append("section_key", "invitation");
     fd.append("order", String(programs.length));
     fd.append("event_sections_json", JSON.stringify([]));
-    await apiPostForm("/admin/programs/create", fd);
+    await apiPostForm("/admin/invitation-programs/create", fd);
     await refreshInvite();
   };
 
@@ -339,7 +339,7 @@ export default function PublicInvitationSite() {
     fd.append("section_key", "prewedding");
     fd.append("order", String(programs.length));
     fd.append("event_sections_json", JSON.stringify([]));
-    await apiPostForm("/admin/programs/create", fd);
+    await apiPostForm("/admin/invitation-programs/create", fd);
     await refreshInvite();
   };
 
