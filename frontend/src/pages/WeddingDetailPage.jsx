@@ -60,6 +60,15 @@ function imageFor(item, label) {
   return mediaUrl(item?.thumbnail || item?.profile_image || item?.hero_image || getPlaceholder(label));
 }
 
+function scrollContainerTo(id) {
+  const target = document.getElementById(id);
+  const container = document.querySelector(".container");
+  if (!target || !container) return;
+  const containerTop = container.getBoundingClientRect().top;
+  const targetTop = target.getBoundingClientRect().top - containerTop + container.scrollTop - 18;
+  container.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+}
+
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
 function RailPoster({ item, href, title, subtitle, editMode, onEdit, onDelete, dragProps = null }) {
@@ -310,7 +319,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     [wedding?.hero_video_url, pageMusicUrl],
   );
   const scrollToFunctions = () => {
-    document.getElementById("programs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollContainerTo("programs");
   };
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const matchesSearch = (program) => {

@@ -48,6 +48,15 @@ function getPlaceholder(label) {
   return `data:image/svg+xml;charset=utf-8,${encoded}`;
 }
 
+function scrollContainerTo(id) {
+  const target = document.getElementById(id);
+  const container = document.querySelector(".container");
+  if (!target || !container) return;
+  const containerTop = container.getBoundingClientRect().top;
+  const targetTop = target.getBoundingClientRect().top - containerTop + container.scrollTop - 18;
+  container.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+}
+
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
 function SharePoster({ item, href, title, subtitle }) {
@@ -104,7 +113,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   const pageMusicUrl = mediaUrl(wedding?.music_url || "");
   const heroVideo = withHeroParams(toEmbed(wedding?.hero_video_url), { muted: Boolean(pageMusicUrl) });
   const scrollToFunctions = () => {
-    document.getElementById("celebration-series")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollContainerTo("celebration-series");
   };
 
   const rows = useMemo(() => {

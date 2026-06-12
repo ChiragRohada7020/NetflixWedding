@@ -19,6 +19,15 @@ import useModalHistory from "../utils/useModalHistory";
 const noop = () => {};
 const VideoModal = React.lazy(() => import("../components/VideoModal"));
 
+function scrollContainerTo(id) {
+  const target = document.getElementById(id);
+  const container = document.querySelector(".container");
+  if (!target || !container) return;
+  const containerTop = container.getBoundingClientRect().top;
+  const targetTop = target.getBoundingClientRect().top - containerTop + container.scrollTop - 18;
+  container.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+}
+
 function toEmbed(url) {
   if (!url) return "";
   const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
@@ -388,7 +397,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   const programHeroVideo = toEmbed(program?.hero_video_url);
   const programHeroImage = mediaUrl(program?.thumbnail || ordered[0]?.thumbnail || wedding?.profile_image || "") || "https://picsum.photos/seed/program-hero/1200/800";
   const scrollToEvents = () => {
-    document.getElementById("events")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollContainerTo("events");
   };
 
   return (
