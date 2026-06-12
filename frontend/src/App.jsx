@@ -119,42 +119,12 @@ export default function App() {
     if (introSoundAttemptedRef.current) return;
 
     const playIntroChime = async () => {
-      const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextCtor) return;
+      const audio = new Audio("/wedflix-intro.mp3");
+      audio.preload = "auto";
+      audio.volume = 0.9;
       try {
-        const ctx = new AudioContextCtor();
-        if (ctx.state === "suspended") {
-          await ctx.resume();
-        }
-        const master = ctx.createGain();
-        master.gain.value = 0.0001;
-        master.connect(ctx.destination);
-        master.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.04);
-        master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.15);
-
-        const notes = [
-          { freq: 196, start: 0.0, dur: 0.28 },
-          { freq: 247, start: 0.18, dur: 0.28 },
-          { freq: 330, start: 0.36, dur: 0.5 },
-        ];
-
-        notes.forEach(({ freq, start, dur }) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = "sine";
-          osc.frequency.value = freq;
-          gain.gain.value = 0.0001;
-          gain.gain.exponentialRampToValueAtTime(0.8, ctx.currentTime + start + 0.03);
-          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + dur);
-          osc.connect(gain);
-          gain.connect(master);
-          osc.start(ctx.currentTime + start);
-          osc.stop(ctx.currentTime + start + dur + 0.05);
-        });
-
-        setTimeout(() => {
-          ctx.close().catch(() => {});
-        }, 1700);
+        audio.currentTime = 0;
+        await audio.play();
         introSoundAttemptedRef.current = true;
       } catch {
         introSoundAttemptedRef.current = false;
@@ -169,6 +139,7 @@ export default function App() {
     window.addEventListener("pointerdown", retryOnGesture, { once: true });
     window.addEventListener("touchstart", retryOnGesture, { once: true, passive: true });
     window.addEventListener("keydown", retryOnGesture, { once: true });
+    playIntroChime();
 
     return () => {
       window.removeEventListener("pointerdown", retryOnGesture);
