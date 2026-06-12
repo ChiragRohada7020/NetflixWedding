@@ -236,7 +236,7 @@ export default function PublicInvitationSite() {
     fd.append("profile_image", value("profile_image"));
     fd.append("music_url", value("music_url"));
     fd.append("invitation_music_url", value("invitation_music_url"));
-    fd.append("access_level", value("access_level", "private"));
+    fd.append("access_level", value("access_level", wedding.access_level || "public"));
     fd.append("show_on_demo_home", wedding.show_on_demo_home ? "1" : "");
     fd.append("premium_experience_enabled", wedding.premium_experience_enabled ? "1" : "");
     fd.append("hero_kicker", value("hero_kicker", "A WEDDING ORIGINAL"));

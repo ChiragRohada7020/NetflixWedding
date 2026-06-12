@@ -659,8 +659,6 @@ def public_wedding_detail(public_slug):
     wedding = Wedding.get_by_public_slug(public_slug)
     if not wedding:
         return jsonify({"error": "Wedding not found"}), 404
-    if (wedding.get("access_level") or "private") != "public" and not _can_view_wedding(wedding):
-        return jsonify({"error": "Unauthorized"}), 401
     return jsonify(_to_jsonable(_with_owner_names([wedding])[0]))
 
 
@@ -707,7 +705,8 @@ def wedding_invitation_programs(wedding_id):
     wedding = Wedding.get(wedding_id)
     if not wedding:
         return jsonify({"error": "Wedding not found"}), 404
-    if not _can_view_wedding(wedding):
+    has_public_invitation = bool(wedding.get("public_slug"))
+    if not has_public_invitation and not _can_view_wedding(wedding):
         return jsonify({"error": "Unauthorized"}), 401
     return jsonify(_to_jsonable(InvitationProgram.by_wedding(wedding_id)))
 
