@@ -47,11 +47,13 @@ function readableDate(value, fallback) {
 }
 
 function timelineEvents(programs, wedding, venueName, heroImage) {
-  const fallbackDate = readableDate(wedding?.wedding_date, "Wedding Date");
   const fallback = [
-    { title: "Carnival", event_time: "12:00 PM Onwards", event_date: fallbackDate, description: "Attire: Multicolor Outfits" },
-    { title: "Reception Night", event_time: "08:30 PM Onwards", event_date: fallbackDate, description: "Attire: Blazer & One Piece" },
-    { title: "Vedic Vidhi", event_time: "12:00 PM Onwards", event_date: fallbackDate, description: "Attire: Traditional" },
+    { title: "Bhog Saheb", event_time: "9:00 AM", event_date: "24 June 2026", description: "At Our Residence" },
+    { title: "Haldi & Jivana", event_time: "1:00 PM onwards", event_date: "24 June 2026", description: "" },
+    { title: "Sangeet Lada", event_time: "6:00 PM onwards", event_date: "24 June 2026", description: "Venue: Navjavan Seva Mandal (Shiv Mandir), Pachora" },
+    { title: "Muhurat", event_time: "10:00 AM", event_date: "25 June 2026", description: "" },
+    { title: "Baraat", event_time: "11:00 AM", event_date: "25 June 2026", description: "Departure from our residence to Sai Moksh Resort" },
+    { title: "Reception", event_time: "8:00 PM onwards", event_date: "25 June 2026", description: "Followed by Dinner. Sai Moksh Resort, Pachora" },
   ];
   const source = programs.length ? programs.slice(0, 6) : fallback;
   return source.map((event, index) => ({
@@ -60,7 +62,7 @@ function timelineEvents(programs, wedding, venueName, heroImage) {
     title: event.title || fallback[index % fallback.length].title,
     time: event.event_time || event.time || fallback[index % fallback.length].event_time,
     rawDate: event.event_date || wedding?.wedding_date || "",
-    date: readableDate(event.event_date || wedding?.wedding_date, fallback[index % fallback.length].event_date),
+    date: readableDate(event.event_date || "", fallback[index % fallback.length].event_date),
     attire: event.attire || event.dress_code || event.description || fallback[index % fallback.length].description,
     image: mediaUrl(event.thumbnail || "") || heroImage,
     raw: event,
@@ -263,11 +265,21 @@ export default function PublicInvitationSite() {
     fd.append("invite_send_label", value("invite_send_label", "Send Love"));
     fd.append("invite_hashtag_label", value("invite_hashtag_label", "Forever begins here"));
     fd.append("invite_story_button_label", value("invite_story_button_label", "See Their Wedflix Story"));
-    fd.append("invite_by_title", value("invite_by_title", "Invitation By"));
-    fd.append("invite_by_line_one", value("invite_by_line_one", "Lal Keshav Niwas"));
-    fd.append("invite_by_line_two", value("invite_by_line_two", "Sindhi Colony, Pachora"));
-    fd.append("invite_by_line_three", value("invite_by_line_three", "Mr. Manoj Lalchand Pinjani"));
-    fd.append("invite_by_line_four", value("invite_by_line_four", "& All Pinjani Family, Friends & Relative"));
+    fd.append("invite_main_kicker", value("invite_main_kicker", "Main Invitation"));
+    fd.append("invite_main_title", value("invite_main_title", "The Wedding of Ashwin & Tisha"));
+    fd.append("invite_groom_name", value("invite_groom_name", "Ashwin"));
+    fd.append("invite_groom_details", value("invite_groom_details", "S/o Late Mrs. Reshma & Late Mr. Mahesh Pinjani"));
+    fd.append("invite_groom_guardian", value("invite_groom_guardian", "Guardian: Smt. Bhavika & Shri Manojkumar Pinjani"));
+    fd.append("invite_bride_name", value("invite_bride_name", "Tisha"));
+    fd.append("invite_bride_details", value("invite_bride_details", "D/o Smt. Jaya & Late Shri Dhiraj Ratnani"));
+    fd.append("invite_residence_title", value("invite_residence_title", "Residence Address"));
+    fd.append("invite_residence_line_one", value("invite_residence_line_one", "Lal Keshav Niwas"));
+    fd.append("invite_residence_line_two", value("invite_residence_line_two", "Sindhi Colony, Pachora"));
+    fd.append("invite_by_title", value("invite_by_title", "Regards"));
+    fd.append("invite_by_line_one", value("invite_by_line_one", "Mr. Manoj Lalchand Pinjani"));
+    fd.append("invite_by_line_two", value("invite_by_line_two", "& All Pinjani Family"));
+    fd.append("invite_by_line_three", value("invite_by_line_three", "Friends & Relatives"));
+    fd.append("invite_by_line_four", value("invite_by_line_four", ""));
     fd.append("custom_sections_json", JSON.stringify(Array.isArray(wedding.custom_sections) ? wedding.custom_sections : []));
     fd.append("venue_blocks_json", JSON.stringify(Array.isArray(wedding.venue_blocks) ? wedding.venue_blocks : []));
     fd.append("custom_section_label", value("custom_section_label"));
@@ -646,24 +658,42 @@ export default function PublicInvitationSite() {
           </section>
 
           <section className="invite-section invite-story invite-card-panel" id="invitation">
-            <InlineEditableText as="p" className="invite-kicker" value={inviteTitle} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invitation_title: value })} />
-            <InlineEditableText as="h2" value={`${firstName}${secondName ? ` weds ${secondName}` : ""}`} enabled={isEditing} onSave={(value) => saveWeddingPatch({ couple_names: value.replace(/\s+weds\s+/i, " & ") })} />
-            <InlineEditableText as="p" value={wedding?.venue_description || "With the blessings of our families, we request your presence for love, laughter, rituals, and forever."} enabled={isEditing} onSave={(value) => saveWeddingPatch({ venue_description: value })} />
+            <InlineEditableText as="p" className="invite-kicker" value={wedding?.invite_main_kicker || "Main Invitation"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_main_kicker: value })} />
+            <InlineEditableText as="h2" value={wedding?.invite_main_title || "The Wedding of Ashwin & Tisha"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_main_title: value })} />
+            <div className="invite-family-grid">
+              <article>
+                <InlineEditableText as="strong" value={wedding?.invite_groom_name || "Ashwin"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_groom_name: value })} />
+                <InlineEditableText as="span" value={wedding?.invite_groom_details || "S/o Late Mrs. Reshma & Late Mr. Mahesh Pinjani"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_groom_details: value })} />
+                <InlineEditableText as="span" value={wedding?.invite_groom_guardian || "Guardian: Smt. Bhavika & Shri Manojkumar Pinjani"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_groom_guardian: value })} />
+              </article>
+              <article>
+                <InlineEditableText as="strong" value={wedding?.invite_bride_name || "Tisha"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_bride_name: value })} />
+                <InlineEditableText as="span" value={wedding?.invite_bride_details || "D/o Smt. Jaya & Late Shri Dhiraj Ratnani"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_bride_details: value })} />
+              </article>
+            </div>
+          </section>
+
+          <section className="invite-section invite-residence invite-card-panel">
+            <InlineEditableText as="p" className="invite-kicker" value={wedding?.invite_residence_title || "Residence Address"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_residence_title: value })} />
+            <div className="invite-by__lines">
+              <InlineEditableText as="strong" value={wedding?.invite_residence_line_one || "Lal Keshav Niwas"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_residence_line_one: value })} />
+              <InlineEditableText as="span" value={wedding?.invite_residence_line_two || "Sindhi Colony, Pachora"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_residence_line_two: value })} />
+            </div>
           </section>
 
           <section className="invite-section invite-by invite-card-panel">
             <InlineEditableText
               as="p"
               className="invite-kicker"
-              value={wedding?.invite_by_title || "Invitation By"}
+              value={wedding?.invite_by_title || "Regards"}
               enabled={isEditing}
               onSave={(value) => saveWeddingPatch({ invite_by_title: value })}
             />
             <div className="invite-by__lines">
-              <InlineEditableText as="strong" value={wedding?.invite_by_line_one || "Lal Keshav Niwas"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_one: value })} />
-              <InlineEditableText as="span" value={wedding?.invite_by_line_two || "Sindhi Colony, Pachora"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_two: value })} />
-              <InlineEditableText as="span" value={wedding?.invite_by_line_three || "Mr. Manoj Lalchand Pinjani"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_three: value })} />
-              <InlineEditableText as="span" value={wedding?.invite_by_line_four || "& All Pinjani Family, Friends & Relative"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_four: value })} />
+              <InlineEditableText as="strong" value={wedding?.invite_by_line_one || "Mr. Manoj Lalchand Pinjani"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_one: value })} />
+              <InlineEditableText as="span" value={wedding?.invite_by_line_two || "& All Pinjani Family"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_two: value })} />
+              <InlineEditableText as="span" value={wedding?.invite_by_line_three || "Friends & Relatives"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_three: value })} />
+              {(wedding?.invite_by_line_four || isEditing) && <InlineEditableText as="span" value={wedding?.invite_by_line_four || ""} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_by_line_four: value })} />}
             </div>
           </section>
 
