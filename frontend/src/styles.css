@@ -9531,6 +9531,17 @@ body.premium-flow-open .wedflix-footer {
   color: #fff;
 }
 
+.invite-footer-credit {
+  padding: 28px 18px 36px;
+  color: rgba(104, 42, 52, 0.78);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 @keyframes invitePulse {
   0%, 100% { transform: translateX(-50%) scale(1); }
   50% { transform: translateX(-50%) scale(1.08); }

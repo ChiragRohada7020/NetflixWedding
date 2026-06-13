@@ -939,6 +939,10 @@ export default function PublicInvitationSite() {
               <InlineEditableText as="span" value={wedding?.invite_story_button_label || "See Their Wedflix Story"} enabled={isEditing} onSave={(value) => saveWeddingPatch({ invite_story_button_label: value })} />
             </Link>
           </section>
+
+          <footer className="invite-footer-credit">
+            Developed by Chirag Rohada &copy; {new Date().getFullYear()} All Rights Reserved.
+          </footer>
         </>
       )}
     </main>
