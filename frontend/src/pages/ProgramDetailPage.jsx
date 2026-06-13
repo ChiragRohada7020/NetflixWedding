@@ -15,6 +15,7 @@ import PhotoGalleryModal from "../components/PhotoGalleryModal";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import useModalHistory from "../utils/useModalHistory";
+import { getYouTubeVideoId, toYouTubeEmbed } from "../utils/youtube";
 
 const noop = () => {};
 const VideoModal = React.lazy(() => import("../components/VideoModal"));
@@ -29,15 +30,11 @@ function scrollContainerTo(id) {
 }
 
 function toEmbed(url) {
-  if (!url) return "";
-  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+  return toYouTubeEmbed(url, { fallback: url || "" });
 }
 
 function getVideoId(url) {
-  if (!url) return "";
-  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : "";
+  return getYouTubeVideoId(url);
 }
 
 function withPlayerParams(url, { muted = true } = {}) {

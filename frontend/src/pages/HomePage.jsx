@@ -9,18 +9,17 @@ import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import useModalHistory from "../utils/useModalHistory";
+import { getYouTubeVideoId, toYouTubeEmbed } from "../utils/youtube";
 
 function toEmbed(url) {
-  if (!url) return "";
-  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return match ? `https://www.youtube.com/embed/${match[1]}` : "";
+  return toYouTubeEmbed(url);
 }
 
 function withAutoplay(url) {
   if (!url) return "";
   const joiner = url.includes("?") ? "&" : "?";
-  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  const playlist = match ? `&playlist=${match[1]}` : "";
+  const videoId = getYouTubeVideoId(url);
+  const playlist = videoId ? `&playlist=${videoId}` : "";
   return `${url}${joiner}autoplay=1&mute=1&controls=0&loop=1${playlist}&playsinline=1&start=0&rel=0&modestbranding=1`;
 }
 

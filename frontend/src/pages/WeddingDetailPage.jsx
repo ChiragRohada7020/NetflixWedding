@@ -12,17 +12,14 @@ import LazyHeroVideo from "../components/LazyHeroVideo";
 import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import useModalHistory from "../utils/useModalHistory";
+import { getYouTubeVideoId, toYouTubeEmbed } from "../utils/youtube";
 
 function toEmbed(url) {
-  if (!url) return "";
-  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return m ? `https://www.youtube.com/embed/${m[1]}` : "";
+  return toYouTubeEmbed(url);
 }
 
 function getVideoId(url) {
-  if (!url) return "";
-  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : "";
+  return getYouTubeVideoId(url);
 }
 
 function withPlayerParams(url, { muted = true } = {}) {

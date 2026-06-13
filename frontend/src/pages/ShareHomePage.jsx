@@ -10,17 +10,14 @@ import SeoHead from "../components/SeoHead";
 import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
 import FavouriteLoginToast, { useFavouriteLoginToast } from "../components/FavouriteLoginToast";
 import { isFavouriteWedding, removeFavouriteWedding, saveFavouriteWedding } from "../utils/favourites";
+import { getYouTubeVideoId, toYouTubeEmbed } from "../utils/youtube";
 
 function toEmbed(url) {
-  if (!url) return "";
-  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return match ? `https://www.youtube.com/embed/${match[1]}` : "";
+  return toYouTubeEmbed(url);
 }
 
 function getVideoId(url) {
-  if (!url) return "";
-  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return match ? match[1] : "";
+  return getYouTubeVideoId(url);
 }
 
 function withHeroParams(url, { muted = true } = {}) {
