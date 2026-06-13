@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { mediaUrl } from "../api";
 
-export default function LazyHeroVideo({ src, title, poster, alt = "", className = "home-hero__video" }) {
+export default function LazyHeroVideo({ src, title, poster, alt = "", className = "home-hero__video", isShort = false }) {
   const [frameLoaded, setFrameLoaded] = useState(false);
   const resolvedPoster = mediaUrl(poster);
 
@@ -22,7 +22,7 @@ export default function LazyHeroVideo({ src, title, poster, alt = "", className 
         />
       )}
       <iframe
-        className={`${className} ${frameLoaded ? "is-loaded" : ""}`}
+        className={`${className} ${isShort ? "is-short" : ""} ${frameLoaded ? "is-loaded" : ""}`}
         src={src}
         title={title}
         loading="eager"

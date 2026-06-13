@@ -9,7 +9,7 @@ import AsyncState from "../components/AsyncState";
 import SeoHead from "../components/SeoHead";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import useModalHistory from "../utils/useModalHistory";
-import { getYouTubeVideoId, toYouTubeEmbed } from "../utils/youtube";
+import { getYouTubeVideoId, isYouTubeShortsUrl, toYouTubeEmbed } from "../utils/youtube";
 
 function toEmbed(url) {
   return toYouTubeEmbed(url);
@@ -113,6 +113,7 @@ export default function HomePage() {
   });
 
   const featuredVideoUrl = useMemo(() => withAutoplay(toEmbed(featuredWedding?.hero_video_url)), [featuredWedding?.hero_video_url]);
+  const featuredVideoIsShort = isYouTubeShortsUrl(featuredWedding?.hero_video_url);
   const heroImage = featuredWedding?.hero_image || featuredWedding?.profile_image || getPlaceholder(featuredWedding?.couple_names);
   const pageMusicUrl = mediaUrl(featuredWedding?.music_url || "");
 
@@ -227,7 +228,7 @@ export default function HomePage() {
           <div className={`home-hero__media ${featuredVideoUrl ? "has-video" : ""}`}>
             {featuredVideoUrl ? (
               <iframe
-                className="home-hero__video"
+                className={`home-hero__video ${featuredVideoIsShort ? "is-short" : ""}`}
                 src={featuredVideoUrl}
                 title="Featured story trailer"
                 allow="autoplay; encrypted-media; picture-in-picture"

@@ -15,7 +15,7 @@ import PhotoGalleryModal from "../components/PhotoGalleryModal";
 import LazyHeroVideo from "../components/LazyHeroVideo";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import useModalHistory from "../utils/useModalHistory";
-import { getYouTubeVideoId, toYouTubeEmbed } from "../utils/youtube";
+import { getYouTubeVideoId, isYouTubeShortsUrl, toYouTubeEmbed } from "../utils/youtube";
 
 const noop = () => {};
 const VideoModal = React.lazy(() => import("../components/VideoModal"));
@@ -30,7 +30,7 @@ function scrollContainerTo(id) {
 }
 
 function toEmbed(url) {
-  return toYouTubeEmbed(url, { fallback: url || "" });
+  return toYouTubeEmbed(url);
 }
 
 function getVideoId(url) {
@@ -392,6 +392,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
   const programHeroVideo = toEmbed(program?.hero_video_url);
+  const programHeroVideoIsShort = isYouTubeShortsUrl(program?.hero_video_url);
   const programHeroImage = mediaUrl(program?.thumbnail || ordered[0]?.thumbnail || wedding?.profile_image || "") || "https://picsum.photos/seed/program-hero/1200/800";
   const scrollToEvents = () => {
     scrollContainerTo("events");
@@ -415,6 +416,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
               title="Program Hero"
               poster={programHeroImage}
               alt={program?.title || "Program"}
+              isShort={programHeroVideoIsShort}
             />
           ) : (
             <ProgressiveImage

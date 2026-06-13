@@ -12,7 +12,7 @@ import LazyHeroVideo from "../components/LazyHeroVideo";
 import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import useModalHistory from "../utils/useModalHistory";
-import { getYouTubeVideoId, toYouTubeEmbed } from "../utils/youtube";
+import { getYouTubeVideoId, isYouTubeShortsUrl, toYouTubeEmbed } from "../utils/youtube";
 
 function toEmbed(url) {
   return toYouTubeEmbed(url);
@@ -315,6 +315,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
     () => withPlayerParams(toEmbed(wedding?.hero_video_url), { muted: Boolean(pageMusicUrl) }),
     [wedding?.hero_video_url, pageMusicUrl],
   );
+  const featuredVideoIsShort = isYouTubeShortsUrl(wedding?.hero_video_url);
   const scrollToFunctions = () => {
     scrollContainerTo("programs");
   };
@@ -435,6 +436,7 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
                 title="Story Hero"
                 poster={heroImage}
                 alt={wedding.couple_names}
+                isShort={featuredVideoIsShort}
               />
             ) : (
               <img className="home-hero__image" src={heroImage} alt={wedding.couple_names} loading="eager" decoding="async" />

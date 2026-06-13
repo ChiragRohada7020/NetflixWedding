@@ -10,7 +10,7 @@ import SeoHead from "../components/SeoHead";
 import PremiumWeddingExperience from "../components/PremiumWeddingExperience";
 import FavouriteLoginToast, { useFavouriteLoginToast } from "../components/FavouriteLoginToast";
 import { isFavouriteWedding, removeFavouriteWedding, saveFavouriteWedding } from "../utils/favourites";
-import { getYouTubeVideoId, toYouTubeEmbed } from "../utils/youtube";
+import { getYouTubeVideoId, isYouTubeShortsUrl, toYouTubeEmbed } from "../utils/youtube";
 
 function toEmbed(url) {
   return toYouTubeEmbed(url);
@@ -109,6 +109,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
   const heroImage = mediaUrl(wedding?.hero_image || wedding?.profile_image || featuredProgram?.thumbnail || getPlaceholder(wedding?.couple_names));
   const pageMusicUrl = mediaUrl(wedding?.music_url || "");
   const heroVideo = withHeroParams(toEmbed(wedding?.hero_video_url), { muted: Boolean(pageMusicUrl) });
+  const heroVideoIsShort = isYouTubeShortsUrl(wedding?.hero_video_url);
   const scrollToFunctions = () => {
     scrollContainerTo("celebration-series");
   };
@@ -243,7 +244,7 @@ export default function ShareHomePage({ onMusicUrlChange = () => {} }) {
         <header className="home-hero share-home-hero">
           <div className={`home-hero__media ${heroVideo ? "has-video" : ""}`}>
             {heroVideo ? (
-              <LazyHeroVideo src={heroVideo} title="Wedding Home Trailer" poster={heroImage} alt={wedding.couple_names} />
+              <LazyHeroVideo src={heroVideo} title="Wedding Home Trailer" poster={heroImage} alt={wedding.couple_names} isShort={heroVideoIsShort} />
             ) : (
               <img className="home-hero__image" src={heroImage} alt={wedding.couple_names} loading="eager" decoding="async" />
             )}
