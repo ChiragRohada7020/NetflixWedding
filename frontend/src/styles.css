@@ -8096,17 +8096,22 @@ body.premium-flow-open .wedflix-footer {
 
 .invite-reveal.is-bursting .invite-envelope img {
   transform: translateY(24%) scale(0.96);
-  opacity: 0.62;
+  opacity: 0.52;
 }
 
 .invite-reveal.is-bursting .invite-envelope::before {
   transform: rotateX(142deg) translateY(-12%);
-  opacity: 0.82;
+  opacity: 0.48;
+  z-index: 2;
 }
 
 .invite-reveal.is-bursting .invite-envelope__paper {
   opacity: 1;
-  transform: translateY(-92%) scale(1) rotateX(0deg);
+  z-index: 5;
+  transform: translateY(-96%) scale(1.03) rotateX(0deg);
+  box-shadow:
+    0 30px 80px rgba(80, 47, 20, 0.26),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.82);
 }
 
 .invite-burst {
