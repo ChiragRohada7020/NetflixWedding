@@ -75,7 +75,7 @@ function AppShell({ containerRef, musicUrl, setMusicUrl, showIntro }) {
         {!isSiteRoute && (
           <footer className="wedflix-footer">
             <p>
-              <a href="https://wedflix.space/site">Wedflix</a> &copy; {new Date().getFullYear()} All Rights Reserved.
+              Developed by Chirag Rohada &copy; {new Date().getFullYear()} All Rights Reserved.
             </p>
           </footer>
         )}

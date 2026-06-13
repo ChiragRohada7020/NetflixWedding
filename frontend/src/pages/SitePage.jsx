@@ -314,7 +314,7 @@ export default function SitePage() {
       </section>
 
       <footer className="site-lux__footer">
-        <p>Wedflix &copy; {new Date().getFullYear()} All Rights Reserved.</p>
+        <p>Developed by Chirag Rohada &copy; {new Date().getFullYear()} All Rights Reserved.</p>
       </footer>
     </div>
   );
