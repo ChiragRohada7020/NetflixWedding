@@ -1,1 +1,0 @@
-function p(u){return u!=null&&u.public_slug?u.premium_experience_enabled?`/p/${u.public_slug}/invite`:`/p/${u.public_slug}/home`:""}function t(u){const i=p(u);return i?`${window.location.origin}${i}`:""}export{p as a,t as p};

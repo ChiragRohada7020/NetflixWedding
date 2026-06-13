@@ -1,0 +1,1 @@
+function n(t){return t!=null&&t.public_slug?`/p/${t.public_slug}/home`:""}function o(t){const i=n(t);return i?`${window.location.origin}${i}`:""}function u(t){return t!=null&&t.public_slug?`/p/${t.public_slug}/invite`:""}function r(t){const i=u(t);return i?`${window.location.origin}${i}`:""}export{o as a,n as b,r as p};

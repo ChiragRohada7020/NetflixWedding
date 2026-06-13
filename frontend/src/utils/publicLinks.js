@@ -1,9 +1,19 @@
-export function publicWeddingPath(wedding) {
+export function publicWeddingStoryPath(wedding) {
   if (!wedding?.public_slug) return "";
-  return wedding.premium_experience_enabled ? `/p/${wedding.public_slug}/invite` : `/p/${wedding.public_slug}/home`;
+  return `/p/${wedding.public_slug}/home`;
 }
 
-export function publicWeddingLink(wedding) {
-  const path = publicWeddingPath(wedding);
+export function publicWeddingStoryLink(wedding) {
+  const path = publicWeddingStoryPath(wedding);
+  return path ? `${window.location.origin}${path}` : "";
+}
+
+export function publicWeddingInvitationPath(wedding) {
+  if (!wedding?.public_slug) return "";
+  return `/p/${wedding.public_slug}/invite`;
+}
+
+export function publicWeddingInvitationLink(wedding) {
+  const path = publicWeddingInvitationPath(wedding);
   return path ? `${window.location.origin}${path}` : "";
 }

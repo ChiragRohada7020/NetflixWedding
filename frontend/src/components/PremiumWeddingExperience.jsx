@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { mediaUrl } from "../api";
+import { publicWeddingInvitationLink } from "../utils/publicLinks";
 
 function placeholder(label) {
   const text = encodeURIComponent((label || "Wedflix Story").trim().slice(0, 28));
@@ -87,9 +88,7 @@ export default function PremiumWeddingExperience({
   const musicUrl = mediaUrl((screen === "invitation" ? wedding?.invitation_music_url : "") || wedding?.music_url || "");
   const invitation = getInvitationText(wedding);
   const invitationDate = getInvitationDate(wedding?.wedding_date);
-  const invitationWebsiteUrl = wedding?.public_slug
-    ? `${window.location.origin}/p/${wedding.public_slug}/invite`
-    : window.location.href;
+  const invitationWebsiteUrl = publicWeddingInvitationLink(wedding) || window.location.href;
   const mapQuery = mapLocation || [venueName, venueAddress].filter(Boolean).join(", ");
   const venueBlocks = useMemo(() => {
     const saved = Array.isArray(wedding?.venue_blocks) ? wedding.venue_blocks : [];
