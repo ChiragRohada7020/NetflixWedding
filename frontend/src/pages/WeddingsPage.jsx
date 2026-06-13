@@ -11,6 +11,7 @@ import SeoHead from "../components/SeoHead";
 import { prepareAudioForUpload, preparePhotoForUpload } from "../utils/imageUpload";
 import { mediaUrl } from "../api";
 import useModalHistory from "../utils/useModalHistory";
+import { publicWeddingLink } from "../utils/publicLinks";
 
 const netflixLogoUrl = "https://images.icon-icons.com/2699/PNG/512/netflix_logo_icon_170919.png";
 
@@ -117,12 +118,12 @@ export default function WeddingsPage() {
     await queryClient.invalidateQueries({ queryKey: ["session"] });
     setModal(null);
     if (result?.public_home_path) {
-      const publicUrl = `${window.location.origin}${result.public_home_path}/invite`;
+      const publicUrl = `${window.location.origin}${result.public_home_path}${payload.premium_experience_enabled ? "/invite" : "/home"}`;
       try {
         await navigator.clipboard.writeText(publicUrl);
-        window.alert(`Public invitation link copied:\n${publicUrl}`);
+        window.alert(`Public link copied:\n${publicUrl}`);
       } catch {
-        window.prompt("Copy this public invitation link", publicUrl);
+        window.prompt("Copy this public link", publicUrl);
       }
     }
   };
@@ -139,12 +140,12 @@ export default function WeddingsPage() {
       window.alert("Please save this story once to create its public invitation link.");
       return;
     }
-    const shareUrl = `${window.location.origin}/p/${wedding.public_slug}/invite`;
+    const shareUrl = publicWeddingLink(wedding);
     try {
       await navigator.clipboard.writeText(shareUrl);
-      window.alert("Public invitation link copied.");
+      window.alert("Public link copied.");
     } catch {
-      window.prompt("Copy this public invitation link", shareUrl);
+      window.prompt("Copy this public link", shareUrl);
     }
   };
 

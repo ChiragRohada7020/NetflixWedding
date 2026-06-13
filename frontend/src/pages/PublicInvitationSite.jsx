@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { apiGetPublic, apiPostForm, mediaUrl } from "../api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -455,6 +455,9 @@ export default function PublicInvitationSite() {
 
   if (isLoading && !data) return <AsyncState mode="loading" />;
   if (error && !data) return <AsyncState mode="error" message={error.message} onRetry={() => refetch()} />;
+  if (wedding && !wedding.premium_experience_enabled) {
+    return <Navigate to={`/p/${publicSlug}/home`} replace />;
+  }
 
   return (
     <main className={`invite-site ${revealed ? "is-revealed" : ""}`} style={{ "--invite-bg-image": `url(${invitationBgImage})` }}>
