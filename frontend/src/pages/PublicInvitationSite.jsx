@@ -444,7 +444,7 @@ export default function PublicInvitationSite() {
     const images = [
       warmImage(invitationBgImage, "high"),
       warmImage(heroImage, "high"),
-      warmImage("/invite-premium-envelope.png", "high"),
+      warmImage("/invite-fast-envelope.webp", "high"),
       ...inviteEvents.slice(0, 2).map((event) => warmImage(event.image)),
       ...galleryItems.slice(0, 2).map((item) => warmImage(item.image)),
     ];
@@ -547,7 +547,7 @@ export default function PublicInvitationSite() {
               <span>{date.day || ""} {date.month || ""} {date.year || ""}</span>
             </div>
             <img
-              src="/invite-premium-envelope.png"
+              src="/invite-fast-envelope.webp"
               alt="Wedding invitation envelope"
               loading="eager"
               decoding="async"
