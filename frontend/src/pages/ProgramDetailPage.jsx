@@ -133,7 +133,7 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
   });
   const wedding = data?.wedding;
   const program = data?.program;
-  const pageMusicUrl = mediaUrl(program?.music_url || wedding?.music_url || "");
+  const pageMusicUrl = mediaUrl(program?.music_url || "");
   const episodes = React.useMemo(() => data?.episodes || [], [data?.episodes]);
   const episodeLimit = Number(session?.plan?.limits?.episode_limit || 0);
   const canAddEpisode = Boolean(isEditing && session && (session.is_developer || !episodeLimit || episodes.length < episodeLimit));
@@ -212,8 +212,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
     };
   }, [pageMusicUrl, isMusicOn]);
   React.useEffect(() => {
-    onMusicUrlChange(program?.music_url || wedding?.music_url || "");
-  }, [program?.music_url, wedding?.music_url, onMusicUrlChange]);
+    onMusicUrlChange(program?.music_url || "");
+  }, [program?.music_url, onMusicUrlChange]);
 
   const toggleMusic = async () => {
     if (!audioRef.current || !pageMusicUrl) return;
@@ -460,8 +460,8 @@ export default function ProgramDetailPage({ onMusicUrlChange = noop, publicMode 
           type="button"
           className={`home-sound-toggle ${isMusicOn ? "is-on" : ""}`}
           onClick={toggleMusic}
-          disabled={!(program?.music_url || wedding?.music_url)}
-          title={program?.music_url || wedding?.music_url ? (isMusicOn ? "Music On" : "Music Off") : "No page music"}
+          disabled={!pageMusicUrl}
+          title={pageMusicUrl ? (isMusicOn ? "Music On" : "Music Off") : "No page music"}
         >
           <span aria-hidden="true">{isMusicOn ? "♪" : "♫"}</span>
         </button>

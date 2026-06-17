@@ -67,9 +67,8 @@ def _resolve_music_url(form_name="music_url", file_name="music_file", existing="
         if uploaded:
             return uploaded
 
-    direct = (request.form.get(form_name) or "").strip()
-    if direct:
-        return direct
+    if form_name in request.form:
+        return (request.form.get(form_name) or "").strip()
     return existing or ""
 
 def _parse_custom_sections(raw_value):
