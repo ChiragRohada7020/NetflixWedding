@@ -328,12 +328,14 @@ export default function WeddingDetailPage({ onMusicUrlChange = () => {}, publicM
   };
 
   const mainRailSource = ordered.length ? ordered : (mainPrograms.length ? mainPrograms : programs);
-  const mainRailCardsVisible = mainRailSource.slice(0, 3).map((program, index) => ({
-    item: program,
-    href: `${weddingBasePath}/programs/${program._id}`,
-    title: program.title || `Season ${index + 1}`,
-    subtitle: program.event_date || program.venue_name || `Season ${index + 1}`,
-  })).filter((card) => matchesSearch(card.item));
+  const mainRailCardsVisible = mainRailSource
+    .filter(matchesSearch)
+    .map((program, index) => ({
+      item: program,
+      href: `${weddingBasePath}/programs/${program._id}`,
+      title: program.title || `Season ${index + 1}`,
+      subtitle: program.event_date || program.venue_name || `Season ${index + 1}`,
+    }));
 
   const [isMusicOn, setIsMusicOn] = useState(() => localStorage.getItem("wedflix_music_on") !== "0");
   const audioRef = useRef(null);
